@@ -102,6 +102,7 @@ html.lite #ambiance .glow{animation:none;} html.lite .mote{display:none;}
 .mem-ip-foot{text-align:center;font-family:'Cinzel',serif;font-weight:900;font-size:12.5px;letter-spacing:1px;color:var(--goldL);border-top:1px solid rgba(201,162,39,.3);padding-top:12px;margin-top:4px;}
 .mem-signoff{text-align:center;margin-top:20px;}
 .mem-signoff .mem-balance{font-size:32px;line-height:1;filter:drop-shadow(0 0 10px rgba(240,208,96,.35));}
+.mem-signoff .mem-seal{font-family:'Cinzel',serif;font-weight:900;font-size:12px;letter-spacing:4px;color:var(--goldL);margin-top:8px;}
 .mem-signoff p{font-family:'Cinzel',serif;font-weight:700;font-size:13px;letter-spacing:.5px;color:var(--goldL);margin-top:8px;font-style:italic;}
 .mem-signoff b{color:#fff;font-style:normal;}
 .sr-line{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:7px;}
@@ -835,7 +836,7 @@ html.lite #liens .lien{animation:none;}
 
     <div class="mem-ip">
       <div class="mem-ip-h">© PROPRIÉTÉ INTELLECTUELLE</div>
-      <p>Le jeu <b>ÉQUILIBRE</b> a été inventé, conçu et développé de A à Z par le <b>couple KHALAM</b>.</p>
+      <p>Le jeu <b>ÉQUILIBRE</b> a été conçu et développé de A à Z par le <b>couple KHALAM</b>.</p>
       <p>L'ensemble du concept, des règles, des contenus, des illustrations et de tous les éléments qui composent ce jeu est une <b>création originale</b>.</p>
       <p>Ce jeu est protégé par le <b>droit d'auteur</b>. Toute reproduction, copie, modification, adaptation, diffusion ou exploitation, totale ou partielle, sans l'autorisation écrite préalable des auteurs, est strictement interdite et pourra faire l'objet de poursuites conformément aux lois en vigueur sur la propriété intellectuelle.</p>
       <div class="mem-ip-foot">© TOUS DROITS RÉSERVÉS</div>
@@ -843,7 +844,7 @@ html.lite #liens .lien{animation:none;}
 
     <div class="mem-signoff">
       <div class="mem-balance">⚖️</div>
-      <p>Ce jeu a été créé par le <b>couple KHALAM</b>.</p>
+      <p class="mem-seal">✦ KHALAM ✦</p>
     </div>
 
   </div>
@@ -2366,8 +2367,7 @@ const MEM_TXT = [
   "Ton Miroir. Au fil des parties, ÉQUILIBRE observe où va ton énergie et te renvoie un reflet de toi.",
   "Le couple Khalam. Le nom Khalam est né de l'union de leurs deux prénoms : Kha, inspiré de Khadi ; Lam, inspiré de Lamine. Au-delà de cette fusion symbolique, Khalam évoque également le xalam, un instrument traditionnel d'Afrique de l'Ouest, symbole de sagesse, d'harmonie, de transmission et de richesse culturelle. À travers ce nom, le couple a souhaité incarner les valeurs qui fondent le jeu Équilibre : l'amour, l'unité, le dialogue, la réflexion et la recherche d'un équilibre durable entre les dimensions essentielles de la vie.",
   "Nous avons créé ÉQUILIBRE pour vous aider à réfléchir à ce qui compte vraiment dans la vie, tout en jouant.",
-  "Propriété intellectuelle. Le jeu ÉQUILIBRE a été inventé, conçu et développé de A à Z par le couple Khalam. L'ensemble du concept, des règles, des contenus, des illustrations et de tous les éléments qui composent ce jeu est une création originale. Ce jeu est protégé par le droit d'auteur. Toute reproduction, copie, modification, adaptation, diffusion ou exploitation, totale ou partielle, sans l'autorisation écrite préalable des auteurs, est strictement interdite et pourra faire l'objet de poursuites. Tous droits réservés.",
-  "Ce jeu a été créé par le couple Khalam."
+  "Propriété intellectuelle. Le jeu ÉQUILIBRE a été conçu et développé de A à Z par le couple Khalam. L'ensemble du concept, des règles, des contenus, des illustrations et de tous les éléments qui composent ce jeu est une création originale. Ce jeu est protégé par le droit d'auteur. Toute reproduction, copie, modification, adaptation, diffusion ou exploitation, totale ou partielle, sans l'autorisation écrite préalable des auteurs, est strictement interdite et pourra faire l'objet de poursuites. Tous droits réservés."
 ].join(' ');
 function ouvrirModemploi(from){
   ac();
