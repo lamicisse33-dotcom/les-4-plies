@@ -1733,42 +1733,58 @@ let PROFIL={parties:0, victoires:0, tot:{}, neglige:{}, fort:{}};
    Après une défaite, sur le pilier qui a lâché. Une seule fois par pilier, jamais reposée.
    Le jeu renvoie la réponse, il ne l'interprète jamais. Toujours esquivable. */
 const QUESTIONS = {
-  "Amour":        { q:"Ton amour est resté au plus bas. Et dans ta vie ?", r:[
+  "Amour":        { q:"Ton amour est resté au plus bas. Et celui que tu portes vraiment ?", r:[
       {k:"vivant",  t:"J'aime, et c'est vivant"},
       {k:"donne",   t:"J'aime, mais je donne plus que je ne reçois"},
       {k:"decu",    t:"J'ai été déçu·e — je me protège"},
       {k:"lasse",   t:"Je n'y crois plus trop, en ce moment"} ]},
-  "Santé":        { q:"Ta santé a décidé de cette défaite. Et dans ta vie ?", r:[
+  "Santé":        { q:"Ta santé a décidé de cette défaite. Et celle que tu habites vraiment ?", r:[
       {k:"soin",    t:"Je prends soin de mon corps"},
       {k:"sait",    t:"Je sais ce qu'il faudrait — je ne le fais pas"},
       {k:"fatigue", t:"Je tiens, mais je suis fatigué·e"},
       {k:"oubli",   t:"Je m'oublie complètement"} ]},
-  "Argent":       { q:"Ton argent t'a coûté la partie. Et dans ta vie ?", r:[
+  "Argent":       { q:"Ton argent t'a coûté la partie. Et celui que tu comptes vraiment ?", r:[
       {k:"suffit",  t:"J'ai ce qu'il me faut"},
       {k:"court",   t:"Je cours après, sans répit"},
       {k:"angoisse",t:"C'est une source d'angoisse"},
       {k:"ignore",  t:"Je n'y pense pas assez"} ]},
-  "Spiritualité": { q:"Ta spiritualité est restée au plus bas. Et dans ta vie ?", r:[
+  "Spiritualité": { q:"Ta spiritualité est restée au plus bas. Et celle qui te tient vraiment ?", r:[
       {k:"cap",     t:"J'ai un sens, un cap"},
       {k:"cherche", t:"Je cherche encore"},
       {k:"temps",   t:"Je n'ai pas le temps de me poser"},
       {k:"loin",    t:"Ça ne me parle pas"} ]}
 };
-/* Ce que le Miroir renverra — la parole du joueur, pas un jugement */
-const ECHO = {
-  "Amour":{ vivant:"ton amour était vivant", donne:"tu donnais plus que tu ne recevais",
-            decu:"tu avais été déçu·e, et que tu te protégeais", lasse:"tu n'y croyais plus trop, en ce moment" },
-  "Santé":{ soin:"tu prenais soin de ton corps", sait:"tu savais ce qu'il faudrait, sans le faire",
-            fatigue:"tu tenais, mais fatigué·e", oubli:"tu t'oubliais complètement" },
-  "Argent":{ suffit:"tu avais ce qu'il te faut", court:"tu courais après, sans répit",
-             angoisse:"c'était une source d'angoisse", ignore:"tu n'y pensais pas assez" },
-  "Spiritualité":{ cap:"tu avais un sens, un cap", cherche:"tu cherchais encore",
-                   temps:"tu n'avais pas le temps de te poser", loin:"ça ne te parlait pas" }
+/* Ce que le joueur DÉCLARE : soigner ce pilier, ou s'en retirer.
+   C'est l'écart entre ce mot et son jeu qui fera le choc. */
+const DIT = {
+  "Amour":       { vivant:"soin", donne:"soin",  decu:"retrait", lasse:"retrait" },
+  "Santé":       { soin:"soin",   sait:"retrait",fatigue:"retrait", oubli:"retrait" },
+  "Argent":      { suffit:"soin", court:"soin",  angoisse:"retrait", ignore:"retrait" },
+  "Spiritualité":{ cap:"soin",    cherche:"soin",temps:"retrait", loin:"retrait" }
 };
+/* Le miroir parle au présent : il ne se souvient pas, il voit. */
+const DIT_MOT = {
+  "Amour":{ vivant:"ton amour est vivant", donne:"tu donnes plus que tu ne reçois",
+            decu:"tu as été déçu·e, et que tu te protèges", lasse:"tu n'y crois plus trop" },
+  "Santé":{ soin:"tu prends soin de ton corps", sait:"tu sais ce qu'il faudrait, sans le faire",
+            fatigue:"tu tiens, mais fatigué·e", oubli:"tu t'oublies complètement" },
+  "Argent":{ suffit:"tu as ce qu'il te faut", court:"tu cours après, sans répit",
+             angoisse:"c'est une source d'angoisse", ignore:"tu n'y penses pas assez" },
+  "Spiritualité":{ cap:"tu as un sens, un cap", cherche:"tu cherches encore",
+                   temps:"tu n'as pas le temps de te poser", loin:"ça ne te parle pas" }
+};
+/* Le miroir attend d'en avoir assez vu avant de révéler */
+const SEUIL_MIROIR = 3;
 let REPONSES={};
 function chargerReponses(){ try{ const s=JSON.parse(localStorage.getItem('eq_rep_v1')); if(s&&typeof s==='object') REPONSES=s; }catch(e){} }
 function sauverReponses(){ try{ localStorage.setItem('eq_rep_v1', JSON.stringify(REPONSES)); }catch(e){} }
 function oublierReponses(){ REPONSES={}; sauverReponses(); }
+/* {k:réponse, n:nb de parties au moment de la parole} — l'ancien format (chaîne) reste lisible */
+function laParole(p){
+  const r=REPONSES[p]; if(!r) return null;
+  const o = (typeof r==='string') ? {k:r, n:0} : r;
+  return (o.k && o.k!=="—") ? o : null;
+}
 let _qPil=null, _qSeq=null;
 /* Le Phénix lit la question, puis chaque réponse — en la surlignant au moment où il la prononce */
 function _voixFr(u){
@@ -1784,33 +1800,24 @@ function stopLectureQ(){
   try{ speechSynthesis.cancel(); }catch(e){}
   majLireBtn();
 }
-function lireQuestionSeq(p){
-  if(!('speechSynthesis' in window)) return;
+function lireQuestionSeq(p, manuel){
   const Q=QUESTIONS[p]; if(!Q) return;
-  try{ speechSynthesis.cancel(); }catch(e){}
   const btns=[...document.querySelectorAll('#qRep .q-btn')];
-  btns.forEach(b=>b.classList.remove('attend'));
-  const seq=[{i:-1,t:Q.q}].concat(Q.r.map((x,i)=>({i,t:x.t})));
+  btns.forEach(b=>b.classList.remove('attend','lu'));
   const moi={}; _qSeq=moi;                       // jeton : toute nouvelle lecture annule l'ancienne
-  let k=0;
-  const eteindre=()=>btns.forEach(b=>b.classList.remove('lu'));
-  const suite=()=>{
-    if(_qSeq!==moi) return;                      // arrêtée entre-temps
-    eteindre();
-    if(k>=seq.length){                           // tout est dit : à toi de choisir
-      _qSeq=null;
-      btns.forEach(b=>b.classList.add('attend'));   // ajoutées d'un coup -> elles clignotent ensemble
-      majLireBtn(); return;
-    }
-    const s=seq[k++];
-    if(s.i>=0 && btns[s.i]) btns[s.i].classList.add('lu');
-    const u=_voixFr(new SpeechSynthesisUtterance(s.t));
-    u.onend=()=>{ if(_qSeq===moi) setTimeout(suite, 160); };   // petite respiration entre deux
-    u.onerror=()=>{ if(_qSeq===moi) setTimeout(suite, 160); };
-    try{ speechSynthesis.speak(u); }catch(e){ _qSeq=null; }
+  const fini=()=>{                               // la question est dite : les réponses appellent, sans voix
+    if(_qSeq!==moi) return;
+    _qSeq=null;
+    btns.forEach(b=>b.classList.add('attend'));  // ajoutées d'un coup -> elles clignotent ensemble
     majLireBtn();
   };
-  suite();
+  // voix coupée + lecture automatique : pas un mot. Mais l'appel visuel doit venir quand même.
+  if(!('speechSynthesis' in window) || (!voixOn && !manuel)){ fini(); return; }
+  try{ speechSynthesis.cancel(); }catch(e){}
+  const u=_voixFr(new SpeechSynthesisUtterance(Q.q));   // seule la question est lue
+  u.onend=fini; u.onerror=fini;
+  try{ speechSynthesis.speak(u); }catch(e){ fini(); }
+  majLireBtn();
 }
 function ouvrirQuestion(p){
   const Q=QUESTIONS[p]; if(!Q) return;
@@ -1818,13 +1825,14 @@ function ouvrirQuestion(p){
   document.getElementById('qTxt').innerHTML = `${embImg(p,16)} ${Q.q}`;
   document.getElementById('qRep').innerHTML = Q.r.map(x=>`<button class="q-btn" onclick="repondre('${p}','${x.k}')">${x.t}</button>`).join("");
   document.getElementById('qSkip').style.display='';
-  _lectureTxt = `${Q.q} ${Q.r.map(x=>x.t).join('. ')}.`;
+  _lectureTxt = Q.q;                                // seule la question est dite à voix haute
   document.getElementById('qphenix').classList.add('on');
   setTimeout(()=>{ lireQuestionSeq(p); }, 420);      // lecture automatique dès l'ouverture
 }
 function repondre(p,k){
   if(!p) return;
-  if(k) REPONSES[p]=k; else REPONSES[p]="—";     // "—" : demandé, esquivé, on ne redemande pas
+  if(k) REPONSES[p]={k:k, n:(PROFIL.parties||0)};   // on note ce que le miroir avait déjà vu
+  else  REPONSES[p]={k:"—", n:0};                   // demandé, esquivé : on ne redemande pas
   sauverReponses();
   stopLectureQ();
   const merci = k
@@ -1966,7 +1974,7 @@ function toggleLecture(){
   if(('speechSynthesis' in window) && (speechSynthesis.speaking || _qSeq)){
     if(surQuestion) stopLectureQ(); else speechSynthesis.cancel();
   }
-  else if(surQuestion){ lireQuestionSeq(_qPil); }
+  else if(surQuestion){ lireQuestionSeq(_qPil, true); }   // le bouton force, comme ailleurs
   else { lireTexte(_lectureTxt); }
   setTimeout(majLireBtn,90);
 }
@@ -2823,14 +2831,14 @@ function ouvrirMiroir(){
       <p>Ton <b>refuge</b> : ${embImg(refuge,15)} <b>${refuge}</b> — ${MIR_REFUGE[refuge]}</p>
       ${ax?`<p>Ton âme penche vers l'axe ${embImg(triTot[0],15)}${embImg(triTot[1],15)} <b>${ax.t}</b> — ${ax.r}</p>`:''}
       <p style="color:var(--goldL)">Ton défi : oser nourrir ${embImg(angleMort,15)} <b>${angleMort}</b>, là où tu détournes les yeux.</p>
-    </div>` + blocConfidences(angleMort);
+    </div>` + blocConfidences(angleMort, refuge);
   // texte parlé (sans balises)
   let mt = `Le reflet de ton jeu. ${PROFIL.parties} parties, ${PROFIL.victoires} victoire${PROFIL.victoires>1?'s':''}. `;
   mt += `Ton angle mort : ${angleMort}, laissé pour compte ${negF} fois sur ${PROFIL.parties}. ${MIR_ANGLE[angleMort]} `;
   mt += `Ton refuge : ${refuge}. ${MIR_REFUGE[refuge]} `;
   if(ax) mt += `Ton âme penche vers l'axe ${ax.t}. ${ax.r} `;
   mt += `Ton défi : oser nourrir ${angleMort}, là où tu détournes les yeux.`;
-  mt += texteConfidences(angleMort);
+  mt += texteConfidences(angleMort, refuge);
   _lectureTxt = mt;
   document.getElementById("miroir").classList.add("on");
   setTimeout(()=>{ parle(mt); majLireBtn(); }, 450);
@@ -2840,32 +2848,60 @@ function fermerMiroir(){
   try{speechSynthesis.cancel();}catch(e){} majLireBtn();
   if(miroirRetour==='niveau') ouvrirNiveau(); else ouvrirSplash();
 }
-/* Ce que tu as confié au Phénix, croisé avec ce que ton jeu montre.
-   Le Miroir renvoie ta parole — il ne l'interprète pas, il ne conseille rien. */
-function _confiees(){ return P.filter(p=>REPONSES[p] && REPONSES[p]!=="—" && ECHO[p] && ECHO[p][REPONSES[p]]); }
-function blocConfidences(angleMort){
+/* ══════════ LE MIROIR ══════════
+   Il ne confirme pas : il met la parole et le jeu côte à côte, et se tait.
+   Ce qui frappe n'est jamais la cohérence — c'est l'écart. */
+function _confiees(){ return P.filter(p=>laParole(p) && DIT_MOT[p] && DIT_MOT[p][laParole(p).k]); }
+function _regardMiroir(p, angleMort, refuge){
+  const r=laParole(p); if(!r) return null;
+  const vues = (PROFIL.parties||0) - (r.n||0);
+  if(vues < SEUIL_MIROIR) return {attend:true, reste:SEUIL_MIROIR-vues};
+  const dit  = (DIT[p]||{})[r.k] || "retrait";
+  const fait = (p===angleMort) ? "delaisse" : (p===refuge ? "nourri" : "mitige");
+  return {attend:false, dit, fait, mot:DIT_MOT[p][r.k], neg:PROFIL.neglige[p]||0, parties:PROFIL.parties};
+}
+/* Les quatre visages du reflet */
+function _texteMiroir(p, g){
+  const em=embImg(p,14), n=g.neg, N=g.parties;
+  const ouvre = `Tu dis que ${g.mot}.`;
+  if(g.fait==="mitige")
+    return [ouvre, `Ton jeu, lui, ne tranche pas encore.`, `Le miroir observe.`];
+  if(g.dit==="soin" && g.fait==="delaisse")            // ① le flagrant délit
+    return [ouvre, `Pourtant ${em} <b>${p}</b> est le pilier que tu laisses le plus souvent au sol — <b>${n}</b> fois sur ${N}.`,
+            `Le miroir ne juge pas. Il montre.`];
+  if(g.dit==="retrait" && g.fait==="nourri")           // ③ le trouble
+    return [ouvre, `Pourtant c'est vers ${em} <b>${p}</b> que ta main va d'abord, partie après partie.`,
+            `Ce que tu renies te tient encore.`];
+  if(g.dit==="retrait" && g.fait==="delaisse")         // ② la lucidité
+    return [ouvre, `Ton jeu le confirme : ${em} <b>${p}</b> est ton angle mort, <b>${n}</b> fois sur ${N}.`,
+            `Tu n'es pas aveugle — tu es seulement ailleurs.`];
+  return [ouvre, `Et c'est bien ${em} <b>${p}</b> que tu nourris d'abord, partie après partie.`,   // ④ l'accord
+          `Ce que tu dis et ce que tu fais avancent ensemble. C'est rare.`];
+}
+function blocConfidences(angleMort, refuge){
   const dits=_confiees();
   if(!dits.length) return "";
-  const lignes = dits.map(p=>{
-    const e=ECHO[p][REPONSES[p]];
-    const croise = (p===angleMort)
-      ? ` Et dans tes parties, ${embImg(p,14)} <b>${p}</b> est justement ton angle mort — laissé pour compte <b>${PROFIL.neglige[p]}</b> fois sur ${PROFIL.parties}.`
-      : "";
-    return `<p>Tu m'as dit que ${e}.${croise}</p>`;
+  const blocs = dits.map(p=>{
+    const g=_regardMiroir(p, angleMort, refuge);
+    if(!g) return "";
+    if(g.attend) return `<p class="mir-attend">Le miroir a entendu ta parole sur ${embImg(p,14)} <b>${p}</b>.<br>Il attend d'en voir assez — encore <b>${g.reste}</b> partie${g.reste>1?'s':''}.</p>`;
+    return `<div class="mir-vu">${_texteMiroir(p,g).map((l,i)=>`<p class="${i===2?'mir-clos':''}">${l}</p>`).join("")}</div>`;
   }).join("");
   return `<div class="lecture mir-conf">
-    <div class="lec-h">✦ Ce que tu m'as confié ✦</div>
-    ${lignes}
+    <div class="lec-h">✦ Ce que le miroir a vu ✦</div>
+    ${blocs}
     <button class="conf-oubli" onclick="effacerConfidences()">Effacer ce que j'ai confié</button>
   </div>`;
 }
-function texteConfidences(angleMort){
+function texteConfidences(angleMort, refuge){
   const dits=_confiees();
   if(!dits.length) return "";
-  let t=" Ce que tu m'as confié. ";
+  let t=" Ce que le miroir a vu. ";
   dits.forEach(p=>{
-    t += `Tu m'as dit que ${ECHO[p][REPONSES[p]]}. `;
-    if(p===angleMort) t += `Et dans tes parties, ${p} est justement ton angle mort, laissé pour compte ${PROFIL.neglige[p]} fois sur ${PROFIL.parties}. `;
+    const g=_regardMiroir(p, angleMort, refuge); if(!g) return;
+    t += g.attend
+      ? `Le miroir a entendu ta parole sur ${p}. Il attend d'en voir assez. `
+      : _texteMiroir(p,g).map(x=>_strip(x)).join(' ')+' ';
   });
   return t;
 }
