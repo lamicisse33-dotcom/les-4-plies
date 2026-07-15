@@ -4,7 +4,7 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"/>
 <title>ÉQUILIBRE — Les Quatre Piliers (phase 3)</title>
-  <meta name="theme-color" content="#0a0518"/>
+  <meta name="theme-color" content="#100829"/>
   <link rel="manifest" href="./manifest.json"/>
   <link rel="icon" href="./icon-192.png"/>
   <link rel="apple-touch-icon" href="./icon-180.png"/>
@@ -21,9 +21,11 @@
   --encre:#22201C;--ivoire1:#FCFAF3;--ivoire2:#F0E9D9;
   --muet:#8F887C;--text:#EEE8D5;
   --spi:#9B59B6;--amo:#C1443C;--san:#27AE60;--arg:#D8A22E;
+  /* échelle des cartes : calculée en JS pour que tout l'écran tienne (design natif préservé) */
+  --k:1;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-html,body{margin:0;min-height:100dvh;background:radial-gradient(ellipse at 50% 0%,#1a0f3a,#0a0518 62%,#050310);
+html,body{margin:0;min-height:100dvh;background:radial-gradient(ellipse at 50% 0%,#2a1a5e,#170e3c 58%,#100829);
   color:var(--text);font-family:'Crimson Text',Georgia,serif;overflow-x:hidden;}
 button{cursor:pointer;border:none;font-family:'Crimson Text',Georgia,serif;transition:transform .12s;}
 button:active{transform:scale(.96);}
@@ -32,7 +34,7 @@ button:active{transform:scale(.96);}
 /* ── Ambiance vivante (fond) ── */
 #ambiance{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none;}
 #vignette{position:fixed;inset:0;z-index:2;pointer-events:none;
-  background:radial-gradient(ellipse at 50% 40%, transparent 50%, rgba(6,3,14,.28) 82%, rgba(4,2,10,.5) 100%);}
+  background:radial-gradient(ellipse at 50% 40%, transparent 58%, rgba(9,5,22,.16) 84%, rgba(6,3,16,.3) 100%);}
 #ambiance .glow{position:absolute;border-radius:50%;filter:blur(55px);mix-blend-mode:screen;}
 #ambiance .g1{width:72vmax;height:72vmax;left:-22vmax;top:-26vmax;opacity:.5;
   background:radial-gradient(circle,rgba(140,80,200,.55),transparent 62%);animation:drift1 28s ease-in-out infinite;}
@@ -84,6 +86,10 @@ html.lite #ambiance .glow{animation:none;} html.lite .mote{display:none;}
 .mem-card{background:rgba(201,162,39,.06);border:1px solid rgba(201,162,39,.25);border-radius:12px;padding:9px 12px;margin:6px 0;font-size:13px;line-height:1.45;color:#e7dcf0;}
 .mem-spec{display:flex;gap:9px;align-items:flex-start;font-size:13px;color:#e2d8ef;margin:6px 0;line-height:1.4;}
 .mem-spec .ic{font-size:18px;line-height:1.1;flex:0 0 auto;}
+.mem-spec .ic.ic2{position:relative;width:20px;height:20px;display:inline-block;}
+.mem-spec .ic.ic2 i{font-style:normal;line-height:1;position:absolute;left:50%;top:50%;}
+.mem-spec .ic.ic2 .e-bg{transform:translate(-50%,-50%);font-size:18px;opacity:.55;filter:saturate(.6);}
+.mem-spec .ic.ic2 .e-fg{transform:translate(-50%,-50%);font-size:12px;z-index:2;filter:drop-shadow(0 1px 2px rgba(0,0,0,.9));}
 .mem-spec b{color:#fff;}
 .mem-div{height:1px;background:linear-gradient(90deg,transparent,rgba(201,162,39,.55),transparent);margin:16px 0 14px;}
 .mem-khalam{text-align:center;background:linear-gradient(180deg,rgba(201,162,39,.09),rgba(0,0,0,.14));border:1px solid rgba(201,162,39,.32);border-radius:16px;padding:18px 14px;}
@@ -184,13 +190,15 @@ html.lite h1::after{display:none;}
   font-size:12.5px;font-weight:700;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,.55);}
 #coachHint.on{display:block;animation:coachGlow 1.2s ease-in-out infinite;}
 @keyframes coachGlow{0%,100%{box-shadow:0 4px 16px rgba(0,0,0,.55);}50%{box-shadow:0 4px 16px rgba(0,0,0,.55),0 0 16px rgba(240,208,96,.6);}}
-.borne{background:linear-gradient(170deg,rgba(255,255,255,.05),rgba(0,0,0,.28));
-  border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:4px 3px;text-align:center;position:relative;
+.borne{background:linear-gradient(170deg,rgba(255,255,255,.12),rgba(255,255,255,.03) 55%,rgba(0,0,0,.16));
+  border:1px solid rgba(255,255,255,.17);border-radius:12px;padding:4px 3px;text-align:center;position:relative;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.09), 0 4px 14px rgba(0,0,0,.3);
   transition:border-color .2s,box-shadow .2s;}
 .borne.cible{border-color:var(--goldL);box-shadow:0 0 0 1px var(--goldL),0 0 16px rgba(240,208,96,.45);cursor:pointer;}
 .borne.cible.hostile{border-color:#e0708a;box-shadow:0 0 0 1px #e0708a,0 0 16px rgba(224,85,85,.5);}
 .borne.gagnee{box-shadow:inset 0 0 0 1px #45c97a55;}
-.borne .nom{font-family:'Cinzel',serif;font-size:8px;font-weight:900;letter-spacing:.5px;}
+.borne .nom{font-family:'Cinzel',serif;font-size:clamp(6px,1.85vw,8px);font-weight:900;letter-spacing:0;
+  white-space:nowrap;overflow:hidden;text-overflow:clip;text-shadow:0 1px 4px rgba(0,0,0,.6);}
 .borne .emb{position:relative;display:flex;align-items:center;justify-content:center;width:38px;height:38px;margin:1px auto 2px;border-radius:50%;
   background:radial-gradient(circle at 50% 42%, var(--pc,rgba(201,162,39,.4)), transparent 70%);}
 .borne .emb.pop{animation:embPop .5s ease;}
@@ -212,12 +220,32 @@ html.lite .ptfloat{display:none;} html.lite .borne .emb.pop{animation:none;}
 .tot.bump{transform:scale(1.5);}
 .tot.hit{animation:hit .4s ease;}
 @keyframes hit{0%{color:#fff;transform:scale(1.4);}100%{}}
-.mini{font-size:8px;color:var(--muet);letter-spacing:.5px;}
+.mini{font-size:8px;color:#a99fc0;letter-spacing:.5px;}
 .pile{display:flex;flex-wrap:wrap;gap:1px;justify-content:center;min-height:3px;margin-top:1px;}
+/* ── Le pilier comme colonne : deux jauges face à face, échelle commune ── */
+.jauge{display:flex;gap:5px;align-items:flex-end;justify-content:center;margin-top:4px;}
+.jcol{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;}
+.jtrack{width:100%;height:42px;border-radius:5px;position:relative;overflow:hidden;
+  background:linear-gradient(180deg,rgba(0,0,0,.34),rgba(255,255,255,.05));
+  border:1px solid rgba(255,255,255,.12);box-shadow:inset 0 1px 3px rgba(0,0,0,.4);}
+.jfill{position:absolute;left:0;right:0;bottom:0;border-radius:4px;
+  transition:height .5s cubic-bezier(.2,.9,.3,1.25);}
+.jfill.moi{background:linear-gradient(180deg,var(--jc,#E6CE7A),rgba(0,0,0,.3));
+  box-shadow:0 0 9px -1px var(--jc,#E6CE7A), inset 0 1px 0 rgba(255,255,255,.4);}
+.jfill.ia{background:linear-gradient(180deg,#e0708a,rgba(0,0,0,.32));
+  box-shadow:0 0 9px -2px #e0708a, inset 0 1px 0 rgba(255,255,255,.3);}
+.jauge .tot{margin-top:3px;}
+.decide{display:inline-block;margin-top:4px;font-family:'Cinzel',serif;font-weight:900;
+  font-size:7px;letter-spacing:.7px;color:#2c2005;padding:2px 6px;border-radius:20px;
+  background:linear-gradient(180deg,#f4e2a6,#d4af3a);border:1px solid rgba(255,244,200,.6);
+  box-shadow:0 0 12px rgba(240,208,96,.45);animation:decidePulse 2.4s ease-in-out infinite;}
+@keyframes decidePulse{0%,100%{box-shadow:0 0 12px rgba(240,208,96,.4);}50%{box-shadow:0 0 18px rgba(240,208,96,.75);}}
+html.lite .decide{animation:none;}
+html.lite .jfill{transition:none;}
 .jeton{width:5px;height:5px;border-radius:1px;}
 .jeton.drop{animation:jdrop .4s cubic-bezier(.3,1.4,.5,1);}
 @keyframes jdrop{0%{transform:translateY(-14px);opacity:0;}100%{transform:translateY(0);opacity:1;}}
-.sep{height:1px;background:rgba(255,255,255,.08);margin:2px 0;}
+.sep{height:1px;background:rgba(255,255,255,.14);margin:2px 0;}
 .mene{position:absolute;top:3px;right:4px;font-size:8px;}
 /* Pilier affaibli : il prend feu */
 .borne.enfeu{border-color:rgba(255,110,30,.5);}
@@ -254,9 +282,9 @@ html.lite #phenixBtn{animation:none;}
 @keyframes phxWing{0%{opacity:0;transform:translate(-50%,-15%) scale(.4);}
   22%{opacity:.95;}60%{opacity:.85;}100%{opacity:0;transform:translate(-50%,-145%) scale(1.5);}}
 html.lite .phx-wing{display:none;}
-.titremain{font-size:9px;color:var(--muet);letter-spacing:2px;text-transform:uppercase;margin-bottom:5px;text-align:center;}
-#main{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;}
-.carte{width:91px;height:132px;border-radius:10px;position:relative;overflow:hidden;cursor:pointer;
+.titremain{display:none;}
+#main{display:grid;grid-template-columns:repeat(6,auto);gap:4px;justify-content:center;align-items:start;}
+.carte{width:91px;height:132px;zoom:var(--k,1);border-radius:10px;position:relative;overflow:hidden;cursor:pointer;
   background:linear-gradient(150deg,var(--ivoire1),var(--ivoire2));
   border:1.2px solid var(--encre);box-shadow:0 3px 10px rgba(0,0,0,.35);
   display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:7px 4px 5px;
@@ -381,42 +409,90 @@ img.orb{width:24px;height:24px;border-radius:50%;border:1px solid var(--gold);bo
 .modepill:hover,.modepill:active{border-color:var(--goldL);color:#fff;background:rgba(201,162,39,.1);}
 .modepill:active{transform:scale(.96);}
 .menulinks{display:flex;justify-content:center;gap:20px;margin-top:16px;}
-/* ── Menu chic ── */
-#niveau .card{padding:28px 24px 22px;
-  background:radial-gradient(120% 70% at 50% -5%, rgba(74,52,120,.5), transparent 62%), linear-gradient(180deg, rgba(26,17,46,.98), rgba(13,8,26,.99));
-  border:1px solid rgba(201,162,39,.4);
-  box-shadow:inset 0 0 0 1px rgba(201,162,39,.1), 0 30px 80px rgba(0,0,0,.6), 0 0 60px rgba(201,162,39,.1);}
-#niveau .ttl{font-size:26px;letter-spacing:2px;margin-bottom:6px;}
-#niveau .ornrule{display:flex;align-items:center;justify-content:center;gap:10px;margin:0 auto 18px;color:var(--goldL);}
+/* ── Menu : « l'or est rare » — un seul héros doré, tout le reste en filet ── */
+#niveau .card{padding:30px 24px 24px;
+  background:radial-gradient(125% 72% at 50% -8%, rgba(74,52,120,.42), transparent 60%), linear-gradient(180deg, rgba(20,13,38,.985), rgba(9,5,20,.995));
+  border:1px solid rgba(201,162,39,.26);
+  box-shadow:0 30px 80px rgba(0,0,0,.65), inset 0 1px 0 rgba(255,255,255,.04);}
+#niveau .ttl{font-size:25px;letter-spacing:2.5px;margin-bottom:6px;color:#e8dcc0;
+  background:none;-webkit-background-clip:initial;-webkit-text-fill-color:currentColor;text-shadow:0 2px 18px rgba(0,0,0,.5);}
+#niveau .ornrule{display:flex;align-items:center;justify-content:center;gap:10px;margin:0 auto 20px;color:var(--gold);}
 #niveau .ornrule::before,#niveau .ornrule::after{content:"";height:1px;width:52px;}
-#niveau .ornrule::before{background:linear-gradient(90deg,transparent,rgba(201,162,39,.65));}
-#niveau .ornrule::after{background:linear-gradient(90deg,rgba(201,162,39,.65),transparent);}
-#niveau .ornrule span{font-size:9px;letter-spacing:2px;opacity:.85;}
-#niveau .diffseg{background:rgba(0,0,0,.24);border:1px solid rgba(201,162,39,.2);border-radius:14px;padding:5px;gap:5px;}
-#niveau .segbtn{border-radius:10px;padding:10px 4px;}
-#niveau .segbtn .sgl{font-size:9.5px;letter-spacing:1px;}
-#niveau .segbtn.on{background:linear-gradient(180deg,rgba(201,162,39,.26),rgba(201,162,39,.05));
-  box-shadow:inset 0 0 0 1px rgba(240,208,96,.6),0 2px 10px rgba(0,0,0,.3);}
-#niveau .diffdesc{font-style:italic;color:#b6accb;font-size:11.5px;}
-#niveau .btn.play{border-radius:14px;padding:15px;font-family:'Cinzel',serif;font-weight:900;font-size:16px;letter-spacing:5px;
-  color:#2c2005;border:1px solid rgba(255,244,200,.55);
-  background:linear-gradient(180deg,#f0dc9a 0%,#d4af3a 46%,#b58e22 55%,#9a7418 100%);
-  text-shadow:0 1px 0 rgba(255,255,255,.4);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.55), inset 0 -3px 8px rgba(120,90,10,.45), 0 8px 22px rgba(201,162,39,.26);}
+#niveau .ornrule::before{background:linear-gradient(90deg,transparent,rgba(201,162,39,.5));}
+#niveau .ornrule::after{background:linear-gradient(90deg,rgba(201,162,39,.5),transparent);}
+#niveau .ornrule span{font-size:9px;letter-spacing:2px;opacity:.8;}
+
+/* difficulté : filets, pas de remplissage */
+#niveau .diffseg{background:rgba(0,0,0,.2);border:1px solid rgba(201,162,39,.16);border-radius:14px;padding:4px;gap:4px;}
+#niveau .segbtn{border-radius:11px;padding:10px 4px;color:#8f86a8;transition:color .18s,box-shadow .18s,background .18s;}
+#niveau .segbtn .sge{opacity:.55;transition:opacity .18s;}
+#niveau .segbtn .sgl{font-size:9.5px;letter-spacing:1.2px;}
+#niveau .segbtn:hover{color:#c9bfe0;}
+#niveau .segbtn:hover .sge{opacity:.85;}
+#niveau .segbtn.on{background:rgba(201,162,39,.07);color:var(--goldL);
+  box-shadow:inset 0 0 0 1px rgba(201,162,39,.55);}
+#niveau .segbtn.on .sge{opacity:1;}
+#niveau .diffdesc{font-style:italic;color:#a99fc0;font-size:11.5px;min-height:30px;margin:12px 0 14px;}
+
+/* JOUER : le seul or plein de l'écran */
+#niveau .btn.play{position:relative;overflow:hidden;border-radius:14px;padding:16px;
+  font-family:'Cinzel',serif;font-weight:900;font-size:16px;letter-spacing:6px;
+  color:#2c2005;border:1px solid rgba(255,244,200,.6);
+  background:linear-gradient(180deg,#f4e2a6 0%,#d9b643 46%,#b98f22 56%,#96700f 100%);
+  text-shadow:0 1px 0 rgba(255,255,255,.45);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.6), inset 0 -3px 8px rgba(120,90,10,.45),
+             0 10px 30px rgba(201,162,39,.34), 0 0 0 1px rgba(201,162,39,.18);}
+#niveau .btn.play::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(105deg,transparent 38%,rgba(255,255,255,.5) 50%,transparent 62%);
+  transform:translateX(-130%);animation:playSweep 4.6s ease-in-out 1.2s infinite;}
+@keyframes playSweep{0%{transform:translateX(-130%);}22%,100%{transform:translateX(130%);}}
 #niveau .btn.play:hover{filter:brightness(1.05);}
 #niveau .btn.play:active{transform:translateY(1px);box-shadow:inset 0 2px 6px rgba(120,90,10,.5);}
-#niveau .moderow{gap:9px;margin-top:18px;}
-#niveau .modepill{border-radius:14px;padding:12px 4px;color:#2c2005;
-  background:linear-gradient(180deg,#f0dc9a 0%,#d4af3a 52%,#b58e22 100%);border:1px solid rgba(255,244,200,.55);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.5), 0 4px 12px rgba(201,162,39,.28);}
-#niveau .modepill span{font-size:21px;}
-#niveau .modepill:hover{filter:brightness(1.06);color:#2c2005;
-  background:linear-gradient(180deg,#f0dc9a 0%,#d4af3a 52%,#b58e22 100%);}
-#niveau .modepill:active{transform:translateY(1px);color:#2c2005;
-  background:linear-gradient(180deg,#f0dc9a 0%,#d4af3a 52%,#b58e22 100%);box-shadow:inset 0 2px 5px rgba(120,90,10,.45);}
-#niveau .menulinks{margin-top:18px;gap:22px;}
-#niveau .menulinks .linkbtn{color:#b6accb;font-style:italic;}
-#niveau .menulinks .linkbtn:hover{color:var(--goldL);}
+
+/* les autres voies : des sceaux, pas des boutons */
+#niveau .menusep{display:flex;align-items:center;gap:10px;margin:22px 2px 12px;color:#6f6786;
+  font-family:'Cinzel',serif;font-weight:900;font-size:8.5px;letter-spacing:2.5px;text-transform:uppercase;}
+#niveau .menusep::before,#niveau .menusep::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(201,162,39,.28),transparent);}
+#niveau .moderow{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:0;}
+#niveau .modepill{--mc:var(--gold);background:none;border:none;padding:0;gap:7px;color:inherit;box-shadow:none;
+  display:flex;flex-direction:column;align-items:center;}
+#niveau .modepill.m-defi{--mc:var(--arg);}
+#niveau .modepill.m-soin{--mc:var(--san);}
+#niveau .modepill.m-agonie{--mc:var(--amo);}
+#niveau .modepill.m-duel{--mc:var(--spi);}
+#niveau .modepill .sc{width:50px;height:50px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:21px;
+  background:radial-gradient(circle at 50% 28%, rgba(255,255,255,.07), rgba(0,0,0,.42) 72%);
+  border:1px solid rgba(201,162,39,.3);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.07), 0 5px 16px rgba(0,0,0,.45);
+  filter:saturate(.55) brightness(.9);
+  transition:transform .18s cubic-bezier(.2,.9,.3,1.4), border-color .18s, box-shadow .18s, filter .18s;}
+#niveau .modepill em{font-family:'Cinzel',serif;font-style:normal;font-weight:900;font-size:8.5px;letter-spacing:1.3px;
+  text-transform:uppercase;color:#7d749a;transition:color .18s;}
+/* emblème composite : un fond + un symbole posé dessus */
+#niveau .modepill .sc.emb2{position:relative;}
+#niveau .modepill .sc.emb2 i{font-style:normal;line-height:1;}
+#niveau .modepill .sc.emb2 .e-bg{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  font-size:27px;opacity:.5;filter:saturate(.5) brightness(.85);}
+#niveau .modepill .sc.emb2 .e-fg{position:relative;z-index:2;font-size:17px;
+  filter:drop-shadow(0 1px 3px rgba(0,0,0,.9)) drop-shadow(0 0 5px rgba(0,0,0,.6));}
+#niveau .modepill:hover .sc.emb2 .e-bg,#niveau .modepill:focus-visible .sc.emb2 .e-bg{opacity:.8;filter:saturate(1) brightness(1);}
+#niveau .modepill:hover,#niveau .modepill:active{background:none;filter:none;}
+#niveau .modepill:hover .sc,#niveau .modepill:focus-visible .sc{transform:translateY(-3px);filter:saturate(1) brightness(1);
+  border-color:var(--mc);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.08), 0 0 20px -3px var(--mc), 0 6px 18px rgba(0,0,0,.5);}
+#niveau .modepill:hover em,#niveau .modepill:focus-visible em{color:var(--mc);}
+#niveau .modepill:active .sc{transform:translateY(-1px) scale(.94);}
+
+/* liens : filets discrets */
+#niveau .splash-actions{margin-top:20px;gap:8px;}
+#niveau .splash-actions .minibtn{background:none;border:1px solid rgba(201,162,39,.2);color:#9a90b3;
+  box-shadow:none;font-weight:700;font-size:10px;letter-spacing:1.2px;padding:10px 8px;max-width:none;}
+#niveau .splash-actions .minibtn:hover{filter:none;border-color:rgba(201,162,39,.5);color:var(--goldL);background:rgba(201,162,39,.06);}
+#niveau .splash-actions .minibtn:active{transform:translateY(1px);box-shadow:none;}
+@media (prefers-reduced-motion:reduce){
+  #niveau .btn.play::after{animation:none;display:none;}
+  #niveau .modepill .sc{transition:none;}
+}
 .menusep{display:flex;align-items:center;gap:10px;margin:14px 2px 10px;color:var(--muet);
   font-size:9px;letter-spacing:2.5px;text-transform:uppercase;}
 .menusep::before,.menusep::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(201,162,39,.35),transparent);}
@@ -444,8 +520,57 @@ img.orb{width:24px;height:24px;border-radius:50%;border:1px solid var(--gold);bo
 .diffbtn .de{font-size:24px;}
 .diffbtn .dt{font-family:'Cinzel',serif;font-weight:900;font-size:14px;color:var(--goldL);}
 .diffbtn .dd{font-size:10.5px;color:var(--muet);line-height:1.4;}
-.aide{font-size:9.5px;color:var(--muet);line-height:1.6;text-align:center;margin-top:12px;font-style:italic;padding:0 8px;}
+.aide{display:none;}
 #findetail{font-size:11px;color:#c9c0dd;margin:10px 0 4px;line-height:1.7;}
+/* ── La question du Phénix : son propre écran, calme, toujours contenu ── */
+#qphenix{z-index:60;}   /* au-dessus de l'écran de fin, sinon il la recouvrirait */
+#qphenix .qcard{position:relative;max-width:380px;width:92%;max-height:90dvh;overflow-y:auto;
+  text-align:center;padding:24px 18px 20px;
+  background:radial-gradient(120% 70% at 50% -6%, rgba(120,52,20,.45), transparent 62%), linear-gradient(180deg,rgba(26,14,32,.99),rgba(10,5,20,.99));
+  border:1px solid rgba(224,145,42,.4);box-shadow:0 30px 80px rgba(0,0,0,.7), 0 0 60px -10px rgba(224,122,26,.35);}
+.q-fab{position:absolute;top:12px;right:12px;width:38px;height:38px;border-radius:50%;cursor:pointer;z-index:6;
+  border:1px solid rgba(255,215,160,.6);color:#2c1a05;font-size:17px;line-height:1;
+  background:linear-gradient(180deg,#f6d9a0,#d99a3a 55%,#b5711c);
+  box-shadow:0 4px 14px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.5);
+  display:flex;align-items:center;justify-content:center;transition:transform .1s,filter .15s;}
+.q-fab:active{transform:scale(.93);}
+#qphenix .q-emb{font-size:34px;line-height:1;filter:drop-shadow(0 0 12px rgba(255,140,40,.65));
+  animation:qFlame 2.6s ease-in-out infinite;}
+@keyframes qFlame{0%,100%{transform:translateY(0) scale(1);}50%{transform:translateY(-3px) scale(1.06);}}
+#qphenix .q-kick{font-family:'Cinzel',serif;font-weight:900;font-size:9.5px;letter-spacing:1.8px;
+  text-transform:uppercase;color:#e0912a;margin:10px 0 14px;}
+#qphenix .q-txt{font-size:16px;line-height:1.5;color:#f4ead6;font-style:italic;margin-bottom:16px;}
+#qphenix .q-rep{display:flex;flex-direction:column;gap:7px;}
+.q-btn{padding:12px 10px;border-radius:12px;cursor:pointer;font-family:'Crimson Text',Georgia,serif;
+  font-size:14px;line-height:1.3;color:#e7dcf0;text-align:center;
+  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.17);
+  transition:background .15s,border-color .15s,transform .1s;}
+.q-btn:hover{background:rgba(224,145,42,.15);border-color:rgba(224,145,42,.65);color:#fff;}
+.q-btn:active{transform:translateY(1px);}
+/* la réponse que le Phénix est en train de prononcer */
+.q-btn.lu{background:linear-gradient(180deg,rgba(224,145,42,.28),rgba(224,122,26,.12));
+  border-color:#e0912a;color:#fff;transform:scale(1.03);
+  box-shadow:0 0 20px -3px rgba(224,145,42,.75), inset 0 1px 0 rgba(255,255,255,.2);}
+html.lite .q-btn.lu{transform:none;}
+/* tout a été dit : les réponses appellent ensemble */
+.q-btn.attend{animation:qAttend 1.9s ease-in-out infinite;}
+@keyframes qAttend{
+  0%,100%{border-color:rgba(255,255,255,.17);box-shadow:0 0 0 rgba(224,145,42,0);background:rgba(255,255,255,.05);}
+  50%{border-color:rgba(224,145,42,.85);box-shadow:0 0 16px -3px rgba(224,145,42,.6);background:rgba(224,145,42,.10);}}
+.q-btn.attend:hover,.q-btn.attend.lu{animation:none;}
+html.lite .q-btn.attend{animation:none;border-color:rgba(224,145,42,.5);}
+.q-skip{margin-top:14px;background:none;border:none;cursor:pointer;font-size:12px;
+  color:#8f86a8;font-style:italic;text-decoration:underline;text-underline-offset:3px;}
+.q-skip:hover{color:#c9bfe0;}
+.q-merci{color:#f0e6d0;}
+.q-merci b{color:var(--goldL);font-style:normal;}
+html.lite #qphenix .q-emb{animation:none;}
+@media (max-height:700px){
+  #qphenix .q-emb{font-size:26px;}
+  #qphenix .q-txt{font-size:14.5px;margin-bottom:12px;}
+  .q-btn{padding:10px 8px;font-size:13px;}
+  #qphenix .qcard{padding:18px 14px 16px;}
+}
 #findetail .l{display:flex;justify-content:space-between;padding:2px 0;}
 .linkbtn{background:none;color:var(--muet);font-size:11px;text-decoration:underline;padding:6px;}
 .linkbtn:hover{color:var(--goldL);}
@@ -595,8 +720,8 @@ img.orb{width:24px;height:24px;border-radius:50%;border:1px solid var(--gold);bo
 @keyframes flareIA{0%{box-shadow:0 0 0 2px #e0708a,0 0 32px rgba(224,85,85,.95);}100%{}}
 
 /* ── Balance de l'âme (SVG) : tension méta en temps réel ── */
-#balance{position:relative;margin:0 auto 4px;max-width:172px;text-align:center;}
-#balance .cap{font-size:7.5px;letter-spacing:3px;color:var(--muet);font-family:'Cinzel',serif;font-weight:900;text-transform:uppercase;margin-bottom:1px;}
+#balance{position:relative;margin:0 auto 2px;max-width:118px;text-align:center;}
+#balance .cap{font-size:7.5px;letter-spacing:3px;color:#a99fc0;font-family:'Cinzel',serif;font-weight:900;text-transform:uppercase;margin-bottom:1px;}
 #scale{width:100%;height:auto;display:block;filter:drop-shadow(0 3px 7px rgba(0,0,0,.45));overflow:visible;}
 #scale #pivKnob{filter:drop-shadow(0 0 6px rgba(240,208,96,.55));}
 
@@ -808,10 +933,10 @@ html.lite #liens .lien{animation:none;}
 
     <div class="mem-sec">
       <div class="mem-h">🗺️ Les autres voies</div>
-      <div class="mem-spec"><span class="ic">🗓️</span><span><b>Défi</b> — un adversaire-chef aux règles particulières.</span></div>
-      <div class="mem-spec"><span class="ic">🌿</span><span><b>Soin</b> — règle inversée : tu ne nourris que ton pilier le plus bas.</span></div>
-      <div class="mem-spec"><span class="ic">⚔️</span><span><b>Agonie</b> — la survie, sous pression croissante.</span></div>
-      <div class="mem-spec"><span class="ic">🌐</span><span><b>Duel</b> — contre un ami, en ligne, via un code de partie.</span></div>
+      <div class="mem-spec"><span class="ic">🌙</span><span><b>Défi</b> — un adversaire-chef aux règles particulières.</span></div>
+      <div class="mem-spec"><span class="ic">🍃</span><span><b>Soin</b> — règle inversée : tu ne nourris que ton pilier le plus bas.</span></div>
+      <div class="mem-spec"><span class="ic">🔥</span><span><b>Agonie</b> — la survie, sous pression croissante.</span></div>
+      <div class="mem-spec"><span class="ic ic2"><i class="e-bg">🌐</i><i class="e-fg">⚔️</i></span><span><b>Duel</b> — contre un ami, en ligne, via un code de partie.</span></div>
     </div>
 
     <div class="mem-sec">
@@ -850,6 +975,15 @@ html.lite #liens .lien{animation:none;}
   </div>
   <button class="btn" style="width:100%;margin-top:12px" onclick="fermerModemploi()">Fermer</button>
 </div></div>
+<div id="qphenix" class="overlay"><div class="card qcard">
+  <button class="lire-btn q-fab" onclick="toggleLecture()" title="Lire / arrêter">🔊</button>
+  <div class="q-emb">🔥</div>
+  <div class="q-kick">Le Phénix te pose une question</div>
+  <div class="q-txt" id="qTxt"></div>
+  <div class="q-rep" id="qRep"></div>
+  <button class="q-skip" id="qSkip" onclick="repondre(_qPil,'')">Je préfère ne pas répondre</button>
+</div></div>
+
 <div id="app">
   <div id="topbar">
     <div class="tb-left">
@@ -867,7 +1001,7 @@ html.lite #liens .lien{animation:none;}
   <div class="sub">match en 3 manches · cartes spéciales · l'adversaire cherche vraiment</div>
   <div id="matchbar"></div>
   <div id="balance">
-    <div class="cap">L'ÉQUILIBRE</div>
+    <div class="cap">Le plus faible</div>
     <svg id="scale" viewBox="0 0 260 108" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
       <defs>
         <linearGradient id="goldG" x1="0" y1="0" x2="0" y2="1">
@@ -887,8 +1021,8 @@ html.lite #liens .lien{animation:none;}
         <circle id="pivKnob" cx="130" cy="32" r="6.5" fill="url(#knobG)" stroke="#7a5e10" stroke-width=".6"/>
         <path id="panL" fill="url(#goldG)" stroke="#7a5e10" stroke-width=".5"/>
         <path id="panR" fill="url(#goldG)" stroke="#7a5e10" stroke-width=".5"/>
-        <text id="valL" text-anchor="middle" font-family="Cinzel,serif" font-weight="900" font-size="12.5" fill="#e0708a"></text>
-        <text id="valR" text-anchor="middle" font-family="Cinzel,serif" font-weight="900" font-size="12.5" fill="#f0d98a"></text>
+        <text id="valL" text-anchor="middle" font-family="Cinzel,serif" font-weight="900" font-size="12.5" fill="#f0d98a"></text>
+        <text id="valR" text-anchor="middle" font-family="Cinzel,serif" font-weight="900" font-size="12.5" fill="#e0708a"></text>
       </g>
     </svg>
   </div>
@@ -941,11 +1075,12 @@ html.lite #liens .lien{animation:none;}
   <div class="ttl">Partie classique</div>
   <div class="ornrule"><span>✦</span></div>
   <div class="diffgrid" id="diffgrid"></div>
+  <div class="menusep">Autres voies</div>
   <div class="moderow">
-    <button class="modepill" onclick="demarrerDefi()"><span>🗓️</span>Défi</button>
-    <button class="modepill" onclick="demarrerSoin()"><span>🌿</span>Soin</button>
-    <button class="modepill" id="agonieBtn"><span>⚔️</span>Agonie</button>
-    <button class="modepill" onclick="ouvrirDuel()"><span>🌐</span>Duel</button>
+    <button class="modepill m-defi" onclick="demarrerDefi()"><span class="sc">🌙</span><em>Défi</em></button>
+    <button class="modepill m-soin" onclick="demarrerSoin()"><span class="sc">🍃</span><em>Soin</em></button>
+    <button class="modepill m-agonie" id="agonieBtn"><span class="sc">🔥</span><em>Agonie</em></button>
+    <button class="modepill m-duel" onclick="ouvrirDuel()"><span class="sc emb2"><i class="e-bg">🌐</i><i class="e-fg">⚔️</i></span><em>Duel</em></button>
   </div>
   <div class="splash-actions">
     <button class="minibtn" onclick="ouvrirMiroir()">🪞 Ton miroir</button>
@@ -1507,10 +1642,11 @@ function majBalance(){
   const t1=P.reduce((s,p)=>s+T[p][1],0), t2=P.reduce((s,p)=>s+T[p][2],0);
   const f1=pilierFaible(T,1), f2=pilierFaible(T,2);
   // Penche du côté de celui qui l'emporte MAINTENANT : le pilier le plus faible décide, total en départage
-  let lead = (f1!==f2) ? (f1-f2)/20 : (t1-t2)/200;    // + => vous mènent
+  // (le départage au total ne donne qu'une inclinaison légère : sur la règle principale, vous êtes à égalité)
+  let lead = (f1!==f2) ? (f1-f2)/20 : (t1-t2)/600;    // + => vous mènent
   lead=Math.max(-1,Math.min(1, lead));
-  _balTarget = lead*15;                                // +vous => plateau or (droite) descend
-  _balT1=t1; _balT2=t2;
+  _balTarget = -lead*15;                               // +vous => plateau or (GAUCHE) descend
+  _balT1=f1; _balT2=f2;                                // les plateaux montrent CE QUI EST PESÉ : les plus faibles
   if(LITE && LITE()){ _balAng=_balTarget; _dessineBalance(_balAng); return; }
   if(!_balRAF) _balRAF=requestAnimationFrame(_balTick);
 }
@@ -1524,7 +1660,7 @@ function _dessineBalance(ang){
   const svg=document.getElementById("scale"); if(!svg) return;
   const cx=130, cy=32, half=88, hang=32, rad=ang*Math.PI/180;
   const cos=Math.cos(rad), sin=Math.sin(rad);
-  const Rx=cx+half*cos, Ry=cy+half*sin, Lx=cx-half*cos, Ly=cy-half*sin;   // R=vous(or), L=IA
+  const Rx=cx+half*cos, Ry=cy+half*sin, Lx=cx-half*cos, Ly=cy-half*sin;   // L=vous(or), R=adversaire
   const set=(id,a)=>{const e=document.getElementById(id); for(const k in a) e.setAttribute(k,a[k]);};
   set("beamBar",{x1:Lx,y1:Ly,x2:Rx,y2:Ry});
   set("chainL",{x1:Lx,y1:Ly,x2:Lx,y2:Ly+hang});
@@ -1532,8 +1668,8 @@ function _dessineBalance(ang){
   const bol=(x,y)=>`M ${x-15} ${y} Q ${x} ${y+11} ${x+15} ${y} Q ${x} ${y+3} ${x-15} ${y} Z`;
   set("panL",{d:bol(Lx,Ly+hang)}); set("panR",{d:bol(Rx,Ry+hang)});
   const vL=document.getElementById("valL"), vR=document.getElementById("valR");
-  vL.setAttribute("x",Lx); vL.setAttribute("y",Ly+hang-6); vL.textContent=_balT2;
-  vR.setAttribute("x",Rx); vR.setAttribute("y",Ry+hang-6); vR.textContent=_balT1;
+  vL.setAttribute("x",Lx); vL.setAttribute("y",Ly+hang-6); vL.textContent=_balT1;   // vous, à gauche
+  vR.setAttribute("x",Rx); vR.setAttribute("y",Ry+hang-6); vR.textContent=_balT2;   // adversaire, à droite
 }
 
 /* Inclinaison des cartes au survol (appareils avec pointeur fin) */
@@ -1592,6 +1728,115 @@ function sauverStats(){ try{ localStorage.setItem(STATS_KEY, JSON.stringify(STAT
 chargerStats();
 /* ── Le Miroir : profil du joueur accumulé sur toutes les parties ── */
 let PROFIL={parties:0, victoires:0, tot:{}, neglige:{}, fort:{}};
+
+/* ══════════ LA QUESTION DU PHÉNIX ══════════
+   Après une défaite, sur le pilier qui a lâché. Une seule fois par pilier, jamais reposée.
+   Le jeu renvoie la réponse, il ne l'interprète jamais. Toujours esquivable. */
+const QUESTIONS = {
+  "Amour":        { q:"Ton amour est resté au plus bas. Et dans ta vie ?", r:[
+      {k:"vivant",  t:"J'aime, et c'est vivant"},
+      {k:"donne",   t:"J'aime, mais je donne plus que je ne reçois"},
+      {k:"decu",    t:"J'ai été déçu·e — je me protège"},
+      {k:"lasse",   t:"Je n'y crois plus trop, en ce moment"} ]},
+  "Santé":        { q:"Ta santé a décidé de cette défaite. Et dans ta vie ?", r:[
+      {k:"soin",    t:"Je prends soin de mon corps"},
+      {k:"sait",    t:"Je sais ce qu'il faudrait — je ne le fais pas"},
+      {k:"fatigue", t:"Je tiens, mais je suis fatigué·e"},
+      {k:"oubli",   t:"Je m'oublie complètement"} ]},
+  "Argent":       { q:"Ton argent t'a coûté la partie. Et dans ta vie ?", r:[
+      {k:"suffit",  t:"J'ai ce qu'il me faut"},
+      {k:"court",   t:"Je cours après, sans répit"},
+      {k:"angoisse",t:"C'est une source d'angoisse"},
+      {k:"ignore",  t:"Je n'y pense pas assez"} ]},
+  "Spiritualité": { q:"Ta spiritualité est restée au plus bas. Et dans ta vie ?", r:[
+      {k:"cap",     t:"J'ai un sens, un cap"},
+      {k:"cherche", t:"Je cherche encore"},
+      {k:"temps",   t:"Je n'ai pas le temps de me poser"},
+      {k:"loin",    t:"Ça ne me parle pas"} ]}
+};
+/* Ce que le Miroir renverra — la parole du joueur, pas un jugement */
+const ECHO = {
+  "Amour":{ vivant:"ton amour était vivant", donne:"tu donnais plus que tu ne recevais",
+            decu:"tu avais été déçu·e, et que tu te protégeais", lasse:"tu n'y croyais plus trop, en ce moment" },
+  "Santé":{ soin:"tu prenais soin de ton corps", sait:"tu savais ce qu'il faudrait, sans le faire",
+            fatigue:"tu tenais, mais fatigué·e", oubli:"tu t'oubliais complètement" },
+  "Argent":{ suffit:"tu avais ce qu'il te faut", court:"tu courais après, sans répit",
+             angoisse:"c'était une source d'angoisse", ignore:"tu n'y pensais pas assez" },
+  "Spiritualité":{ cap:"tu avais un sens, un cap", cherche:"tu cherchais encore",
+                   temps:"tu n'avais pas le temps de te poser", loin:"ça ne te parlait pas" }
+};
+let REPONSES={};
+function chargerReponses(){ try{ const s=JSON.parse(localStorage.getItem('eq_rep_v1')); if(s&&typeof s==='object') REPONSES=s; }catch(e){} }
+function sauverReponses(){ try{ localStorage.setItem('eq_rep_v1', JSON.stringify(REPONSES)); }catch(e){} }
+function oublierReponses(){ REPONSES={}; sauverReponses(); }
+let _qPil=null, _qSeq=null;
+/* Le Phénix lit la question, puis chaque réponse — en la surlignant au moment où il la prononce */
+function _voixFr(u){
+  u.lang='fr-FR'; u.rate=0.97; u.pitch=1; u.volume=1;
+  try{ const vs=speechSynthesis.getVoices();
+    const fr=vs.find(v=>/^fr[-_]?FR/i.test(v.lang)) || vs.find(v=>/^fr/i.test(v.lang));
+    if(fr) u.voice=fr; }catch(e){}
+  return u;
+}
+function stopLectureQ(){
+  _qSeq=null;
+  document.querySelectorAll('#qRep .q-btn').forEach(b=>b.classList.remove('lu','attend'));
+  try{ speechSynthesis.cancel(); }catch(e){}
+  majLireBtn();
+}
+function lireQuestionSeq(p){
+  if(!('speechSynthesis' in window)) return;
+  const Q=QUESTIONS[p]; if(!Q) return;
+  try{ speechSynthesis.cancel(); }catch(e){}
+  const btns=[...document.querySelectorAll('#qRep .q-btn')];
+  btns.forEach(b=>b.classList.remove('attend'));
+  const seq=[{i:-1,t:Q.q}].concat(Q.r.map((x,i)=>({i,t:x.t})));
+  const moi={}; _qSeq=moi;                       // jeton : toute nouvelle lecture annule l'ancienne
+  let k=0;
+  const eteindre=()=>btns.forEach(b=>b.classList.remove('lu'));
+  const suite=()=>{
+    if(_qSeq!==moi) return;                      // arrêtée entre-temps
+    eteindre();
+    if(k>=seq.length){                           // tout est dit : à toi de choisir
+      _qSeq=null;
+      btns.forEach(b=>b.classList.add('attend'));   // ajoutées d'un coup -> elles clignotent ensemble
+      majLireBtn(); return;
+    }
+    const s=seq[k++];
+    if(s.i>=0 && btns[s.i]) btns[s.i].classList.add('lu');
+    const u=_voixFr(new SpeechSynthesisUtterance(s.t));
+    u.onend=()=>{ if(_qSeq===moi) setTimeout(suite, 160); };   // petite respiration entre deux
+    u.onerror=()=>{ if(_qSeq===moi) setTimeout(suite, 160); };
+    try{ speechSynthesis.speak(u); }catch(e){ _qSeq=null; }
+    majLireBtn();
+  };
+  suite();
+}
+function ouvrirQuestion(p){
+  const Q=QUESTIONS[p]; if(!Q) return;
+  _qPil=p;
+  document.getElementById('qTxt').innerHTML = `${embImg(p,16)} ${Q.q}`;
+  document.getElementById('qRep').innerHTML = Q.r.map(x=>`<button class="q-btn" onclick="repondre('${p}','${x.k}')">${x.t}</button>`).join("");
+  document.getElementById('qSkip').style.display='';
+  _lectureTxt = `${Q.q} ${Q.r.map(x=>x.t).join('. ')}.`;
+  document.getElementById('qphenix').classList.add('on');
+  setTimeout(()=>{ lireQuestionSeq(p); }, 420);      // lecture automatique dès l'ouverture
+}
+function repondre(p,k){
+  if(!p) return;
+  if(k) REPONSES[p]=k; else REPONSES[p]="—";     // "—" : demandé, esquivé, on ne redemande pas
+  sauverReponses();
+  stopLectureQ();
+  const merci = k
+    ? `Merci. Le Phénix s'en souviendra — tu le retrouveras dans <b>Ton Miroir</b>.`
+    : `C'est entendu. Le Phénix ne te le redemandera pas.`;
+  document.getElementById('qTxt').innerHTML = `<span class="q-merci">${merci}</span>`;
+  document.getElementById('qRep').innerHTML = '';
+  document.getElementById('qSkip').style.display='none';
+  _lectureTxt = merci.replace(/<[^>]+>/g,'');
+  try{ buzz(20); parle(_lectureTxt); majLireBtn(); }catch(e){}
+  setTimeout(()=>{ document.getElementById('qphenix').classList.remove('on'); try{speechSynthesis.cancel();}catch(e){} majLireBtn(); _qPil=null; }, 2600);
+}
 function _profilDefaut(){ P.forEach(p=>{ if(PROFIL.tot[p]==null)PROFIL.tot[p]=0; if(PROFIL.neglige[p]==null)PROFIL.neglige[p]=0; if(PROFIL.fort[p]==null)PROFIL.fort[p]=0; }); }
 function chargerProfil(){ try{ const s=JSON.parse(localStorage.getItem('eq_profil_v1')); if(s&&typeof s==='object'){ PROFIL=Object.assign({parties:0,victoires:0,tot:{},neglige:{},fort:{}},s); } }catch(e){} _profilDefaut(); }
 function sauverProfil(){ try{ localStorage.setItem('eq_profil_v1', JSON.stringify(PROFIL)); }catch(e){} }
@@ -1603,7 +1848,7 @@ function majProfil(win){
   PROFIL.fort[tri[0]]++; PROFIL.neglige[tri[3]]++;
   sauverProfil();
 }
-chargerProfil();
+chargerProfil(); chargerReponses();
 function _reduit(){ return (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) || document.documentElement.classList.contains('lite'); }
 function countUp(el, to, dur){
   if(!el) return; if(_reduit()){ el.textContent=to; return; }
@@ -1671,7 +1916,7 @@ function lectureFinale(win){
 }
 /* ── Annonce vocale de fin de match (synthèse française) ── */
 const PIL_ART = {"Spiritualité":"la spiritualité","Amour":"l'amour","Santé":"la santé","Argent":"l'argent"};
-const PIL_VIE = {"Spiritualité":"ton âme","Amour":"ton amour","Santé":"ton corps","Argent":"ta fortune"};
+const PIL_VIE = {"Spiritualité":"ta spiritualité","Amour":"ton amour","Santé":"ta santé","Argent":"ton argent"};
 try{ if('speechSynthesis' in window){ speechSynthesis.getVoices(); speechSynthesis.onvoiceschanged=()=>speechSynthesis.getVoices(); } }catch(e){}
 function parle(txt){
   try{
@@ -1705,7 +1950,7 @@ function texteManche(v, gagne, pFaibleV){
 function annonceManche(v, gagne, pFaibleV){ parle(texteManche(v, gagne, pFaibleV)); }
 /* Lecture manuelle de la bannière : bouton stop / relance */
 let _lectureTxt="";
-function majLireBtn(){ const on=('speechSynthesis' in window) && speechSynthesis.speaking; document.querySelectorAll('.lire-btn').forEach(b=>b.textContent = on ? '⏹' : '🔊'); }
+function majLireBtn(){ const on=(('speechSynthesis' in window) && speechSynthesis.speaking) || !!_qSeq; document.querySelectorAll('.lire-btn').forEach(b=>b.textContent = on ? '⏹' : '🔊'); }
 function lireTexte(txt){
   if(!('speechSynthesis' in window) || !txt) return;
   try{ speechSynthesis.cancel();
@@ -1717,7 +1962,11 @@ function lireTexte(txt){
   setTimeout(majLireBtn,80);
 }
 function toggleLecture(){
-  if(('speechSynthesis' in window) && speechSynthesis.speaking){ speechSynthesis.cancel(); }
+  const surQuestion = _qPil && document.getElementById('qphenix').classList.contains('on');
+  if(('speechSynthesis' in window) && (speechSynthesis.speaking || _qSeq)){
+    if(surQuestion) stopLectureQ(); else speechSynthesis.cancel();
+  }
+  else if(surQuestion){ lireQuestionSeq(_qPil); }
   else { lireTexte(_lectureTxt); }
   setTimeout(majLireBtn,90);
 }
@@ -1729,6 +1978,15 @@ function annonceFinMatch(win, nouveauRang){
   else if(tot>0) txt += win ? " Bel équilibre, tu n'as rien laissé tomber." : " Ton équilibre était bon, il t'a manqué peu.";
   if(nouveauRang) txt += ` Nouveau rang : ${nouveauRang}.`;
   parle(txt);
+}
+/* La question ne vient QUE si tu perds, et seulement sur le pilier qui a lâché */
+function pilierDeLaQuestion(win){
+  if(win || enLigne()) return null;
+  const tot=P.reduce((s,p)=>s+(bilanPiliers[p]||0),0);
+  if(tot<=0) return null;                                 // pas de bilan (duel) -> rien
+  const faible=P.slice().sort((a,b)=>(bilanPiliers[a]||0)-(bilanPiliers[b]||0))[0];
+  if(!faible || REPONSES[faible]) return null;            // déjà posée une fois : jamais reposée
+  return faible;
 }
 function majFinMatch(win, histo){
   STATS.matchsJoues++;
@@ -1753,10 +2011,13 @@ function majFinMatch(win, histo){
   if(win){ confetti(120); flash('#f2d98a'); buzz([20,40,20,60]); setTimeout(()=>confetti(70),480); setTimeout(()=>confetti(50),980); }
   else { lightning(); buzz(60); }
   if(levelUp){ setTimeout(()=>{ confetti(90); flash('#e6ce7a'); try{sWin();}catch(e){} }, 1200); }
+  const qp = pilierDeLaQuestion(win);
   setTimeout(()=>{
+    // Le Phénix est rare : quand il parle, il ne rivalise pas avec la lecture des piliers
+    if(qp){ ouvrirQuestion(qp); return; }
     if(_lectureTxt){ parle(_lectureTxt); majLireBtn(); }
     else annonceFinMatch(win, levelUp?apres.titre:null);
-  }, 900);
+  }, qp ? 1600 : 900);
 }
 let JEU='solo';                       // 'solo' | 'net'
 const NET={ role:null, aQui:null, connected:false, sendRaw:null, peer:null, conn:null };
@@ -1765,7 +2026,7 @@ function advLabel(){ return 'Adv'; }
 const MATCH_CIBLE=2;                  // premier à 2 manches
 
 function nouveauMatch(){ MODE='classique'; AGO.on=false; document.body.classList.remove('mode-agonie','peril','enfeu'); stopHeart(); stopFeu(); matchMe=0; matchIA=0; mancheNo=1; mancheHisto=[]; resetBilan(); phenixUse=false; demarrer(); }
-function demarrerSoin(){ ac(); MODE='soin'; AGO.on=false; document.body.classList.remove('mode-agonie','peril','enfeu'); stopHeart(); stopFeu(); matchMe=0; matchIA=0; mancheNo=1; mancheHisto=[]; resetBilan(); phenixUse=false; demarrer(); document.getElementById("niveauBadge").textContent="🌿 Voie du Soin"; }
+function demarrerSoin(){ ac(); MODE='soin'; AGO.on=false; document.body.classList.remove('mode-agonie','peril','enfeu'); stopHeart(); stopFeu(); matchMe=0; matchIA=0; mancheNo=1; mancheHisto=[]; resetBilan(); phenixUse=false; demarrer(); document.getElementById("niveauBadge").textContent="🍃 Voie du Soin"; }
 
 function demarrer(){
   const dn=melange(paquetNormal()), ds=melange(pileSpeciale());
@@ -1822,6 +2083,10 @@ function render(){
 
   const bz=document.getElementById("bornes"); bz.querySelectorAll('.borne').forEach(e=>e.remove());
   const _lo=Math.min(...P.map(p=>T[p][1]));    // ton pilier le plus faible
+  // échelle COMMUNE aux 4 piliers : c'est ce qui rend les hauteurs comparables entre eux
+  const _gmax=Math.max(20, ...P.map(p=>Math.max(T[p][1],T[p][2])));
+  const _hi=Math.max(...P.map(p=>T[p][1]));
+  const _decide=(_lo<_hi) ? P.filter(p=>T[p][1]===_lo) : [];   // rien à marquer si tout est à égalité
   P.forEach((p,pi)=>{
     const b=T[p], mene = b[1]>b[2] ? "moi" : (b[2]>b[1] ? "ia" : null);
     const cible = carteSel && ciblesSel.includes(p) && !fini && !locked;
@@ -1834,13 +2099,22 @@ function render(){
       (mene?`<div class="mene">${mene==="moi"?"⬆":"⬇"}</div>`:"")
       + (feu?`<div class="flamme">🔥</div>`:"")
       + `<div class="emb" style="--pc:${AURA[p]}">${embImg(p,30)}</div>`
-      + `<div class="nom" style="color:${COL[p]}">${p.slice(0,4).toUpperCase()}</div>`
-      + `<div class="sep"></div>`
-      + `<div class="tot ia">${b[2]}</div><div class="mini">${advLabel()} · ${b.n2}/${MAX}</div>`
-      + `<div class="pile">${jet("#e0708a",b.n2)}</div>`
-      + `<div class="sep"></div>`
-      + `<div class="tot moi">${b[1]}</div><div class="mini">vous · ${b.n1}/${MAX}</div>`
-      + `<div class="pile">${jet("var(--goldL)",b.n1)}</div>`;
+      + `<div class="nom" style="color:${COL[p]}">${p.toUpperCase()}</div>`
+      + `<div class="jauge">
+           <div class="jcol">
+             <div class="jtrack"><i class="jfill moi" style="height:${Math.round(100*b[1]/_gmax)}%;--jc:${COL[p]}"></i></div>
+             <div class="tot moi">${b[1]}</div>
+             <div class="mini">vous · ${b.n1}/${MAX}</div>
+             <div class="pile">${jet("var(--goldL)",b.n1)}</div>
+           </div>
+           <div class="jcol">
+             <div class="jtrack"><i class="jfill ia" style="height:${Math.round(100*b[2]/_gmax)}%"></i></div>
+             <div class="tot ia">${b[2]}</div>
+             <div class="mini">${advLabel()} · ${b.n2}/${MAX}</div>
+             <div class="pile">${jet("#e0708a",b.n2)}</div>
+           </div>
+         </div>`
+      + (_decide.includes(p) ? `<div class="decide">⚖ décide</div>` : "");
     if(cible) el.onclick=()=>poser(p);
     bz.appendChild(el);
   });
@@ -1890,7 +2164,25 @@ function render(){
   majBalance();
   majAgonieUI();
   majPhenix();
+  ajusteMain();
 }
+/* La main se met à l'échelle pour que TOUT l'écran de jeu tienne sans défilement */
+const CW=91, CH=132, GAP=4, PARRANG=6;
+let _kActuel=0;
+function ajusteMain(){
+  const app=document.getElementById("app"), main=document.getElementById("main");
+  if(!app||!main||!main.children.length) return;
+  const rangs=Math.ceil(main.children.length/PARRANG);
+  const chrome=app.getBoundingClientRect().height - main.getBoundingClientRect().height;
+  const larg=Math.min(560, document.documentElement.clientWidth) - 20;      // padding #app
+  const kW=(larg - (PARRANG-1)*GAP) / (PARRANG*CW);
+  const kH=(window.innerHeight - chrome - 2 - (rangs-1)*GAP) / (rangs*CH);
+  const k=Math.max(0.5, Math.min(1.3, kW, kH));                             // peut dépasser la taille native
+  if(Math.abs(k-_kActuel) < 0.015) return;                                  // évite le frémissement
+  _kActuel=k;
+  document.documentElement.style.setProperty("--k", k.toFixed(3));
+}
+addEventListener("resize", ()=>{ try{ _kActuel=0; ajusteMain(); }catch(e){} });
 /* ══════════ LE PHÉNIX — un sursaut par manche ══════════ */
 let phenixUse=false;
 function pilierEnFeu(){
@@ -1976,7 +2268,7 @@ function flashBorne(p, who, hit){
   if(tot){ tot.classList.add(hit?"hit":"bump"); setTimeout(()=>tot.classList.remove(hit?"hit":"bump"),400); }
   if(!hit){
     const piles=el.querySelectorAll(".pile");
-    const pile= who==="moi" ? piles[1] : piles[0];
+    const pile= who==="moi" ? piles[0] : piles[1];
     const last= pile && pile.lastElementChild;
     if(last) last.classList.add("drop");
   }
@@ -2404,7 +2696,7 @@ function demarrerDefi(){
   trier(mainJ);
   T=tableVide(); tour=0; sel=null; fini=false; locked=false; histo=[]; prevOwners={};
   fermerOverlays();
-  document.getElementById("niveauBadge").textContent = "🗓️ Défi du jour";
+  document.getElementById("niveauBadge").textContent = "🌙 Défi du jour";
   majMatch(); render(); initCardTilt();
   dire("<b>Défi du jour.</b> Même main pour tout le monde — équilibre-la au mieux. Touchez une carte.",1);
 }
@@ -2426,7 +2718,7 @@ function terminerDefi(){
     else { streak=(last===defiHier())?prev+1:1; localStorage.setItem('defi_streak',String(streak)); localStorage.setItem('defi_lastKey',String(key)); }
   }catch(e){}
   const fin=document.getElementById('fin'); fin.classList.remove('epicwin','epicloss'); if(record) fin.classList.add('epicwin');
-  document.getElementById('finemoji').textContent = record?"🏅":"🗓️";
+  document.getElementById('finemoji').textContent = record?"🏅":"🌙";
   const ft=document.getElementById('fintitre'); ft.style.color=""; ft.textContent="DÉFI DU "+defiLabel().toUpperCase();
   document.getElementById('finpips').innerHTML="";
   document.getElementById('findetail').innerHTML = `
@@ -2474,7 +2766,7 @@ function ouvrirNiveau(){
   if(ag) ag.onclick=()=>{ ac(); demarrerAgonie(); };
   document.getElementById("niveau").classList.add("on");
 }
-function fermerOverlays(){ ["tuto","niveau","fin","splash","miroir","modemploi"].forEach(id=>{const e=document.getElementById(id); if(e) e.classList.remove("on");}); }
+function fermerOverlays(){ ["tuto","niveau","fin","splash","miroir","modemploi","qphenix"].forEach(id=>{const e=document.getElementById(id); if(e) e.classList.remove("on");}); }
 function ouvrirSplash(){
   fermerOverlays();
   const n=niveauInfo(STATS.xp);
@@ -2531,13 +2823,14 @@ function ouvrirMiroir(){
       <p>Ton <b>refuge</b> : ${embImg(refuge,15)} <b>${refuge}</b> — ${MIR_REFUGE[refuge]}</p>
       ${ax?`<p>Ton âme penche vers l'axe ${embImg(triTot[0],15)}${embImg(triTot[1],15)} <b>${ax.t}</b> — ${ax.r}</p>`:''}
       <p style="color:var(--goldL)">Ton défi : oser nourrir ${embImg(angleMort,15)} <b>${angleMort}</b>, là où tu détournes les yeux.</p>
-    </div>`;
+    </div>` + blocConfidences(angleMort);
   // texte parlé (sans balises)
   let mt = `Le reflet de ton jeu. ${PROFIL.parties} parties, ${PROFIL.victoires} victoire${PROFIL.victoires>1?'s':''}. `;
   mt += `Ton angle mort : ${angleMort}, laissé pour compte ${negF} fois sur ${PROFIL.parties}. ${MIR_ANGLE[angleMort]} `;
   mt += `Ton refuge : ${refuge}. ${MIR_REFUGE[refuge]} `;
   if(ax) mt += `Ton âme penche vers l'axe ${ax.t}. ${ax.r} `;
   mt += `Ton défi : oser nourrir ${angleMort}, là où tu détournes les yeux.`;
+  mt += texteConfidences(angleMort);
   _lectureTxt = mt;
   document.getElementById("miroir").classList.add("on");
   setTimeout(()=>{ parle(mt); majLireBtn(); }, 450);
@@ -2546,6 +2839,42 @@ function fermerMiroir(){
   document.getElementById("miroir").classList.remove("on");
   try{speechSynthesis.cancel();}catch(e){} majLireBtn();
   if(miroirRetour==='niveau') ouvrirNiveau(); else ouvrirSplash();
+}
+/* Ce que tu as confié au Phénix, croisé avec ce que ton jeu montre.
+   Le Miroir renvoie ta parole — il ne l'interprète pas, il ne conseille rien. */
+function _confiees(){ return P.filter(p=>REPONSES[p] && REPONSES[p]!=="—" && ECHO[p] && ECHO[p][REPONSES[p]]); }
+function blocConfidences(angleMort){
+  const dits=_confiees();
+  if(!dits.length) return "";
+  const lignes = dits.map(p=>{
+    const e=ECHO[p][REPONSES[p]];
+    const croise = (p===angleMort)
+      ? ` Et dans tes parties, ${embImg(p,14)} <b>${p}</b> est justement ton angle mort — laissé pour compte <b>${PROFIL.neglige[p]}</b> fois sur ${PROFIL.parties}.`
+      : "";
+    return `<p>Tu m'as dit que ${e}.${croise}</p>`;
+  }).join("");
+  return `<div class="lecture mir-conf">
+    <div class="lec-h">✦ Ce que tu m'as confié ✦</div>
+    ${lignes}
+    <button class="conf-oubli" onclick="effacerConfidences()">Effacer ce que j'ai confié</button>
+  </div>`;
+}
+function texteConfidences(angleMort){
+  const dits=_confiees();
+  if(!dits.length) return "";
+  let t=" Ce que tu m'as confié. ";
+  dits.forEach(p=>{
+    t += `Tu m'as dit que ${ECHO[p][REPONSES[p]]}. `;
+    if(p===angleMort) t += `Et dans tes parties, ${p} est justement ton angle mort, laissé pour compte ${PROFIL.neglige[p]} fois sur ${PROFIL.parties}. `;
+  });
+  return t;
+}
+function effacerConfidences(){
+  oublierReponses();
+  try{ speechSynthesis.cancel(); }catch(e){}
+  const c=document.querySelector('#miroir .mir-conf');
+  if(c) c.innerHTML = `<p class="conf-vide">C'est effacé. Le Phénix n'en garde rien.</p>`;
+  majLireBtn();
 }
 
 /* ══════════ MODE AGONIE — moteur ══════════ */
@@ -2992,7 +3321,7 @@ function netDealManche(){
   const hoteOuvre = (mancheNo % 2 === 1);          // alternance : hôte ouvre les manches impaires
   NET.aQui = hoteOuvre ? 'host' : 'guest';
   fermerOverlays(); fermerDuel();
-  document.getElementById("niveauBadge").textContent="🌐 Duel";
+  document.getElementById("niveauBadge").textContent="⚔️ Duel";
   majMatch();
   if(hoteOuvre){
     locked=false; dire("<b>À vous d'ouvrir la manche.</b> Touchez une carte.",1);
@@ -3051,7 +3380,7 @@ function appliquerVue(v){
   matchMe=v.matchMoi; matchIA=v.matchAdv; mancheNo=v.mancheNo;
   sel=null; fini=false; locked=!v.aToi;
   fermerOverlays(); fermerDuel();
-  document.getElementById("niveauBadge").textContent="🌐 Duel";
+  document.getElementById("niveauBadge").textContent="⚔️ Duel";
   majMatch();
   dire(v.aToi ? "<b>À vous de jouer.</b> Touchez une carte." : (v.msg||"En attente de l'adversaire…"), v.aToi?1:3);
   render();
