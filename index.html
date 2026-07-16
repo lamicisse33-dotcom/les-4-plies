@@ -106,6 +106,7 @@ html.lite #ambiance .glow{animation:none;} html.lite .mote{display:none;}
 .mem-ip p{font-size:12.5px;line-height:1.5;color:#cfc6de;margin:0 0 9px;}
 .mem-ip b{color:#f0dc9a;}
 .mem-ip-foot{text-align:center;font-family:'Cinzel',serif;font-weight:900;font-size:12.5px;letter-spacing:1px;color:var(--goldL);border-top:1px solid rgba(201,162,39,.3);padding-top:12px;margin-top:4px;}
+.mem-signoff .mem-build{font-size:9px;color:#6b6280;letter-spacing:1.2px;margin-top:8px;font-family:'Cinzel',serif;font-weight:400;}
 .mem-signoff{text-align:center;margin-top:20px;}
 .mem-signoff .mem-balance{font-size:32px;line-height:1;filter:drop-shadow(0 0 10px rgba(240,208,96,.35));}
 .mem-signoff .mem-seal{font-family:'Cinzel',serif;font-weight:900;font-size:12px;letter-spacing:4px;color:var(--goldL);margin-top:8px;}
@@ -1082,6 +1083,7 @@ html.lite #liens .lien{animation:none;}
     <div class="mem-signoff">
       <div class="mem-balance">⚖️</div>
       <p class="mem-seal">✦ KHALAM ✦</p>
+      <p class="mem-build" id="memBuild"></p>
     </div>
 
   </div>
@@ -2938,6 +2940,12 @@ addEventListener("resize", ()=>{ try{ _kActuel=0; _ajRangs=-1; ajusteMain(true);
    mesuré sur un mobile milieu de gamme : 55 % d'images sautées sans, 11 % avec.
    Le coût n'est pas dans le JavaScript (< 12 % du temps) mais dans le DESSIN : ombres
    portées, flous et dégradés que le téléphone doit repeindre à chaque image. */
+/* ══════════ LA VERSION ══════════
+   Sans marqueur visible, ni le joueur ni le testeur ne savent ce qu'ils jouent, et le
+   développeur ne peut pas le lire sur une capture. On a perdu une journée à s'en douter.
+   À bumper AVEC le CACHE de sw.js — les deux doivent toujours dire la même chose. */
+const BUILD_TAG = "v70";
+
 const CLE_LITE = "eq_lite";
 let liteOn = false;
 function appliqueLite(){
@@ -3513,6 +3521,7 @@ function fermerTuto(){ taire(); document.getElementById("tuto").classList.remove
    sinon le mode d'emploi mentira le jour où tu changeras SEUIL_MIROIR. */
 function majSeuilAide(){
   document.querySelectorAll('.mem-seuil').forEach(e=>{ e.textContent = SEUIL_MIROIR; });
+  const b=document.getElementById('memBuild'); if(b) b.textContent = BUILD_TAG;
 }
 function ouvrirAide(){ ac(); ouvrirModemploi('jeu'); }
 let memRetour='splash';
@@ -3523,7 +3532,7 @@ const _EMO = /[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}\u{2190}-\u{21FF}\u{2
 function texteModemploi(){
   const o=document.getElementById('modemploi'); if(!o) return '';
   const bouts=[];
-  o.querySelectorAll('.ttl, .mem-part, .mem-h, .mem-sec > p, .mem-card, .mem-spec, .kt, .kli, .mem-quote, .mem-kbody > p, .mem-ip-h, .mem-ip > p, .mem-ip-foot, .mem-signoff')
+  o.querySelectorAll('.ttl, .mem-part, .mem-h, .mem-sec > p, .mem-card, .mem-spec, .kt, .kli, .mem-quote, .mem-kbody > p, .mem-ip-h, .mem-ip > p, .mem-ip-foot, .mem-seal')   /* .mem-seal, pas .mem-signoff : sinon elle lit le numéro de version */
    .forEach(e=>{
      let t=(e.textContent||'').replace(_EMO,' ').replace(/\s+/g,' ').trim();
      if(!t) return;
