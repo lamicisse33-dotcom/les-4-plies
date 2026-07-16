@@ -133,6 +133,8 @@ html.lite #ambiance .glow{animation:none;} html.lite .mote{display:none;}
 #miroir .card{max-height:92dvh;overflow:auto;}
 #miroirBody{margin-top:4px;}
 .mir-empty{text-align:center;font-style:italic;color:#c4bbd6;font-size:14px;line-height:1.6;padding:20px 6px;}
+.mir-empty b{color:var(--goldL);font-style:normal;}
+.mm-emb{font-size:34px;line-height:1;display:inline-block;margin-bottom:8px;opacity:.55;filter:grayscale(.4);}
 .mir-stat{text-align:center;font-family:'Cinzel',serif;font-weight:900;font-size:12px;color:var(--goldL);letter-spacing:1px;margin-bottom:12px;}
 .mir-cap{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muet);text-align:center;margin-bottom:8px;}
 .mir-bars{display:flex;flex-direction:column;gap:7px;margin-bottom:6px;}
@@ -238,9 +240,12 @@ html.lite .ptfloat{display:none;} html.lite .borne .emb.pop{animation:none;}
 .decide{display:inline-block;margin-top:4px;font-family:'Cinzel',serif;font-weight:900;
   font-size:7px;letter-spacing:.7px;color:#2c2005;padding:2px 6px;border-radius:20px;
   background:linear-gradient(180deg,#f4e2a6,#d4af3a);border:1px solid rgba(255,244,200,.6);
-  box-shadow:0 0 12px rgba(240,208,96,.45);animation:decidePulse 2.4s ease-in-out infinite;}
-@keyframes decidePulse{0%,100%{box-shadow:0 0 12px rgba(240,208,96,.4);}50%{box-shadow:0 0 18px rgba(240,208,96,.75);}}
-html.lite .decide{animation:none;}
+  position:relative;box-shadow:0 0 12px rgba(240,208,96,.4);}
+.decide::after{content:"";position:absolute;inset:-1px;border-radius:inherit;pointer-events:none;
+  box-shadow:0 0 18px rgba(240,208,96,.75);animation:halo 2.4s ease-in-out infinite;}
+/* on n'anime que l'opacité : le GPU s'en charge, aucun repeint */
+@keyframes halo{0%,100%{opacity:0;}50%{opacity:1;}}
+html.lite .decide::after{animation:none;display:none;}
 html.lite .jfill{transition:none;}
 .jeton{width:5px;height:5px;border-radius:1px;}
 .jeton.drop{animation:jdrop .4s cubic-bezier(.3,1.4,.5,1);}
@@ -249,8 +254,12 @@ html.lite .jfill{transition:none;}
 .mene{position:absolute;top:3px;right:4px;font-size:8px;}
 /* Pilier affaibli : il prend feu */
 .borne.enfeu{border-color:rgba(255,110,30,.5);}
-.borne.enfeu .emb{animation:embBrasier .6s ease-in-out infinite alternate;}
-@keyframes embBrasier{0%{box-shadow:0 0 9px 2px rgba(255,130,25,.45);}100%{box-shadow:0 0 22px 7px rgba(255,70,10,.9);}}
+.borne.enfeu .emb{box-shadow:0 0 9px 2px rgba(255,130,25,.45);}
+.borne .halofeu{position:absolute;inset:0;border-radius:50%;pointer-events:none;opacity:0;
+  box-shadow:0 0 22px 7px rgba(255,70,10,.9);}
+.borne.enfeu .halofeu{animation:embBrasier .6s ease-in-out infinite alternate;}
+html.lite .borne .halofeu{animation:none;display:none;}
+@keyframes embBrasier{0%{opacity:.35;}100%{opacity:1;}}
 .flamme{position:absolute;top:-7px;left:50%;font-size:20px;z-index:5;pointer-events:none;
   filter:drop-shadow(0 0 6px rgba(255,120,20,.9));transform:translateX(-50%);animation:flamFlick .5s ease-in-out infinite alternate;}
 @keyframes flamFlick{0%{transform:translateX(-50%) scale(1) rotate(-4deg);opacity:.85;}100%{transform:translate(-52%,-2px) scale(1.18) rotate(4deg);opacity:1;}}
@@ -261,13 +270,14 @@ html.lite .flamme{animation:none;} html.lite .borne.enfeu .emb{animation:none;}
   font-family:'Cinzel',serif;font-weight:900;font-size:14px;letter-spacing:1px;color:#2a1402;
   background:linear-gradient(180deg,#ffcf6a,#ff8a1e 45%,#e0530f 100%);
   border:1px solid rgba(255,220,150,.7);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.5), 0 0 22px rgba(255,110,20,.6), 0 6px 18px rgba(0,0,0,.4);
-  animation:phenixPulse 1.1s ease-in-out infinite;}
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.5), 0 0 18px rgba(255,110,20,.5), 0 6px 18px rgba(0,0,0,.4);
+  position:relative;}
+#phenixBtn::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  box-shadow:0 0 34px rgba(255,130,30,.9);animation:phenixPulse 1.1s ease-in-out infinite;}
 #phenixBtn span{font-family:'Crimson Text',serif;font-weight:400;font-size:11px;letter-spacing:0;opacity:.85;}
 #phenixBtn:active{transform:translateY(1px);}
-@keyframes phenixPulse{0%,100%{box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 0 18px rgba(255,110,20,.5),0 6px 18px rgba(0,0,0,.4);}
-  50%{box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 0 34px rgba(255,130,30,.9),0 6px 18px rgba(0,0,0,.4);}}
-html.lite #phenixBtn{animation:none;}
+@keyframes phenixPulse{0%,100%{opacity:0;}50%{opacity:1;}}
+html.lite #phenixBtn::after{animation:none;display:none;}
 .braise{position:fixed;z-index:70;border-radius:50%;pointer-events:none;transform:translate(-50%,-50%);
   background:radial-gradient(circle,#fff2b0,#ff8a1e 55%,rgba(224,80,10,0) 80%);box-shadow:0 0 8px rgba(255,140,30,.9);
   animation-name:braiseRise;animation-timing-function:ease-out;animation-fill-mode:forwards;}
@@ -310,7 +320,7 @@ html.lite .phx-wing{display:none;}
   -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:var(--gold);}
 .carte.norm .cnr .ce{display:flex;gap:1px;margin-top:1px;}
 .carte.norm .cnr .ce i{width:7px;height:7px;border-radius:50%;display:block;border:.5px solid rgba(201,162,39,.9);box-sizing:border-box;}
-.carte.norm .cnr .ce img.mo{width:8px;height:8px;border-radius:50%;display:block;border:.5px solid rgba(201,162,39,.95);box-sizing:border-box;object-fit:cover;}
+.carte.norm .cnr .ce span.mo{width:8px;height:8px;border-radius:50%;display:block;border:.5px solid rgba(201,162,39,.95);box-sizing:border-box;}
 .carte.norm .tl{top:6px;left:7px;} .carte.norm .tr{top:6px;right:7px;}
 .carte.norm .bl{bottom:6px;left:7px;transform:rotate(180deg);} .carte.norm .br{bottom:6px;right:7px;transform:rotate(180deg);}
 .carte.norm .cnom{position:absolute;left:4px;right:4px;text-align:center;z-index:1;
@@ -319,12 +329,13 @@ html.lite .phx-wing{display:none;}
 .carte.norm .cnom.top{top:35px;}
 .carte.norm .cnom.mir{bottom:35px;transform:rotate(180deg);}
 .carte.norm .ctri{position:absolute;left:0;right:0;top:53px;display:flex;gap:6px;align-items:center;justify-content:center;z-index:1;}
+.e-spi,.e-amo,.e-san,.e-arg{background-size:cover;background-position:center;background-repeat:no-repeat;}
 .carte.norm .ctri .orb{position:static;width:26px;height:26px;}
 .carte.norm .orb{position:absolute;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;
   font-size:10px;border:1px solid var(--gold);box-sizing:border-box;object-fit:cover;
   box-shadow:inset 0 1px 2px rgba(255,255,255,.55), inset 0 -2px 3px rgba(0,0,0,.35), 0 1px 2px rgba(0,0,0,.4);}
-img.orb{width:24px;height:24px;border-radius:50%;border:1px solid var(--gold);box-sizing:border-box;object-fit:cover;box-shadow:0 0 0 1px rgba(34,32,28,.25),0 1px 3px rgba(0,0,0,.4);}
-.embimg{border-radius:50%;vertical-align:middle;object-fit:cover;border:1px solid rgba(201,162,39,.9);box-sizing:border-box;box-shadow:0 1px 3px rgba(0,0,0,.35);}
+span.orb{width:24px;height:24px;border-radius:50%;border:1px solid var(--gold);box-sizing:border-box;box-shadow:0 0 0 1px rgba(34,32,28,.25),0 1px 3px rgba(0,0,0,.4);}
+.embimg{border-radius:50%;vertical-align:middle;display:inline-block;border:1px solid rgba(201,162,39,.9);box-sizing:border-box;box-shadow:0 1px 3px rgba(0,0,0,.35);}
 .borne .emb .embimg{position:relative;z-index:1;width:30px;height:30px;border:none;
   box-shadow:0 2px 5px rgba(0,0,0,.55), 0 0 11px var(--pc,rgba(201,162,39,.5));}
 /* cartes spéciales */
@@ -539,10 +550,10 @@ img.orb{width:24px;height:24px;border-radius:50%;border:1px solid var(--gold);bo
 @keyframes qFlame{0%,100%{transform:translateY(0) scale(1);}50%{transform:translateY(-3px) scale(1.06);}}
 #qphenix .q-kick{font-family:'Cinzel',serif;font-weight:900;font-size:9.5px;letter-spacing:1.8px;
   text-transform:uppercase;color:#e0912a;margin:10px 0 14px;}
-#qphenix .q-txt{font-size:16px;line-height:1.5;color:#f4ead6;font-style:italic;margin-bottom:16px;}
+#qphenix .q-txt{font-size:17px;line-height:1.5;color:#f4ead6;font-style:italic;margin-bottom:16px;}
 #qphenix .q-rep{display:flex;flex-direction:column;gap:7px;}
-.q-btn{padding:12px 10px;border-radius:12px;cursor:pointer;font-family:'Crimson Text',Georgia,serif;
-  font-size:14px;line-height:1.3;color:#e7dcf0;text-align:center;
+.q-btn{padding:13px 10px;border-radius:12px;cursor:pointer;font-family:'Crimson Text',Georgia,serif;
+  font-size:16px;line-height:1.3;color:#e7dcf0;text-align:center;
   background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.17);
   transition:background .15s,border-color .15s,transform .1s;}
 .q-btn:hover{background:rgba(224,145,42,.15);border-color:rgba(224,145,42,.65);color:#fff;}
@@ -552,23 +563,55 @@ img.orb{width:24px;height:24px;border-radius:50%;border:1px solid var(--gold);bo
   border-color:#e0912a;color:#fff;transform:scale(1.03);
   box-shadow:0 0 20px -3px rgba(224,145,42,.75), inset 0 1px 0 rgba(255,255,255,.2);}
 html.lite .q-btn.lu{transform:none;}
-/* tout a été dit : les réponses appellent ensemble */
-.q-btn.attend{animation:qAttend 1.9s ease-in-out infinite;}
-@keyframes qAttend{
-  0%,100%{border-color:rgba(255,255,255,.17);box-shadow:0 0 0 rgba(224,145,42,0);background:rgba(255,255,255,.05);}
-  50%{border-color:rgba(224,145,42,.85);box-shadow:0 0 16px -3px rgba(224,145,42,.6);background:rgba(224,145,42,.10);}}
-.q-btn.attend:hover,.q-btn.attend.lu{animation:none;}
-html.lite .q-btn.attend{animation:none;border-color:rgba(224,145,42,.5);}
-.q-skip{margin-top:14px;background:none;border:none;cursor:pointer;font-size:12px;
+/* tout a été dit : les réponses appellent ensemble.
+   Halo peint une fois, seule l'opacité varie -> aucun repeint. */
+.q-btn{position:relative;}
+.q-btn.attend::after{content:"";position:absolute;inset:-1px;border-radius:inherit;pointer-events:none;
+  border:1px solid rgba(224,145,42,.85);box-shadow:0 0 16px -3px rgba(224,145,42,.6);
+  background:rgba(224,145,42,.10);animation:qAttend 1.9s ease-in-out infinite;}
+@keyframes qAttend{0%,100%{opacity:0;}50%{opacity:1;}}
+.q-btn.attend:hover::after{animation:none;opacity:0;}
+html.lite .q-btn.attend::after{animation:none;display:none;}
+.q-skip{margin-top:14px;background:none;border:none;cursor:pointer;font-size:13px;
   color:#8f86a8;font-style:italic;text-decoration:underline;text-underline-offset:3px;}
 .q-skip:hover{color:#c9bfe0;}
 .q-merci{color:#f0e6d0;}
 .q-merci b{color:var(--goldL);font-style:normal;}
 html.lite #qphenix .q-emb{animation:none;}
+
+/* ── Le reflet du Miroir (styles restaurés) ── */
+#miroir .mir-conf{margin-top:12px;background:linear-gradient(180deg,rgba(224,122,26,.08),rgba(0,0,0,.14));
+  border:1px solid rgba(224,145,42,.3);}
+#miroir .mir-conf .lec-h{color:#e0912a;}
+#miroir .mir-conf p{font-size:13px;}
+#miroir .mir-vu{margin:0 0 14px;padding-bottom:12px;border-bottom:1px solid rgba(201,162,39,.16);}
+#miroir .mir-vu:last-of-type{border-bottom:none;padding-bottom:0;margin-bottom:6px;}
+#miroir .mir-vu p{margin:0 0 5px;}
+#miroir .mir-clos{margin-top:8px !important;font-style:italic;color:var(--goldL);opacity:.92;}
+#miroir .mir-attend{font-style:italic;color:#a99fc0;text-align:center;margin:0 0 12px;line-height:1.6;}
+#miroir .mir-attend b{color:var(--goldL);font-style:normal;}
+.conf-oubli{margin-top:10px;background:none;border:none;cursor:pointer;font-size:11px;color:#8f86a8;
+  font-style:italic;text-decoration:underline;text-underline-offset:3px;display:block;width:100%;text-align:center;}
+.conf-oubli:hover{color:#e0912a;}
+.conf-oubli.armee{color:#e0708a;font-style:normal;font-weight:700;text-decoration:none;
+  border:1px solid rgba(224,112,138,.5);border-radius:10px;padding:7px 10px;width:auto;margin:10px auto 0;}
+.conf-vide{font-style:italic;color:#a99fc0;text-align:center;}
+
+/* ── Score des manches : lisible d'un coup d'œil, on sait qui est qui ── */
+#finpips{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:nowrap;}
+#finpips .pipside{display:flex;align-items:center;gap:6px;}
+#finpips .pippips{display:flex;gap:4px;}
+#finpips .pipwho{font-family:'Cinzel',serif;font-weight:900;font-size:9px;letter-spacing:1.4px;
+  text-transform:uppercase;color:#a99fc0;}
+#finpips .pipn{font-family:'Cinzel',serif;font-weight:900;font-size:26px;line-height:1;}
+#finpips .pipn.moi{color:var(--goldL);text-shadow:0 0 14px rgba(240,208,96,.55);}
+#finpips .pipn.ia{color:#e0708a;text-shadow:0 0 14px rgba(224,112,138,.5);}
+#finpips .pipsep{font-family:'Cinzel',serif;font-weight:900;font-size:8.5px;letter-spacing:1.6px;
+  text-transform:uppercase;color:#6f6786;}
 @media (max-height:700px){
   #qphenix .q-emb{font-size:26px;}
-  #qphenix .q-txt{font-size:14.5px;margin-bottom:12px;}
-  .q-btn{padding:10px 8px;font-size:13px;}
+  #qphenix .q-txt{font-size:15.5px;margin-bottom:12px;}
+  .q-btn{padding:11px 8px;font-size:14.5px;}
   #qphenix .qcard{padding:18px 14px 16px;}
 }
 #findetail .l{display:flex;justify-content:space-between;padding:2px 0;}
@@ -978,10 +1021,10 @@ html.lite #liens .lien{animation:none;}
 <div id="qphenix" class="overlay"><div class="card qcard">
   <button class="lire-btn q-fab" onclick="toggleLecture()" title="Lire / arrêter">🔊</button>
   <div class="q-emb">🔥</div>
-  <div class="q-kick">Le Phénix te pose une question</div>
+  <div class="q-kick" id="qKick">Le Phénix te pose une question</div>
   <div class="q-txt" id="qTxt"></div>
   <div class="q-rep" id="qRep"></div>
-  <button class="q-skip" id="qSkip" onclick="repondre(_qPil,'')">Je préfère ne pas répondre</button>
+  <button class="q-skip" id="qSkip" onclick="repondre(_qPil,_qNum,'')">Je préfère ne pas répondre</button>
 </div></div>
 
 <div id="app">
@@ -1173,9 +1216,16 @@ const EMBLEME_IMG={
   "Argent":"data:image/webp;base64,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"
 };
 /* Emblèmes dessinés (repli emoji si absent) */
-function embImg(p, px){ const src=EMBLEME_IMG[p]; if(!src) return EMB[p]||""; px=px||18; return `<img class="embimg" src="${src}" alt="" style="width:${px}px;height:${px}px">`; }
-function orbe(p, cls){ const src=EMBLEME_IMG[p]; if(!src) return `<span class="orb ${cls||''}" style="background:radial-gradient(circle at 35% 28%, rgba(255,255,255,.6), ${ORB[p]} 58%, #1a0a04 130%)">${EMB[p]}</span>`; return `<img class="orb ${cls||''}" src="${src}" alt="">`; }
-function miniOrb(p){ const src=EMBLEME_IMG[p]; if(!src) return `<i style="background:${ORB[p]}"></i>`; return `<img class="mo" src="${src}" alt="">`; }
+/* Les emblèmes sont déclarés UNE FOIS en CSS. Avant, chaque orbe recopiait
+   l'image entière (6,6 ko) dans le HTML : ~470 ko réécrits à chaque rendu. */
+const EMB_CLS={"Spiritualité":"e-spi","Amour":"e-amo","Santé":"e-san","Argent":"e-arg"};
+(function(){ let css="";
+  for(const p in EMBLEME_IMG){ if(EMBLEME_IMG[p] && EMB_CLS[p]) css += `.${EMB_CLS[p]}{background-image:url("${EMBLEME_IMG[p]}")}`; }
+  if(css){ const st=document.createElement('style'); st.textContent=css; document.head.appendChild(st); }
+})();
+function embImg(p, px){ if(!EMBLEME_IMG[p]) return EMB[p]||""; px=px||18; return `<span class="embimg ${EMB_CLS[p]}" style="width:${px}px;height:${px}px"></span>`; }
+function orbe(p, cls){ if(!EMBLEME_IMG[p]) return `<span class="orb ${cls||''}" style="background:radial-gradient(circle at 35% 28%, rgba(255,255,255,.6), ${ORB[p]} 58%, #1a0a04 130%)">${EMB[p]}</span>`; return `<span class="orb ${EMB_CLS[p]} ${cls||''}"></span>`; }
+function miniOrb(p){ if(!EMBLEME_IMG[p]) return `<i style="background:${ORB[p]}"></i>`; return `<span class="mo ${EMB_CLS[p]}"></span>`; }
 
 /* ══════════ MODE AGONIE (survie) ══════════ */
 let MODE='classique';
@@ -1733,59 +1783,85 @@ let PROFIL={parties:0, victoires:0, tot:{}, neglige:{}, fort:{}};
    Après une défaite, sur le pilier qui a lâché. Une seule fois par pilier, jamais reposée.
    Le jeu renvoie la réponse, il ne l'interprète jamais. Toujours esquivable. */
 const QUESTIONS = {
-  "Amour":        { q:"Ton amour est resté au plus bas. Et celui que tu portes vraiment ?", r:[
-      {k:"vivant",  t:"J'aime, et c'est vivant"},
-      {k:"donne",   t:"J'aime, mais je donne plus que je ne reçois"},
-      {k:"decu",    t:"J'ai été déçu·e — je me protège"},
-      {k:"lasse",   t:"Je n'y crois plus trop, en ce moment"} ]},
-  "Santé":        { q:"Ta santé a décidé de cette défaite. Et celle que tu habites vraiment ?", r:[
-      {k:"soin",    t:"Je prends soin de mon corps"},
-      {k:"sait",    t:"Je sais ce qu'il faudrait — je ne le fais pas"},
-      {k:"fatigue", t:"Je tiens, mais je suis fatigué·e"},
-      {k:"oubli",   t:"Je m'oublie complètement"} ]},
-  "Argent":       { q:"Ton argent t'a coûté la partie. Et celui que tu comptes vraiment ?", r:[
-      {k:"suffit",  t:"J'ai ce qu'il me faut"},
-      {k:"court",   t:"Je cours après, sans répit"},
-      {k:"angoisse",t:"C'est une source d'angoisse"},
-      {k:"ignore",  t:"Je n'y pense pas assez"} ]},
-  "Spiritualité": { q:"Ta spiritualité est restée au plus bas. Et celle qui te tient vraiment ?", r:[
-      {k:"cap",     t:"J'ai un sens, un cap"},
-      {k:"cherche", t:"Je cherche encore"},
-      {k:"temps",   t:"Je n'ai pas le temps de me poser"},
-      {k:"loin",    t:"Ça ne me parle pas"} ]}
-};
-/* Ce que le joueur DÉCLARE : soigner ce pilier, ou s'en retirer.
-   C'est l'écart entre ce mot et son jeu qui fera le choc. */
-const DIT = {
-  "Amour":       { vivant:"soin", donne:"soin",  decu:"retrait", lasse:"retrait" },
-  "Santé":       { soin:"soin",   sait:"retrait",fatigue:"retrait", oubli:"retrait" },
-  "Argent":      { suffit:"soin", court:"soin",  angoisse:"retrait", ignore:"retrait" },
-  "Spiritualité":{ cap:"soin",    cherche:"soin",temps:"retrait", loin:"retrait" }
-};
-/* Le miroir parle au présent : il ne se souvient pas, il voit. */
-const DIT_MOT = {
-  "Amour":{ vivant:"ton amour est vivant", donne:"tu donnes plus que tu ne reçois",
-            decu:"tu as été déçu·e, et que tu te protèges", lasse:"tu n'y crois plus trop" },
-  "Santé":{ soin:"tu prends soin de ton corps", sait:"tu sais ce qu'il faudrait, sans le faire",
-            fatigue:"tu tiens, mais fatigué·e", oubli:"tu t'oublies complètement" },
-  "Argent":{ suffit:"tu as ce qu'il te faut", court:"tu cours après, sans répit",
-             angoisse:"c'est une source d'angoisse", ignore:"tu n'y penses pas assez" },
-  "Spiritualité":{ cap:"tu as un sens, un cap", cherche:"tu cherches encore",
-                   temps:"tu n'as pas le temps de te poser", loin:"ça ne te parle pas" }
+  "Amour": [
+    { q:"Ton amour est resté au plus bas. Et celui que tu portes vraiment ?", r:[
+      {k:"partage",   t:"Il est vivant, et partagé",    d:"soin",    m:"ton amour est vivant et partagé"},
+      {k:"sansretour",t:"J'aime sans retour",           d:"retrait", m:"tu aimes sans retour"},
+      {k:"decu",      t:"J'ai été déçu·e",              d:"retrait", m:"tu as été déçu·e"},
+      {k:"manque",    t:"Quelqu'un me manque",          d:"retrait", m:"quelqu'un te manque"} ]},
+    { q:"Ton amour est encore resté au plus bas. Quand as-tu dit à quelqu'un qu'il compte pour toi, la dernière fois ?", r:[
+      {k:"recent", t:"Tout récemment",                d:"soin",    m:"tu l'as dit tout récemment"},
+      {k:"tempsq", t:"Il y a quelque temps",          d:"retrait", m:"cela fait quelque temps"},
+      {k:"oubli",  t:"Je ne sais plus",               d:"retrait", m:"tu ne sais plus quand"},
+      {k:"jamais", t:"Je ne dis jamais ces choses-là",d:"retrait", m:"tu ne dis jamais ces choses-là"} ]}
+  ],
+  "Santé": [
+    { q:"Ta santé a décidé de cette défaite. Comment prends-tu soin de toi ces derniers temps ?", r:[
+      {k:"attentif",t:"Je suis très attentif·ve",     d:"soin",    m:"tu es très attentif·ve"},
+      {k:"essaie",  t:"J'essaie de m'améliorer",      d:"soin",    m:"tu essaies de t'améliorer"},
+      {k:"peux",    t:"Je fais ce que je peux",       d:"retrait", m:"tu fais ce que tu peux"},
+      {k:"neglige", t:"Je me néglige",                d:"retrait", m:"tu te négliges"} ]},
+    { q:"Ta santé a encore décidé de cette défaite. Que te dit ton corps aujourd'hui ?", r:[
+      {k:"forme",   t:"Je suis en forme",             d:"soin",    m:"tu es en forme"},
+      {k:"repos",   t:"J'ai besoin de repos",         d:"retrait", m:"tu as besoin de repos"},
+      {k:"pression",t:"Je suis sous pression",        d:"retrait", m:"tu es sous pression"},
+      {k:"epuise",  t:"Je suis épuisé·e",             d:"retrait", m:"tu es épuisé·e"} ]}
+  ],
+  "Argent": [
+    { q:"Ton argent t'a coûté la partie. Quel est ton rapport à l'argent aujourd'hui ?", r:[
+      {k:"maitrise",t:"Je le maîtrise",               d:"soin",    m:"tu le maîtrises"},
+      {k:"organise",t:"Je l'organise mieux",          d:"soin",    m:"tu l'organises mieux"},
+      {k:"apprends",t:"J'apprends encore",            d:"retrait", m:"tu apprends encore"},
+      {k:"souci",   t:"Il me préoccupe",              d:"retrait", m:"il te préoccupe"} ]},
+    { q:"Ton argent t'a encore coûté la partie. Quand as-tu regardé tes comptes en face, la dernière fois ?", r:[
+      {k:"pres",    t:"Je les suis de près",          d:"soin",    m:"tu les suis de près"},
+      {k:"parfois", t:"De temps en temps",            d:"soin",    m:"tu les regardes de temps en temps"},
+      {k:"oubli",   t:"Je ne sais plus",              d:"retrait", m:"tu ne sais plus quand"},
+      {k:"peur",    t:"Je préfère ne pas savoir",     d:"retrait", m:"tu préfères ne pas savoir"} ]}
+  ],
+  "Spiritualité": [
+    { q:"Ta spiritualité est restée au plus bas. Quelle place occupe-t-elle dans ta vie aujourd'hui ?", r:[
+      {k:"essentiel",t:"Elle est essentielle",        d:"soin",    m:"elle est essentielle"},
+      {k:"rapproche",t:"Je m'en rapproche",           d:"soin",    m:"tu t'en rapproches"},
+      {k:"apres",    t:"Elle passe après le reste",   d:"retrait", m:"elle passe après le reste"},
+      {k:"neglige",  t:"Je l'ai négligée",            d:"retrait", m:"tu l'as négligée"} ]},
+    { q:"Ta spiritualité est encore restée au plus bas. Quand as-tu pris du temps pour ton âme, la dernière fois ?", r:[
+      {k:"recent", t:"Très récemment",                d:"soin",    m:"tu l'as fait très récemment"},
+      {k:"tempsq", t:"Il y a quelque temps",          d:"retrait", m:"cela fait quelque temps"},
+      {k:"oubli",  t:"Je ne sais plus",               d:"retrait", m:"tu ne sais plus quand"},
+      {k:"jamais", t:"Jamais vraiment",               d:"retrait", m:"tu ne l'as jamais vraiment fait"} ]}
+  ]
 };
 /* Le miroir attend d'en avoir assez vu avant de révéler */
 const SEUIL_MIROIR = 3;
+/* Le Phénix ne revient pas tout de suite : sa 2e question se mérite */
+const ECART_QUESTION = 5;
 let REPONSES={};
 function chargerReponses(){ try{ const s=JSON.parse(localStorage.getItem('eq_rep_v1')); if(s&&typeof s==='object') REPONSES=s; }catch(e){} }
 function sauverReponses(){ try{ localStorage.setItem('eq_rep_v1', JSON.stringify(REPONSES)); }catch(e){} }
 function oublierReponses(){ REPONSES={}; sauverReponses(); }
-/* {k:réponse, n:nb de parties au moment de la parole} — l'ancien format (chaîne) reste lisible */
-function laParole(p){
-  const r=REPONSES[p]; if(!r) return null;
-  const o = (typeof r==='string') ? {k:r, n:0} : r;
-  return (o.k && o.k!=="—") ? o : null;
+/* REPONSES[pilier] = [ {k,n}, {k,n} ] — une case par question.
+   Les anciens formats (chaîne, puis objet unique) restent lisibles. */
+function _repArr(p){
+  const r=REPONSES[p];
+  if(!r) return [];
+  if(typeof r==='string') return [{k:r,n:0}];
+  if(!Array.isArray(r)) return [r];
+  return r;
 }
-let _qPil=null, _qSeq=null;
+/* La parole retenue par le Miroir : la plus récente donnée sur ce pilier */
+function laParole(p){
+  const a=_repArr(p);
+  for(let i=a.length-1;i>=0;i--){ const o=a[i];
+    if(o && o.k && o.k!=="—") return {k:o.k, n:o.n||0, i:i}; }
+  return null;
+}
+/* La réponse telle qu'elle a été écrite : sa polarité et le mot du miroir */
+function _laReponse(p, i, k){
+  const q=(QUESTIONS[p]||[])[i]; if(!q) return null;
+  return q.r.find(x=>x.k===k) || null;
+}
+let _qPil=null, _qNum=0, _qSeq=null;
 /* Le Phénix lit la question, puis chaque réponse — en la surlignant au moment où il la prononce */
 function _voixFr(u){
   u.lang='fr-FR'; u.rate=0.97; u.pitch=1; u.volume=1;
@@ -1800,8 +1876,8 @@ function stopLectureQ(){
   try{ speechSynthesis.cancel(); }catch(e){}
   majLireBtn();
 }
-function lireQuestionSeq(p, manuel){
-  const Q=QUESTIONS[p]; if(!Q) return;
+function lireQuestionSeq(p, i, manuel){
+  const Q=(QUESTIONS[p]||[])[i]; if(!Q) return;
   const btns=[...document.querySelectorAll('#qRep .q-btn')];
   btns.forEach(b=>b.classList.remove('attend','lu'));
   const moi={}; _qSeq=moi;                       // jeton : toute nouvelle lecture annule l'ancienne
@@ -1819,31 +1895,46 @@ function lireQuestionSeq(p, manuel){
   try{ speechSynthesis.speak(u); }catch(e){ fini(); }
   majLireBtn();
 }
-function ouvrirQuestion(p){
-  const Q=QUESTIONS[p]; if(!Q) return;
-  _qPil=p;
+function ouvrirQuestion(p, i){
+  const Q=(QUESTIONS[p]||[])[i]; if(!Q) return;
+  _qPil=p; _qNum=i;
   document.getElementById('qTxt').innerHTML = `${embImg(p,16)} ${Q.q}`;
-  document.getElementById('qRep').innerHTML = Q.r.map(x=>`<button class="q-btn" onclick="repondre('${p}','${x.k}')">${x.t}</button>`).join("");
+  document.getElementById('qRep').innerHTML = Q.r.map(x=>`<button class="q-btn" onclick="repondre('${p}',${i},'${x.k}')">${x.t}</button>`).join("");
   document.getElementById('qSkip').style.display='';
+  document.getElementById('qKick').textContent = i>0 ? "Le Phénix revient" : "Le Phénix te pose une question";
   _lectureTxt = Q.q;                                // seule la question est dite à voix haute
   document.getElementById('qphenix').classList.add('on');
-  setTimeout(()=>{ lireQuestionSeq(p); }, 420);      // lecture automatique dès l'ouverture
+  setTimeout(()=>{ if(ecranOuvert('qphenix')) lireQuestionSeq(p, i); }, 420);   // lecture auto, si l'écran est encore là
 }
-function repondre(p,k){
+function repondre(p, i, k){
   if(!p) return;
-  if(k) REPONSES[p]={k:k, n:(PROFIL.parties||0)};   // on note ce que le miroir avait déjà vu
-  else  REPONSES[p]={k:"—", n:0};                   // demandé, esquivé : on ne redemande pas
-  sauverReponses();
-  stopLectureQ();
+  const a=_repArr(p); a[i] = {k: (k||"—"), n:(PROFIL.parties||0)};   // "—" : demandé, esquivé
+  REPONSES[p]=a; sauverReponses();
+  taire();
+  // Pas de remerciement : un oracle ne remercie pas. Il donne rendez-vous.
   const merci = k
-    ? `Merci. Le Phénix s'en souviendra — tu le retrouveras dans <b>Ton Miroir</b>.`
+    ? `<b>Le miroir a entendu.</b><br>Joue encore ${SEUIL_MIROIR} partie${SEUIL_MIROIR>1?'s':''}, puis va le consulter.`
     : `C'est entendu. Le Phénix ne te le redemandera pas.`;
   document.getElementById('qTxt').innerHTML = `<span class="q-merci">${merci}</span>`;
   document.getElementById('qRep').innerHTML = '';
   document.getElementById('qSkip').style.display='none';
-  _lectureTxt = merci.replace(/<[^>]+>/g,'');
-  try{ buzz(20); parle(_lectureTxt); majLireBtn(); }catch(e){}
-  setTimeout(()=>{ document.getElementById('qphenix').classList.remove('on'); try{speechSynthesis.cancel();}catch(e){} majLireBtn(); _qPil=null; }, 2600);
+  _lectureTxt = merci.replace(/<br\s*\/?>/gi,' ').replace(/<[^>]+>/g,'');   // le retour à la ligne devient une respiration
+  try{ buzz(20); }catch(e){}
+  // L'écran ne se ferme pas sur un chrono : il attend que la voix ait fini sa phrase.
+  let ferme=false;
+  const partir=()=>{ if(ferme) return; ferme=true;
+    setTimeout(()=>{ document.getElementById('qphenix').classList.remove('on'); taire(); _qPil=null; }, 800); };
+  if(voixOn && ('speechSynthesis' in window)){
+    const moi={}; _qSeq=moi;
+    const u=_voixFr(new SpeechSynthesisUtterance(_lectureTxt));
+    u.onend=()=>{ if(_qSeq===moi) _qSeq=null; majLireBtn(); partir(); };
+    u.onerror=()=>{ if(_qSeq===moi) _qSeq=null; majLireBtn(); partir(); };
+    try{ speechSynthesis.speak(u); }catch(e){ partir(); }
+    majLireBtn();
+    setTimeout(partir, 12000);                 // filet : si la voix ne rend jamais la main
+  } else {
+    setTimeout(partir, Math.max(2600, _lectureTxt.length*62));   // voix coupée : le temps de lire
+  }
 }
 function _profilDefaut(){ P.forEach(p=>{ if(PROFIL.tot[p]==null)PROFIL.tot[p]=0; if(PROFIL.neglige[p]==null)PROFIL.neglige[p]=0; if(PROFIL.fort[p]==null)PROFIL.fort[p]=0; }); }
 function chargerProfil(){ try{ const s=JSON.parse(localStorage.getItem('eq_profil_v1')); if(s&&typeof s==='object'){ PROFIL=Object.assign({parties:0,victoires:0,tot:{},neglige:{},fort:{}},s); } }catch(e){} _profilDefaut(); }
@@ -1974,7 +2065,7 @@ function toggleLecture(){
   if(('speechSynthesis' in window) && (speechSynthesis.speaking || _qSeq)){
     if(surQuestion) stopLectureQ(); else speechSynthesis.cancel();
   }
-  else if(surQuestion){ lireQuestionSeq(_qPil, true); }   // le bouton force, comme ailleurs
+  else if(surQuestion){ lireQuestionSeq(_qPil, _qNum, true); }   // le bouton force, comme ailleurs
   else { lireTexte(_lectureTxt); }
   setTimeout(majLireBtn,90);
 }
@@ -1991,10 +2082,19 @@ function annonceFinMatch(win, nouveauRang){
 function pilierDeLaQuestion(win){
   if(win || enLigne()) return null;
   const tot=P.reduce((s,p)=>s+(bilanPiliers[p]||0),0);
-  if(tot<=0) return null;                                 // pas de bilan (duel) -> rien
-  const faible=P.slice().sort((a,b)=>(bilanPiliers[a]||0)-(bilanPiliers[b]||0))[0];
-  if(!faible || REPONSES[faible]) return null;            // déjà posée une fois : jamais reposée
-  return faible;
+  if(tot<=0) return null;                                   // pas de bilan (duel) -> rien
+  const p=P.slice().sort((a,b)=>(bilanPiliers[a]||0)-(bilanPiliers[b]||0))[0];
+  if(!p || !QUESTIONS[p]) return null;
+  const a=_repArr(p);
+  for(let i=0;i<QUESTIONS[p].length;i++){
+    if(a[i]) continue;                                      // déjà posée : jamais reposée
+    if(i>0){                                                // le Phénix ne revient pas tout de suite
+      const prec=a[i-1]; if(!prec) return null;
+      if((PROFIL.parties||0)-(prec.n||0) < ECART_QUESTION) return null;
+    }
+    return {p:p, i:i};
+  }
+  return null;                                              // il a tout demandé sur ce pilier
 }
 function majFinMatch(win, histo){
   STATS.matchsJoues++;
@@ -2021,8 +2121,9 @@ function majFinMatch(win, histo){
   if(levelUp){ setTimeout(()=>{ confetti(90); flash('#e6ce7a'); try{sWin();}catch(e){} }, 1200); }
   const qp = pilierDeLaQuestion(win);
   setTimeout(()=>{
+    if(!ecranOuvert('fin')) return;                 // l'écran a été fermé entre-temps : on se tait
     // Le Phénix est rare : quand il parle, il ne rivalise pas avec la lecture des piliers
-    if(qp){ ouvrirQuestion(qp); return; }
+    if(qp){ ouvrirQuestion(qp.p, qp.i); return; }
     if(_lectureTxt){ parle(_lectureTxt); majLireBtn(); }
     else annonceFinMatch(win, levelUp?apres.titre:null);
   }, qp ? 1600 : 900);
@@ -2106,7 +2207,7 @@ function render(){
     el.innerHTML =
       (mene?`<div class="mene">${mene==="moi"?"⬆":"⬇"}</div>`:"")
       + (feu?`<div class="flamme">🔥</div>`:"")
-      + `<div class="emb" style="--pc:${AURA[p]}">${embImg(p,30)}</div>`
+      + `<div class="emb" style="--pc:${AURA[p]}">${embImg(p,30)}<i class="halofeu"></i></div>`
       + `<div class="nom" style="color:${COL[p]}">${p.toUpperCase()}</div>`
       + `<div class="jauge">
            <div class="jcol">
@@ -2551,11 +2652,13 @@ function terminer(){
   // pips du match
   const pip=(who,on)=>`<span class="pip ${on?'on '+who:''}"></span>`;
   document.getElementById("finpips").innerHTML =
-      `<span style="color:var(--goldL)">${matchMe}</span>`
-    + pip('moi',matchMe>=1)+pip('moi',matchMe>=2)
-    + `<span style="color:var(--muet);font-size:9px;margin:0 4px">MANCHES</span>`
-    + pip('ia',matchIA>=2)+pip('ia',matchIA>=1)
-    + `<span style="color:#e0708a">${matchIA}</span>`;
+      `<span class="pipside"><span class="pipwho moi">Vous</span>`
+    + `<span class="pipn moi">${matchMe}</span>`
+    + `<span class="pippips">${pip('moi',matchMe>=1)+pip('moi',matchMe>=2)}</span></span>`
+    + `<span class="pipsep">manches</span>`
+    + `<span class="pipside"><span class="pippips">${pip('ia',matchIA>=2)+pip('ia',matchIA>=1)}</span>`
+    + `<span class="pipn ia">${matchIA}</span>`
+    + `<span class="pipwho ia">Adv</span></span>`;
 
   // détail de la manche
   const pFaibleV = P.reduce((m,p)=> T[p][1] < T[m][1] ? p : m, P[0]);   // ton point faible = pilier décisif
@@ -2651,7 +2754,7 @@ function tutoNav(d){
   if(tutoI+d>=TUTO.length){ fermerTuto(); return; }
   tutoI+=d; majTuto();
 }
-function fermerTuto(){ document.getElementById("tuto").classList.remove("on"); if(tutoRetour==="niveau") ouvrirNiveau(); else if(tutoRetour==="splash") ouvrirSplash(); }
+function fermerTuto(){ taire(); document.getElementById("tuto").classList.remove("on"); if(tutoRetour==="niveau") ouvrirNiveau(); else if(tutoRetour==="splash") ouvrirSplash(); }
 function ouvrirAide(){ ac(); ouvrirModemploi('jeu'); }
 let memRetour='splash';
 const MEM_TXT = [
@@ -2680,7 +2783,7 @@ function ouvrirModemploi(from){
 }
 function fermerModemploi(){
   document.getElementById('modemploi').classList.remove('on');
-  try{speechSynthesis.cancel();}catch(e){} majLireBtn();
+  taire();
   if(memRetour==='niveau') ouvrirNiveau();
   else if(memRetour==='splash') ouvrirSplash();
   /* 'jeu' : on referme simplement, le plateau réapparaît */
@@ -2774,7 +2877,20 @@ function ouvrirNiveau(){
   if(ag) ag.onclick=()=>{ ac(); demarrerAgonie(); };
   document.getElementById("niveau").classList.add("on");
 }
-function fermerOverlays(){ ["tuto","niveau","fin","splash","miroir","modemploi","qphenix"].forEach(id=>{const e=document.getElementById(id); if(e) e.classList.remove("on");}); }
+/* La voix ne lit que ce qui est à l'écran : ni après fermeture, ni avant ouverture. */
+function ecranOuvert(id){ const e=document.getElementById(id); return !!(e && e.classList.contains('on')); }
+function parleSurEcran(id, txt){ if(!ecranOuvert(id)) return; parle(txt); try{ majLireBtn(); }catch(e){} }
+/* Fermer une fenêtre fait taire la voix : elle ne lit que ce qui est à l'écran. */
+function taire(){
+  _qSeq=null;
+  document.querySelectorAll('#qRep .q-btn').forEach(b=>b.classList.remove('lu','attend'));
+  try{ speechSynthesis.cancel(); }catch(e){}
+  try{ majLireBtn(); }catch(e){}
+}
+function fermerOverlays(){
+  taire();
+  ["tuto","niveau","fin","splash","miroir","modemploi","qphenix"].forEach(id=>{const e=document.getElementById(id); if(e) e.classList.remove("on");});
+}
 function ouvrirSplash(){
   fermerOverlays();
   const n=niveauInfo(STATS.xp);
@@ -2805,9 +2921,19 @@ function ouvrirMiroir(){
   miroirRetour = document.getElementById('niveau').classList.contains('on') ? 'niveau' : 'splash';
   fermerOverlays();
   const body=document.getElementById("miroirBody");
-  if(!PROFIL.parties){
-    body.innerHTML=`<p class="mir-empty">Ton miroir est encore vierge.<br>Joue quelques parties — il se révélera peu à peu.</p>`;
-    document.getElementById("miroir").classList.add("on"); return;
+  // Le miroir ne parle pas avant d'avoir assez vu : mieux vaut se taire que dire n'importe quoi
+  if(PROFIL.parties < SEUIL_MIROIR){
+    const reste = SEUIL_MIROIR - PROFIL.parties;
+    const aDitQqch = P.some(p=>_repArr(p).length);
+    body.innerHTML=`<p class="mir-empty"><span class="mm-emb">🪞</span><br>
+      <b>Le miroir est muet.</b><br>
+      Il lui faut ${SEUIL_MIROIR} parties pour te voir.<br>
+      Encore <b>${reste} partie${reste>1?'s':''}</b>.</p>`
+      + (aDitQqch ? `<button class="conf-oubli" onclick="effacerConfidences()">Effacer ce que j'ai confié</button>` : '');
+    _lectureTxt = `Le miroir est muet. Il lui faut ${SEUIL_MIROIR} parties pour te voir. Encore ${reste} partie${reste>1?'s':''}.`;
+    document.getElementById("miroir").classList.add("on");
+    setTimeout(()=>{ parleSurEcran('miroir', _lectureTxt); }, 450);
+    return;
   }
   const angleMort = P.slice().sort((a,b)=> (PROFIL.neglige[b]-PROFIL.neglige[a]) || (PROFIL.tot[a]-PROFIL.tot[b]))[0];
   const refuge    = P.slice().sort((a,b)=> (PROFIL.fort[b]-PROFIL.fort[a]) || (PROFIL.tot[b]-PROFIL.tot[a]))[0];
@@ -2841,29 +2967,29 @@ function ouvrirMiroir(){
   mt += texteConfidences(angleMort, refuge);
   _lectureTxt = mt;
   document.getElementById("miroir").classList.add("on");
-  setTimeout(()=>{ parle(mt); majLireBtn(); }, 450);
+  setTimeout(()=>{ parleSurEcran('miroir', mt); }, 450);
 }
 function fermerMiroir(){
   document.getElementById("miroir").classList.remove("on");
-  try{speechSynthesis.cancel();}catch(e){} majLireBtn();
+  taire();
   if(miroirRetour==='niveau') ouvrirNiveau(); else ouvrirSplash();
 }
 /* ══════════ LE MIROIR ══════════
    Il ne confirme pas : il met la parole et le jeu côte à côte, et se tait.
    Ce qui frappe n'est jamais la cohérence — c'est l'écart. */
-function _confiees(){ return P.filter(p=>laParole(p) && DIT_MOT[p] && DIT_MOT[p][laParole(p).k]); }
+function _confiees(){ return P.filter(p=>{ const r=laParole(p); return r && _laReponse(p,r.i,r.k); }); }
 function _regardMiroir(p, angleMort, refuge){
   const r=laParole(p); if(!r) return null;
+  const rep=_laReponse(p, r.i, r.k); if(!rep) return null;
   const vues = (PROFIL.parties||0) - (r.n||0);
   if(vues < SEUIL_MIROIR) return {attend:true, reste:SEUIL_MIROIR-vues};
-  const dit  = (DIT[p]||{})[r.k] || "retrait";
   const fait = (p===angleMort) ? "delaisse" : (p===refuge ? "nourri" : "mitige");
-  return {attend:false, dit, fait, mot:DIT_MOT[p][r.k], neg:PROFIL.neglige[p]||0, parties:PROFIL.parties};
+  return {attend:false, dit:rep.d, fait, mot:rep.m, neg:PROFIL.neglige[p]||0, parties:PROFIL.parties};
 }
 /* Les quatre visages du reflet */
 function _texteMiroir(p, g){
   const em=embImg(p,14), n=g.neg, N=g.parties;
-  const ouvre = `Tu dis que ${g.mot}.`;
+  const ouvre = `Tu dis ${/^[aeiouâêîôûéèàïüœ]/i.test(g.mot) ? "qu'" : "que "}${g.mot}.`;
   if(g.fait==="mitige")
     return [ouvre, `Ton jeu, lui, ne tranche pas encore.`, `Le miroir observe.`];
   if(g.dit==="soin" && g.fait==="delaisse")            // ① le flagrant délit
@@ -2905,12 +3031,25 @@ function texteConfidences(angleMort, refuge){
   });
   return t;
 }
+let _oubliArme=false, _oubliT=null;
+/* Effacer se fait en deux temps : un geste malheureux ne doit pas emporter une confidence. */
 function effacerConfidences(){
-  oublierReponses();
-  try{ speechSynthesis.cancel(); }catch(e){}
+  const btn=document.querySelector('#miroir .conf-oubli');
+  if(!_oubliArme){
+    _oubliArme=true;
+    if(btn){ btn.textContent="Confirmer l'effacement"; btn.classList.add('armee'); }
+    clearTimeout(_oubliT);
+    _oubliT=setTimeout(()=>{ _oubliArme=false;
+      const b2=document.querySelector('#miroir .conf-oubli');
+      if(b2){ b2.textContent="Effacer ce que j'ai confié"; b2.classList.remove('armee'); } }, 4000);
+    return;
+  }
+  clearTimeout(_oubliT); _oubliArme=false;
+  oublierReponses(); taire();
+  const msg = `<p class="conf-vide">C'est effacé. Le Phénix te reposera ses questions.</p>`;
   const c=document.querySelector('#miroir .mir-conf');
-  if(c) c.innerHTML = `<p class="conf-vide">C'est effacé. Le Phénix n'en garde rien.</p>`;
-  majLireBtn();
+  if(c){ c.innerHTML = msg; return; }
+  if(btn) btn.outerHTML = msg;
 }
 
 /* ══════════ MODE AGONIE — moteur ══════════ */
@@ -3504,7 +3643,7 @@ function ouvrirDuel(){ ac(); fermerOverlays();
   document.getElementById('duelWait').style.display='none';
   document.getElementById('duelCode').value='';
   document.getElementById('duel').classList.add('on'); }
-function fermerDuel(){ document.getElementById('duel').classList.remove('on'); }
+function fermerDuel(){ taire(); document.getElementById('duel').classList.remove('on'); }
 function duelVue(txt, codeVal){
   document.getElementById('duelHome').style.display='none';
   document.getElementById('duelWait').style.display='';
