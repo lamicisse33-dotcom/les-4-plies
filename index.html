@@ -410,6 +410,12 @@ span.orb{width:24px;height:24px;border-radius:50%;border:1px solid var(--gold);b
   box-shadow:inset 0 0 0 1px rgba(201,162,39,.55),0 2px 8px rgba(0,0,0,.25);}
 .diffdesc{font-size:11px;color:var(--muet);line-height:1.45;text-align:center;min-height:32px;margin-bottom:12px;padding:0 8px;
   display:flex;align-items:center;justify-content:center;}
+.btn.reprise{width:100%;margin:0 0 8px;display:flex;flex-direction:column;gap:1px;padding:9px 12px;
+  background:linear-gradient(180deg,rgba(201,162,39,.18),rgba(201,162,39,.07));
+  border:1px solid rgba(201,162,39,.45);}
+.btn.reprise .rp-t{font-family:'Cinzel',serif;font-weight:900;font-size:14px;letter-spacing:1px;color:var(--goldL);}
+.btn.reprise .rp-s{font-family:'Crimson Text',Georgia,serif;font-style:italic;font-size:11px;
+  letter-spacing:0;text-transform:none;color:#a99fc0;font-weight:400;}
 .btn.play{width:100%;font-size:15px;padding:13px;letter-spacing:1px;}
 .moderow{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:16px;}
 .modepill{display:flex;flex-direction:column;align-items:center;gap:4px;padding:11px 4px;border-radius:13px;
@@ -942,6 +948,7 @@ html.lite #liens .lien{animation:none;}
   <div class="splash-title">ÉQUILIBRE</div>
   <div class="splash-sub">Les Quatre Piliers de Vie</div>
   <div id="splashRang" class="splash-rang"></div>
+  <div id="repriseSlot"></div>
   <button class="btn play" style="width:100%;margin-top:4px" onclick="depuisSplash()">▶ JOUER</button>
   <div class="splash-actions">
     <button class="minibtn" onclick="ouvrirMiroir()">🪞 Ton miroir</button>
@@ -2157,6 +2164,7 @@ function pilierDeLaQuestion(win){
   return null;                                              // il a tout demandé sur ce pilier
 }
 function majFinMatch(win, histo){
+  effacerPartie();          // le match est joué : plus rien à reprendre
   STATS.matchsJoues++;
   if(win){ STATS.matchsGagnes++; STATS.serie++; if(STATS.serie>STATS.meilleureSerie) STATS.meilleureSerie=STATS.serie; }
   else STATS.serie=0;
@@ -2196,8 +2204,8 @@ function enLigne(){ return JEU==='net'; }
 function advLabel(){ return 'Adv'; }
 const MATCH_CIBLE=2;                  // premier à 2 manches
 
-function nouveauMatch(){ MODE='classique'; AGO.on=false; document.body.classList.remove('mode-agonie','peril','enfeu'); stopHeart(); stopFeu(); matchMe=0; matchIA=0; mancheNo=1; mancheHisto=[]; resetBilan(); phenixUse=false; demarrer(); }
-function demarrerSoin(){ ac(); MODE='soin'; AGO.on=false; document.body.classList.remove('mode-agonie','peril','enfeu'); stopHeart(); stopFeu(); matchMe=0; matchIA=0; mancheNo=1; mancheHisto=[]; resetBilan(); phenixUse=false; demarrer(); document.getElementById("niveauBadge").textContent="🍃 Voie du Soin"; }
+function nouveauMatch(){ effacerPartie(); MODE='classique'; AGO.on=false; document.body.classList.remove('mode-agonie','peril','enfeu'); stopHeart(); stopFeu(); matchMe=0; matchIA=0; mancheNo=1; mancheHisto=[]; resetBilan(); phenixUse=false; demarrer(); }
+function demarrerSoin(){ effacerPartie(); ac(); MODE='soin'; AGO.on=false; document.body.classList.remove('mode-agonie','peril','enfeu'); stopHeart(); stopFeu(); matchMe=0; matchIA=0; mancheNo=1; mancheHisto=[]; resetBilan(); phenixUse=false; demarrer(); document.getElementById("niveauBadge").textContent="🍃 Voie du Soin"; }
 
 function demarrer(){
   const dn=melange(paquetNormal()), ds=melange(pileSpeciale());
@@ -2336,6 +2344,7 @@ function render(){
   majAgonieUI();
   majPhenix();
   ajusteMain();
+  sauverPartie();          // l'état vient de changer : on le grave
 }
 /* La main se met à l'échelle pour que TOUT l'écran de jeu tienne sans défilement */
 const CW=91, CH=132, GAP=4, PARRANG=6;
@@ -2356,6 +2365,59 @@ function ajusteMain(){
 addEventListener("resize", ()=>{ try{ _kActuel=0; ajusteMain(); }catch(e){} });
 /* ══════════ LE PHÉNIX — un sursaut par manche ══════════ */
 let phenixUse=false;
+/* ══════════ LA PARTIE SUSPENDUE ══════════
+   Un appel, une notification, l'OS qui vide la mémoire : la partie ne doit pas mourir.
+   Pas de pioche dans ce jeu -> le plateau + les deux mains suffisent, rien à retirer au sort.
+   Jamais en Duel : l'adversaire est parti, il n'y a rien à reprendre. */
+const CLE_PARTIE = "eq_partie_v1";
+/* Au démarrage, l'appli appelle nouveauMatch() juste pour garnir le plateau derrière l'accueil.
+   Sans ce verrou, ce faux match effacerait puis écraserait la vraie partie suspendue :
+   ouvrir le jeu suffirait à la perdre. On ne grave rien tant que l'accueil n'est pas posé. */
+let _initEnCours = true;
+function sauverPartie(){
+  if(_initEnCours) return;
+  try{
+    if(enLigne() || typeof T==='undefined' || !T || fini) return;   // pas de duel, pas de partie finie
+    if(!mainJ || (!mainJ.length && !mainIA.length)) return;
+    localStorage.setItem(CLE_PARTIE, JSON.stringify({
+      v:1, t:Date.now(),
+      T, mainJ, mainIA, tour, locked,
+      matchMe, matchIA, mancheNo, mancheHisto,
+      MODE, niveau:(NIVEAU&&NIVEAU.key)||'normal',
+      bilan:bilanPiliers, phenix:phenixUse
+    }));
+  }catch(e){}
+}
+function effacerPartie(){ if(_initEnCours) return; try{ localStorage.removeItem(CLE_PARTIE); }catch(e){} }
+function partieSuspendue(){
+  try{
+    const b=localStorage.getItem(CLE_PARTIE); if(!b) return null;
+    const d=JSON.parse(b);
+    if(!d || d.v!==1 || !d.T || !d.mainJ) return null;
+    if(!d.mainJ.length && !d.mainIA.length) return null;            // rien à reprendre
+    return d;
+  }catch(e){ return null; }
+}
+function reprendrePartie(){
+  const d=partieSuspendue(); if(!d){ ouvrirNiveau(); return; }
+  ac();
+  MODE = d.MODE || 'classique';
+  NIVEAU = NIVEAUX[d.niveau] || NIVEAUX.normal;
+  AGO.on = (MODE==='agonie');
+  document.body.classList.toggle('mode-agonie', MODE==='agonie');
+  T=d.T; mainJ=d.mainJ; mainIA=d.mainIA; tour=d.tour|0;
+  sel=null; fini=false; locked=false; histo=[]; prevOwners={};
+  matchMe=d.matchMe|0; matchIA=d.matchIA|0; mancheNo=d.mancheNo|0 || 1;
+  mancheHisto=Array.isArray(d.mancheHisto)?d.mancheHisto:[];
+  bilanPiliers=d.bilan||{}; P.forEach(p=>{ if(typeof bilanPiliers[p]!=='number') bilanPiliers[p]=0; });
+  phenixUse=!!d.phenix;
+  trier(mainJ);
+  fermerOverlays();
+  document.getElementById("niveauBadge").textContent = NIVEAU.emb+" "+NIVEAU.label;
+  majMatch(); render();
+  try{ initCardTilt(); }catch(e){}
+  if(tour===1) setTimeout(()=>{ try{ lancerIA(); }catch(e){} }, 700);   // c'était à l'adversaire de jouer
+}
 function pilierEnFeu(){
   const lo=Math.min(...P.map(p=>T[p][1]));
   const feux=P.filter(p=>T[p][1]===lo && (T[p][2]-T[p][1]>=15));
@@ -2527,6 +2589,9 @@ function reagitPilier(p, who, delta){
   el.appendChild(f);
   setTimeout(()=>{ f.remove(); }, 960);
 }
+/* Le moment le plus sûr : quand l'appli part en arrière-plan (appel, notification, changement d'appli). */
+window.addEventListener('pagehide', ()=>{ try{ sauverPartie(); }catch(e){} });
+document.addEventListener('visibilitychange', ()=>{ if(document.hidden){ try{ sauverPartie(); }catch(e){} } });
 function poser(p){
   if(fini||sel===null||locked) return;
   const c=mainJ[sel];
@@ -2975,7 +3040,21 @@ function fermerOverlays(){
   taire();
   ["tuto","niveau","fin","splash","miroir","modemploi","qphenix"].forEach(id=>{const e=document.getElementById(id); if(e) e.classList.remove("on");});
 }
+/* Une partie suspendue ? Le bouton n'apparaît que s'il y a vraiment quelque chose à reprendre. */
+function poserReprise(){
+  const slot=document.getElementById('repriseSlot'); if(!slot) return;
+  const d=partieSuspendue();
+  if(!d){ slot.innerHTML=''; return; }
+  const restant = (d.mainJ||[]).length;
+  const m = MODE_NOM[d.MODE] || '';
+  slot.innerHTML = `<button class="btn reprise" onclick="reprendrePartie()">
+      <span class="rp-t">↻ Reprendre</span>
+      <span class="rp-s">${m}manche ${d.mancheNo||1} · ${restant} carte${restant>1?'s':''} en main</span>
+    </button>`;
+}
+const MODE_NOM = { classique:'', soin:'Voie du Soin · ', defi:'Défi du jour · ', agonie:'Agonie · ' };
 function ouvrirSplash(){
+  poserReprise();
   fermerOverlays();
   const n=niveauInfo(STATS.xp);
   const pct=Math.round(n.prog*100);
@@ -3856,6 +3935,7 @@ initMusBtn();
 nouveauMatch();
 let _premiere=false; try{ _premiere=!localStorage.getItem('eq_vu1'); if(_premiere) localStorage.setItem('eq_vu1','1'); }catch(e){}
 if(_premiere) ouvrirTuto("splash"); else ouvrirSplash();
+_initEnCours = false;      // à partir d'ici, tout coup joué est gravé
 </script>
 <script>
 if('serviceWorker' in navigator){ window.addEventListener('load',function(){ navigator.serviceWorker.register('./sw.js').catch(function(){}); }); }
