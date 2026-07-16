@@ -548,6 +548,26 @@ span.orb{width:24px;height:24px;border-radius:50%;border:1px solid var(--gold);b
 #cinephenix.sortie{opacity:0;}
 #cinephenix canvas{position:absolute;inset:0;width:100%;height:100%;display:block;}
 #miroir.auto{z-index:60;}   /* quand il vient de lui-même : par-dessus l'écran de fin */
+/* Le Phœnix vient de s'embraser pour l'annoncer : le miroir ne doit pas surgir en 3 dixièmes.
+   Il monte des cendres, lentement. Uniquement en mode auto — le miroir manuel reste vif. */
+#miroir.auto.on{animation:mirlent 2.2s cubic-bezier(.16,.8,.28,1) both;}
+#miroir.auto.on > .card{animation:mircard 2.6s cubic-bezier(.16,.8,.28,1) both;}
+@keyframes mirlent{ from{opacity:0;} 35%{opacity:1;} to{opacity:1;} }
+@keyframes mircard{
+  0%  {opacity:0; transform:translateY(26px) scale(.965); filter:blur(7px) brightness(1.8);}
+  45% {opacity:1; filter:blur(1.5px) brightness(1.15);}
+  100%{opacity:1; transform:translateY(0) scale(1); filter:blur(0) brightness(1);}
+}
+/* les lignes du verdict se posent l'une après l'autre, jamais toutes d'un coup */
+#miroir.auto.on .lecture{animation:mirtxt .9s ease both;}
+#miroir.auto.on .mir-conf{animation:mirtxt .9s ease both; animation-delay:.5s;}
+@keyframes mirtxt{ from{opacity:0; transform:translateY(9px);} to{opacity:1; transform:none;} }
+html.lite #miroir.auto.on, html.lite #miroir.auto.on > .card,
+html.lite #miroir.auto.on .lecture, html.lite #miroir.auto.on .mir-conf{animation:none;}
+@media (prefers-reduced-motion: reduce){
+  #miroir.auto.on, #miroir.auto.on > .card,
+  #miroir.auto.on .lecture, #miroir.auto.on .mir-conf{animation:none;}
+}
 #qphenix .qcard{position:relative;max-width:380px;width:92%;max-height:90dvh;overflow-y:auto;
   text-align:center;padding:24px 18px 20px;
   background:radial-gradient(120% 70% at 50% -6%, rgba(120,52,20,.45), transparent 62%), linear-gradient(180deg,rgba(26,14,32,.99),rgba(10,5,20,.99));
@@ -596,7 +616,9 @@ html.lite #qphenix .q-emb{animation:none;}
 #miroir .mir-vu:last-of-type{border-bottom:none;padding-bottom:0;margin-bottom:6px;}
 #miroir .mir-vu p{margin:0 0 5px;}
 #miroir .mir-clos{margin-top:8px !important;font-style:italic;color:var(--goldL);opacity:.92;}
-#miroir .mir-compte{font-size:11px;color:#a99fc0;font-style:normal;letter-spacing:.2px;}
+#miroir .mir-proche{font-size:12.5px;color:#bdb2d4;line-height:1.5;}
+.mir-proche b{color:var(--goldL);}
+.mir-compte{font-size:11px;color:#a99fc0;font-style:normal;letter-spacing:.2px;}
 .mir-attend .ma-t{color:var(--goldL);font-style:normal;font-weight:700;margin:0 0 2px;}
 .mir-attend .ma-s{margin:0 0 7px;opacity:.85;}
 .mir-attend .ma-l{list-style:none;margin:0;padding:0;text-align:left;max-width:250px;margin-inline:auto;}
@@ -959,7 +981,7 @@ html.lite #liens .lien{animation:none;}
   <div id="repriseSlot"></div>
   <button class="btn play" style="width:100%;margin-top:4px" onclick="depuisSplash()">▶ JOUER</button>
   <div class="splash-actions">
-    <button class="minibtn" onclick="ouvrirMiroir()">🪞 Ton miroir</button>
+    <button class="minibtn" onclick="demanderMiroir()">🪞 Ton miroir</button>
     
     <button class="minibtn" onclick="ouvrirModemploi('splash')">Comment jouer</button>
   </div>
@@ -1085,6 +1107,7 @@ html.lite #liens .lien{animation:none;}
       <button class="iconbtn" id="voixBtn" onclick="toggleVoix()" title="Voix (annonces)">🗣️</button>
       <button class="iconbtn" id="muteBtn" onclick="toggleMute()" title="Son &amp; musique">🔊</button>
       <button class="iconbtn" id="musBtn" onclick="toggleMusique()" title="Musique">🎵</button>
+      <button class="iconbtn" id="liteBtn" onclick="toggleLite()" title="Mode léger (fluidité)">✨</button>
     </div>
   </div>
   <h1>⚖️ LES QUATRE PILIERS</h1>
@@ -1169,7 +1192,7 @@ html.lite #liens .lien{animation:none;}
     <button class="modepill m-duel" onclick="ouvrirDuel()"><span class="sc emb2"><i class="e-bg">🌐</i><i class="e-fg">⚔️</i></span><em>Duel</em></button>
   </div>
   <div class="splash-actions">
-    <button class="minibtn" onclick="ouvrirMiroir()">🪞 Ton miroir</button>
+    <button class="minibtn" onclick="demanderMiroir()">🪞 Ton miroir</button>
     
     <button class="minibtn" onclick="ouvrirModemploi('niveau')">Comment jouer</button>
   </div>
@@ -1358,23 +1381,33 @@ function coupIAAsync(mainIA, mainJ, T, tour, R, onProgress){
     if(!cs.length){ resolve(null); return; }
     if(NIVEAU.rand>0 && Math.random()<NIVEAU.rand){ resolve(cs[Math.floor(Math.random()*cs.length)]); return; }
     let best=cs[0], bs=-Infinity, idx=0;
+    /* L'adversaire se donnait 15 ms par tranche — soit toute l'image (16,7 ms). Il ne laissait
+       rien pour peindre : 32 % des images sautaient pendant qu'il réfléchissait. Pire, il ne
+       regardait l'heure qu'ENTRE deux coups, après avoir simulé les R parties d'un coup entier :
+       sur un mobile lent, un seul coup dépasse le budget à lui seul, sans pouvoir s'interrompre.
+       Ici on garde l'état (s, r) entre les tranches : il peut sortir après CHAQUE simulation.
+       Le calcul est rigoureusement le même — seul le découpage change. */
+    const BUDGET = 7;                 // ms : laisse ~10 ms au navigateur pour peindre
+    let s=0, r=0;
     const step=()=>{
       const t0=perfNow();
       while(idx<cs.length){
         const mv=cs[idx];
-        let s=0;
-        for(let r=0;r<R;r++){
+        while(r<R){
           const t=copie(T), m=mainIA.slice(), mj=mainJ.slice();
           appliquer(t,m,mv,2);
           s += rollout(t, mj, m, tour+1);
+          r++;
+          if(perfNow()-t0>BUDGET){        // on rend la main SANS perdre le travail fait
+            if(onProgress) onProgress((idx+r/R)/cs.length);
+            requestAnimationFrame(step); return;
+          }
         }
         if(s>bs){ bs=s; best=mv; }
-        idx++;
-        if(perfNow()-t0>15) break;
+        idx++; r=0; s=0;
       }
-      if(onProgress) onProgress(idx/cs.length);
-      if(idx<cs.length) requestAnimationFrame(step);
-      else resolve(best);
+      if(onProgress) onProgress(1);
+      resolve(best);
     };
     requestAnimationFrame(step);
   });
@@ -1883,14 +1916,20 @@ const QUESTIONS = {
    Baisser le seuil rend donc le miroir plus honnête, et le met à portée du joueur.
    Ne pas mettre 5 : accident arithmétique, 6,27 % de faux positifs. */
 const SEUIL_MIROIR = 4;
-/* Une pente n'existe que si elle est NETTE. Seuil calibré par simulation : le compte qu'un joueur
-   SANS aucune pente atteint moins de 2 % du temps (4 piliers, donc 25 % au hasard).
-   Le « +1 » est ce qui sépare le miroir de l'horoscope : sans lui, 15 % des joueurs équilibrés
-   s'entendaient accuser d'un angle mort qu'ils n'ont pas. Le miroir préfère se taire qu'inventer.
-   Prix payé : il ne voit que 42 % des pentes franches à 6 parties — mais 72 % à 15. */
-const PENTE_PART = 0.6, PENTE_FOIS = 4;
+/* Une pente n'existe que si elle est NETTE, c'est-à-dire inexplicable par le hasard.
+   4 piliers -> le hasard pur met chacun au sol 25 % du temps. La question est : à partir de
+   combien de fois est-ce trop pour être un hasard ? C'est la LOI BINOMIALE qui répond :
+       moyenne = n/4,  écart-type = √(n × 1/4 × 3/4),  seuil = moyenne + z × écart-type.
+   z=2,6 -> ~2 % de fausses révélations, à TOUTES les échelles.
+
+   ⚠️ Une proportion FIXE (l'ancienne règle : 60 % des parties) est un piège : elle grandit
+   linéairement alors que le seuil réel converge vers 25 %. À 29 parties elle exigeait 19 fois
+   (66 %) au lieu de 14 (48 %) : le miroir devenait AVEUGLE à mesure qu'on jouait. Il ne voyait
+   plus que 2 % des vraies pentes, contre 43 % maintenant — pour la même honnêteté. */
+const PENTE_Z = 2.6, PENTE_FOIS = 4;
 function penteRequise(){
-  return Math.max(PENTE_FOIS, Math.ceil(PENTE_PART * (PROFIL.parties||1)) + 1);
+  const n = PROFIL.parties||1;
+  return Math.max(PENTE_FOIS, Math.ceil(n*0.25 + PENTE_Z*Math.sqrt(n*0.1875)));
 }
 function penteNette(compteur, p){
   return (compteur[p]||0) >= penteRequise();
@@ -2189,7 +2228,10 @@ var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: re
 
 function resize(){
   if(!cv||!ctx) return;
-  DPR=Math.min(2,window.devicePixelRatio||1);
+  /* Sur un mobile lent, dessiner en double résolution = 4× plus de pixels à peindre pour
+     des flammes où personne ne verra la différence. Le mode léger baisse à 1. */
+  var max = document.documentElement.classList.contains('lite') ? 1 : 2;
+  DPR=Math.min(max, window.devicePixelRatio||1);
   W=cv.clientWidth; H=cv.clientHeight;
   cv.width=Math.round(W*DPR); cv.height=Math.round(H*DPR);
   ctx.setTransform(DPR,0,0,DPR,0,0);
@@ -2589,9 +2631,12 @@ function frame(now){
   raf=requestAnimationFrame(frameCine);
 }
 /* ═══ LA PORTE : la seule chose que la capsule expose au jeu ═══
-   La scène tourne en boucle de 23,8 s. Ici on n'en joue que l'arc essentiel :
-   lueur -> approche -> ruée -> flash -> le phœnix -> son nom s'écrit. Puis on rend la main. */
-var FIN_CINE = 11.5, raf=0, fondu=false, hote=null, fini_cb=null;
+   La scène boucle sur 23,8 s. On en joue l'arc entier sauf la toute fin :
+     1,3s lueur · 3s approche · 8,8s ruée · 9s cri+flash · 9,2s le phœnix · 9,35s son nom
+     10,8s -> 15,4s la caméra descend sur les cauris · puis 5 s pleines dessus.
+   Couper à 11,5 s (comme au début) tranchait EN PLEIN mouvement de caméra :
+   le joueur ne voyait jamais les cauris enflammés, qui sont le cœur de l'image. */
+var FIN_CINE = 20.5, raf=0, fondu=false, hote=null, fini_cb=null;
 function arreter(){
   if(raf){ cancelAnimationFrame(raf); raf=0; }
   window.removeEventListener('resize', resize);
@@ -2669,19 +2714,27 @@ function majFinMatch(win, histo){
   setTimeout(()=>{
     if(!ecranOuvert('fin')) return;                 // l'écran a été fermé entre-temps : on se tait
     // Le Phénix est rare : quand il parle, il ne rivalise pas avec la lecture des piliers
-    if(qp){
-      // Le Phœnix se montre avant de parler. Sauf en mode léger ou animations réduites :
-      // là, on respecte le réglage du joueur et on va droit à la question.
-      if(_reduit() || document.documentElement.classList.contains('lite')){
-        ouvrirQuestion(qp.p, qp.i);
+    /* LE VERDICT PASSE DEVANT. Le miroir ne parle que s'il a DÉJÀ entendu et assez observé —
+       il ne peut donc jamais doubler la question qui le nourrit. Mais quand il a vu, il passe :
+       sinon la question suivante le repousse indéfiniment. Il y a 4 piliers et plusieurs
+       questions chacun : tant qu'il en restait UNE, le miroir ne venait JAMAIS de lui-même,
+       et le joueur ne pouvait le lire qu'en touchant 🪞 — sans le Phœnix, sans cérémonie.
+       Après qu'il a parlé, reglerLeCompteur() le remet à zéro : la question reprend la main. */
+    if(miroirMur()){
+      /* Le mode léger allège le Phœnix (simple résolution) mais ne le SUPPRIME pas :
+         il sert à tenir 40 min de jeu, pas à sacrifier les 20 s qui comptent le plus.
+         Seul « animations réduites » le saute — là c'est un choix du joueur, pas une panne. */
+      if(_reduit()){
+        ouvrirMiroir(true);
       } else {
         try{ taire(); }catch(e){}
-        CINE_PHENIX.jouer(function(){ ouvrirQuestion(qp.p, qp.i); });
+        CINE_PHENIX.jouer(function(){ ouvrirMiroir(true); });
       }
       return;
     }
-    // Pas de question à poser ? Si le miroir est mûr, c'est LUI qui vient à toi.
-    if(miroirMur()){ ouvrirMiroir(true); return; }
+
+    // Rien à révéler ? Alors le Phœnix interroge — nu, sans fracas : c'est un moment intime.
+    if(qp){ ouvrirQuestion(qp.p, qp.i); return; }
     if(_lectureTxt){ parle(_lectureTxt); majLireBtn(); }
     else annonceFinMatch(win, levelUp?apres.titre:null);
   }, qp ? 1600 : 900);
@@ -2786,8 +2839,26 @@ function render(){
     bz.appendChild(el);
   });
 
-  const mz=document.getElementById("main"); mz.innerHTML="";
+  const mz=document.getElementById("main");
   const feux = MODE==='agonie' ? P.filter(estEnFeu) : [];
+
+  /* Toucher une carte pour la choisir ne change QUE la classe .sel — mais on rasait et
+     rebâtissait les 12 cartes (182 nœuds, 7,5 ms de mise en page) à chaque toucher.
+     C'était le « ça rame » au moment de jouer. Si le contenu de la main n'a pas bougé,
+     on ne touche plus que les classes : de 7,5 ms à quelques centièmes. */
+  const _sigMain = mainJ.map(c=>c.n+'|'+c.pts+'|'+(c.type||'')+'|'+(c.p||'')+'|'+(c.q||'')).join('#')
+                 + '§' + P.map(p=>T[p][1]+','+T[p][2]+','+T[p].n1).join(';')
+                 + '§' + MODE + '§' + feux.join(',');
+  const _memes = (_sigMain === mz.dataset.sig) && mz.children.length === mainJ.length;
+
+  if(_memes){
+    mainJ.forEach((c,i)=>{
+      const el=mz.children[i]; if(!el) return;
+      el.classList.toggle('sel', sel===i);          // le seul changement possible
+    });
+  } else {
+  mz.dataset.sig = _sigMain;
+  mz.innerHTML="";
   mainJ.forEach((c,i)=>{
     const cibles = ciblesDe(c,T,1);
     const jouable = cibles.length>0;
@@ -2815,6 +2886,7 @@ function render(){
     el.onclick=()=>choisir(i);
     mz.appendChild(el);
   });
+  }
 
 
   // Captures : un pilier change de propriétaire → halo + timbre
@@ -2837,20 +2909,66 @@ function render(){
 /* La main se met à l'échelle pour que TOUT l'écran de jeu tienne sans défilement */
 const CW=91, CH=132, GAP=4, PARRANG=6;
 let _kActuel=0;
-function ajusteMain(){
+/* Ce qui décide de la taille des cartes : le nombre de rangs et la fenêtre. Rien d'autre.
+   Tant que ces trois nombres ne bougent pas, inutile de relire la géométrie — et SURTOUT
+   inutile de forcer le navigateur à recalculer toute la mise en page juste après que
+   render() vient de la réécrire. C'était 15 ms perdues à CHAQUE coup joué, pour un
+   résultat presque toujours identique : le fameux « ça rame » au moment de poser sa carte. */
+let _ajRangs=-1, _ajW=0, _ajH=0;
+function ajusteMain(force){
   const app=document.getElementById("app"), main=document.getElementById("main");
   if(!app||!main||!main.children.length) return;
   const rangs=Math.ceil(main.children.length/PARRANG);
+  const vw=document.documentElement.clientWidth, vh=window.innerHeight;
+  if(!force && rangs===_ajRangs && vw===_ajW && vh===_ajH) return;   // rien n'a bougé : on ne lit rien
+  _ajRangs=rangs; _ajW=vw; _ajH=vh;
   const chrome=app.getBoundingClientRect().height - main.getBoundingClientRect().height;
-  const larg=Math.min(560, document.documentElement.clientWidth) - 20;      // padding #app
+  const larg=Math.min(560, vw) - 20;                                        // padding #app
   const kW=(larg - (PARRANG-1)*GAP) / (PARRANG*CW);
-  const kH=(window.innerHeight - chrome - 2 - (rangs-1)*GAP) / (rangs*CH);
+  const kH=(vh - chrome - 2 - (rangs-1)*GAP) / (rangs*CH);
   const k=Math.max(0.5, Math.min(1.3, kW, kH));                             // peut dépasser la taille native
   if(Math.abs(k-_kActuel) < 0.015) return;                                  // évite le frémissement
   _kActuel=k;
   document.documentElement.style.setProperty("--k", k.toFixed(3));
 }
-addEventListener("resize", ()=>{ try{ _kActuel=0; ajusteMain(); }catch(e){} });
+addEventListener("resize", ()=>{ try{ _kActuel=0; _ajRangs=-1; ajusteMain(true); }catch(e){} });
+/* ══════════ LE MODE LÉGER ══════════
+   Le CSS de ce mode existait depuis longtemps (html.lite coupe halos, flammes, lueurs
+   flottantes...) mais RIEN ne posait jamais la classe : du code mort. Or il change tout —
+   mesuré sur un mobile milieu de gamme : 55 % d'images sautées sans, 11 % avec.
+   Le coût n'est pas dans le JavaScript (< 12 % du temps) mais dans le DESSIN : ombres
+   portées, flous et dégradés que le téléphone doit repeindre à chaque image. */
+const CLE_LITE = "eq_lite";
+let liteOn = false;
+function appliqueLite(){
+  document.documentElement.classList.toggle('lite', liteOn);
+  const b=document.getElementById('liteBtn');
+  if(b){ b.classList.toggle('off', !liteOn); b.title = liteOn ? "Mode léger actif — touche pour les effets" : "Mode léger (fluidité)"; }
+}
+function toggleLite(){
+  try{ ac(); }catch(e){}
+  liteOn=!liteOn;
+  try{ localStorage.setItem(CLE_LITE, liteOn?'1':'0'); }catch(e){}
+  appliqueLite();
+  flashMsg(liteOn ? "Mode léger activé" : "Effets rétablis");
+}
+/* Aucun réglage enregistré ? On regarde tourner le téléphone pendant 2 s et on décide pour lui.
+   Un joueur ne devrait pas avoir à savoir que son mobile rame pour que le jeu soit fluide. */
+function initLite(){
+  let v=null; try{ v=localStorage.getItem(CLE_LITE); }catch(e){}
+  if(v!==null){ liteOn = (v==='1'); appliqueLite(); return; }
+  appliqueLite();
+  let n=0, lents=0, t0=performance.now(), last=t0;
+  (function mesure(now){
+    const d=now-last; last=now; n++;
+    if(d>28) lents++;
+    if(now-t0 < 2200) requestAnimationFrame(mesure);
+    else if(n>20 && lents/n > 0.25){        // plus d'une image sur quatre en retard
+      liteOn=true; appliqueLite();
+      try{ localStorage.setItem(CLE_LITE,'1'); }catch(e){}
+    }
+  })(t0);
+}
 /* ══════════ LE PHÉNIX — un sursaut par manche ══════════ */
 let phenixUse=false;
 /* ══════════ LA PARTIE SUSPENDUE ══════════
@@ -3591,6 +3709,17 @@ const MIR_REFUGE = {
   "Argent":"tu cherches d'abord la sécurité et les moyens."
 };
 let miroirRetour='splash';
+/* La porte 🪞 de l'accueil et du menu laissait lire le verdict SANS le Phœnix : une porte
+   dérobée sur la cérémonie. On ne la retire pas — « Effacer ce que j'ai confié » vit derrière,
+   et c'est une promesse — on met le Phœnix devant. La cérémonie appartient à la PREMIÈRE
+   révélation, pas à la porte : une fois qu'il a parlé, on relit librement. */
+function demanderMiroir(){
+  try{ ac(); }catch(e){}
+  if(miroirMur() && !_reduit() && typeof CINE_PHENIX!=='undefined'){
+    try{ taire(); fermerOverlays(); }catch(e){}
+    CINE_PHENIX.jouer(function(){ ouvrirMiroir(true); });
+  } else ouvrirMiroir();
+}
 function ouvrirMiroir(auto){
   ac();
   if(!auto){                                  // ouverture normale : on vient du menu
@@ -3637,9 +3766,14 @@ function ouvrirMiroir(auto){
     </div>`).join('');
   const negF = angleMort ? PROFIL.neglige[angleMort] : 0;
   // Ce que le miroir peut honnêtement dire, selon ce qu'il voit vraiment
+  // Sans pente, ne pas s'arrêter à « rien à dire » : montrer OÙ ça penche et CE QU'IL MANQUE.
+  // Le texte évolue alors à chaque partie, et le joueur apprend comment le miroir pense.
+  const _reqP = penteRequise(), _nP = _am ? (PROFIL.neglige[_am]||0) : 0;
   const ligneAngle = angleMort
     ? `<p>Ton <b>angle mort</b> : ${embImg(angleMort,15)} <b>${angleMort}</b> — laissé pour compte <b>${negF}</b> fois sur ${PROFIL.parties}. ${MIR_ANGLE[angleMort]}</p>`
-    : `<p>Le miroir ne voit <b>aucune pente</b> en toi : tes quatre piliers se valent.</p>`;
+    : `<p>Le miroir ne voit <b>aucune pente</b> nette en toi : tes quatre piliers se valent.</p>`
+      + (_nP>0 ? `<p class="mir-proche">${embImg(_am,14)} <b>${_am}</b> penche le plus — <b>${_nP}</b> fois sur ${PROFIL.parties}.<br>
+          Il en faudrait <b>${_reqP}</b> pour qu'il tranche.</p>` : '');
   const ligneRefuge = refuge
     ? `<p>Ton <b>refuge</b> : ${embImg(refuge,15)} <b>${refuge}</b> — ${MIR_REFUGE[refuge]}</p>`
     : '';
@@ -3662,7 +3796,8 @@ function ouvrirMiroir(auto){
   let mt = `Le reflet de ton jeu. ${PROFIL.parties} parties, ${PROFIL.victoires} victoire${PROFIL.victoires>1?'s':''}. `;
   mt += angleMort
     ? `Ton angle mort : ${angleMort}, laissé pour compte ${negF} fois sur ${PROFIL.parties}. ${MIR_ANGLE[angleMort]} `
-    : `Le miroir ne voit aucune pente en toi : tes quatre piliers se valent. `;
+    : `Le miroir ne voit aucune pente nette en toi : tes quatre piliers se valent. `
+      + (_nP>0 ? `${_am} penche le plus, ${_nP} fois sur ${PROFIL.parties}. Il en faudrait ${_reqP} pour qu'il tranche. ` : '');
   if(refuge) mt += `Ton refuge : ${refuge}. ${MIR_REFUGE[refuge]} `;
   if(ax) mt += `Ton âme penche vers l'axe ${ax.t}. ${ax.r} `;
   mt += angleMort
@@ -3673,7 +3808,8 @@ function ouvrirMiroir(auto){
   mt += texteConfidences(angleMort, refuge);
   _lectureTxt = mt;
   document.getElementById("miroir").classList.add("on");
-  setTimeout(()=>{ parleSurEcran('miroir', mt); }, 450);
+  // La carte met 2,6 s à monter du flou. La voix ne doit pas parler pendant qu'on ne peut pas lire.
+  setTimeout(()=>{ parleSurEcran('miroir', mt); }, auto ? 1900 : 450);
 }
 function fermerMiroir(){
   const el=document.getElementById("miroir");
@@ -4438,6 +4574,7 @@ function initAmbiance(){
 initAmbiance();
 initVoixBtn();
 initMusBtn();
+initLite();      // décide seul si le téléphone rame
 nouveauMatch();
 let _premiere=false; try{ _premiere=!localStorage.getItem('eq_vu1'); if(_premiere) localStorage.setItem('eq_vu1','1'); }catch(e){}
 if(_premiere) ouvrirTuto("splash"); else ouvrirSplash();
