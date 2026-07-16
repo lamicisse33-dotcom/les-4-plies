@@ -139,7 +139,7 @@ html.lite #ambiance .glow{animation:none;} html.lite .mote{display:none;}
 .mir-cap{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muet);text-align:center;margin-bottom:8px;}
 .mir-bars{display:flex;flex-direction:column;gap:7px;margin-bottom:6px;}
 .mir-row{display:flex;align-items:center;gap:8px;}
-.mir-emb img{width:20px;height:20px;border-radius:50%;display:block;}
+.mir-emb .embimg{width:20px;height:20px;border-radius:50%;display:block;}
 .mir-lbl{font-size:11px;color:#d7cfe6;width:82px;text-align:left;flex-shrink:0;}
 .mir-bar{flex:1;height:9px;border-radius:5px;background:rgba(0,0,0,.35);overflow:hidden;border:1px solid rgba(255,255,255,.08);}
 .mir-bar i{display:block;height:100%;border-radius:5px;transform-origin:left;animation:xpgrow .8s cubic-bezier(.2,1,.3,1) both;}
@@ -250,7 +250,6 @@ html.lite .jfill{transition:none;}
 .jeton{width:5px;height:5px;border-radius:1px;}
 .jeton.drop{animation:jdrop .4s cubic-bezier(.3,1.4,.5,1);}
 @keyframes jdrop{0%{transform:translateY(-14px);opacity:0;}100%{transform:translateY(0);opacity:1;}}
-.sep{height:1px;background:rgba(255,255,255,.14);margin:2px 0;}
 .mene{position:absolute;top:3px;right:4px;font-size:8px;}
 /* Pilier affaibli : il prend feu */
 .borne.enfeu{border-color:rgba(255,110,30,.5);}
@@ -510,14 +509,14 @@ span.orb{width:24px;height:24px;border-radius:50%;border:1px solid var(--gold);b
 /* démo « ton point faible décide » (onboarding) */
 .demo4{display:flex;gap:14px;justify-content:center;align-items:flex-end;height:104px;margin:6px 0 20px;}
 .dcol{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;position:relative;}
-.dcol .em img{width:18px;height:18px;border-radius:50%;margin-bottom:4px;display:block;}
+.dcol .em .embimg{width:18px;height:18px;border-radius:50%;margin-bottom:4px;display:block;}
 .dbar{width:38px;border-radius:6px 6px 3px 3px;background:linear-gradient(180deg,var(--c),rgba(0,0,0,.25));
   box-shadow:inset 0 0 0 1px rgba(255,255,255,.12);transform-origin:bottom;animation:barGrow .55s cubic-bezier(.2,1,.3,1) both;}
 @keyframes barGrow{from{transform:scaleY(0);}to{transform:scaleY(1);}}
 .dcol.faible .dbar{animation:barGrow .55s cubic-bezier(.2,1,.3,1) both, faiblePulse 1.4s ease-in-out .9s infinite;}
 @keyframes faiblePulse{0%,100%{box-shadow:inset 0 0 0 1px rgba(255,255,255,.12),0 0 0 0 rgba(201,162,39,0);}
   50%{box-shadow:inset 0 0 0 1px rgba(255,255,255,.12),0 0 16px 3px rgba(201,162,39,.7);}}
-.dcol.faible .em img{box-shadow:0 0 10px rgba(201,162,39,.9);}
+.dcol.faible .em .embimg{box-shadow:0 0 10px rgba(201,162,39,.9);}
 .dlab{position:absolute;bottom:-19px;left:50%;transform:translateX(-50%);white-space:nowrap;
   font-family:'Cinzel',serif;font-weight:900;font-size:8.5px;letter-spacing:1px;color:var(--goldL);opacity:0;animation:fadeIn .4s ease 1s forwards;}
 @keyframes fadeIn{to{opacity:1;}}
@@ -535,6 +534,7 @@ span.orb{width:24px;height:24px;border-radius:50%;border:1px solid var(--gold);b
 #findetail{font-size:11px;color:#c9c0dd;margin:10px 0 4px;line-height:1.7;}
 /* ── La question du Phénix : son propre écran, calme, toujours contenu ── */
 #qphenix{z-index:60;}   /* au-dessus de l'écran de fin, sinon il la recouvrirait */
+#miroir.auto{z-index:60;}   /* quand il vient de lui-même : par-dessus l'écran de fin */
 #qphenix .qcard{position:relative;max-width:380px;width:92%;max-height:90dvh;overflow-y:auto;
   text-align:center;padding:24px 18px 20px;
   background:radial-gradient(120% 70% at 50% -6%, rgba(120,52,20,.45), transparent 62%), linear-gradient(180deg,rgba(26,14,32,.99),rgba(10,5,20,.99));
@@ -558,11 +558,6 @@ span.orb{width:24px;height:24px;border-radius:50%;border:1px solid var(--gold);b
   transition:background .15s,border-color .15s,transform .1s;}
 .q-btn:hover{background:rgba(224,145,42,.15);border-color:rgba(224,145,42,.65);color:#fff;}
 .q-btn:active{transform:translateY(1px);}
-/* la réponse que le Phénix est en train de prononcer */
-.q-btn.lu{background:linear-gradient(180deg,rgba(224,145,42,.28),rgba(224,122,26,.12));
-  border-color:#e0912a;color:#fff;transform:scale(1.03);
-  box-shadow:0 0 20px -3px rgba(224,145,42,.75), inset 0 1px 0 rgba(255,255,255,.2);}
-html.lite .q-btn.lu{transform:none;}
 /* tout a été dit : les réponses appellent ensemble.
    Halo peint une fois, seule l'opacité varie -> aucun repeint. */
 .q-btn{position:relative;}
@@ -588,7 +583,16 @@ html.lite #qphenix .q-emb{animation:none;}
 #miroir .mir-vu:last-of-type{border-bottom:none;padding-bottom:0;margin-bottom:6px;}
 #miroir .mir-vu p{margin:0 0 5px;}
 #miroir .mir-clos{margin-top:8px !important;font-style:italic;color:var(--goldL);opacity:.92;}
-#miroir .mir-attend{font-style:italic;color:#a99fc0;text-align:center;margin:0 0 12px;line-height:1.6;}
+#miroir .mir-attend .ma-t{color:var(--goldL);font-style:normal;font-weight:700;margin:0 0 2px;}
+.mir-attend .ma-s{margin:0 0 7px;opacity:.85;}
+.mir-attend .ma-l{list-style:none;margin:0;padding:0;text-align:left;max-width:250px;margin-inline:auto;}
+.mir-attend .ma-l li{display:flex;align-items:center;gap:7px;padding:4px 2px;font-style:normal;
+  border-top:1px solid rgba(201,162,39,.14);}
+.mir-attend .ma-l li:first-child{border-top:none;}
+.mir-attend .ma-l li b{color:#e8e0f2;}
+.mir-attend .ma-l li span{margin-left:auto;font-size:12px;color:#a99fc0;white-space:nowrap;}
+.mir-attend .ma-l li span b{color:var(--goldL);}
+.mir-attend{font-style:italic;color:#a99fc0;text-align:center;margin:0 0 12px;line-height:1.6;}
 #miroir .mir-attend b{color:var(--goldL);font-style:normal;}
 .conf-oubli{margin-top:10px;background:none;border:none;cursor:pointer;font-size:11px;color:#8f86a8;
   font-style:italic;text-decoration:underline;text-underline-offset:3px;display:block;width:100%;text-align:center;}
@@ -681,7 +685,7 @@ html.lite #qphenix .q-emb{animation:none;}
   background:radial-gradient(circle at 50% 42%, var(--pc,rgba(201,162,39,.4)), transparent 70%);}
 .fin-hero .fh-emb::before{content:"";position:absolute;inset:6px;border-radius:50%;
   box-shadow:inset 0 0 0 1.5px rgba(201,162,39,.7),inset 0 3px 8px rgba(0,0,0,.5);}
-.fin-hero .fh-emb img{width:52px;height:52px;border-radius:50%;box-shadow:0 3px 10px rgba(0,0,0,.5),0 0 18px var(--pc,rgba(201,162,39,.5));}
+.fin-hero .fh-emb .embimg{width:52px;height:52px;border-radius:50%;box-shadow:0 3px 10px rgba(0,0,0,.5),0 0 18px var(--pc,rgba(201,162,39,.5));}
 .fin-hero .fh-name{font-family:'Cinzel',serif;font-weight:900;font-size:19px;letter-spacing:2px;color:var(--goldL);}
 .fin-hero .fh-nums{font-size:13px;color:#cfc6de;margin-top:4px;}
 .fin-hero .fh-nums b{font-family:'Cinzel',serif;font-size:18px;} .fin-hero .fh-nums span{opacity:.6;font-size:11px;margin:0 4px;}
@@ -689,6 +693,28 @@ html.lite #qphenix .q-emb{animation:none;}
 .fin-hero.lose .fh-tag{color:#e0708a;} .fin-hero.win .fh-tag{color:#45c97a;} .fin-hero.nul .fh-tag{color:var(--goldL);}
 .fin-hero.lose .fh-emb{animation:heroShake .55s ease .15s;}
 @keyframes heroShake{0%,100%{transform:translateX(0);}20%{transform:translateX(-5px);}60%{transform:translateX(5px);}80%{transform:translateX(-2px);}}
+/* Une balance : les deux côtés STRICTEMENT symétriques. Trois colonnes, « contre » au milieu. */
+.fin-hero .fh-duo{display:grid;grid-template-columns:1fr auto 1fr;align-items:start;gap:6px;}
+.fin-hero .fh-side{display:flex;flex-direction:column;align-items:center;min-width:0;}
+.fin-hero .fh-vs{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#7d749a;
+  align-self:center;padding-top:26px;}
+.fin-hero .fh-name{font-size:15px;letter-spacing:1.2px;line-height:1.2;}
+.fin-hero .fh-v{font-family:'Cinzel',serif;font-weight:900;font-size:26px;line-height:1;margin-top:4px;}
+.fin-hero .fh-who{font-size:8.5px;letter-spacing:1.6px;text-transform:uppercase;color:#7d749a;margin-top:4px;}
+/* le côté adverse : même taille, seule la couleur distingue */
+.fin-hero .fh-side.adv .fh-name{color:#c8bcd8;}
+.fin-hero .fh-side.adv .fh-v{color:#e0708a;}
+@media (max-width:360px){
+  .fin-hero .fh-emb{width:62px;height:62px;}
+  .fin-hero .fh-emb .embimg{width:42px;height:42px;}
+  .fin-hero .fh-name{font-size:13px;letter-spacing:.6px;}
+  .fin-hero .fh-v{font-size:22px;}
+  .fin-hero .fh-vs{font-size:9px;letter-spacing:1px;padding-top:20px;}
+}
+.fin-tot{display:flex;align-items:center;justify-content:space-between;margin:6px 6px 2px;padding-top:7px;
+  border-top:1px solid rgba(201,162,39,.2);font-size:11px;letter-spacing:1.6px;text-transform:uppercase;color:#7d749a;}
+.fin-tot b{font-family:'Cinzel',serif;font-size:16px;letter-spacing:0;}
+.fin-tot .tm{color:var(--goldL);} .fin-tot .ti{color:#e0708a;}
 .fin-rows{margin:4px 0 4px;}
 .fin-line{padding:4px 6px;margin:2px -6px;border-radius:8px;}
 .fin-line.hero{background:rgba(201,162,39,.08);box-shadow:inset 0 0 0 1px rgba(201,162,39,.25);}
@@ -700,7 +726,7 @@ html.lite #qphenix .q-emb{animation:none;}
 .reason.lose{border-color:rgba(224,90,110,.5);background:linear-gradient(180deg,rgba(224,90,110,.13),rgba(224,90,110,.02));color:#f3d9df;}
 .reason.win{border-color:rgba(69,201,122,.45);background:linear-gradient(180deg,rgba(69,201,122,.11),rgba(69,201,122,.02));color:#d8f0e0;}
 .reason .ric{font-size:18px;line-height:1.1;flex-shrink:0;}
-.reason img{width:16px;height:16px;border-radius:50%;vertical-align:middle;border:1px solid rgba(201,162,39,.7);}
+.reason .embimg{width:16px;height:16px;border-radius:50%;vertical-align:middle;border:1px solid rgba(201,162,39,.7);}
 .reason b{color:#fff;}
 .reason-btn{flex-shrink:0;align-self:flex-start;width:30px;height:30px;border-radius:50%;border:1px solid rgba(201,162,39,.45);
   background:rgba(0,0,0,.25);color:#f0e6c8;font-size:15px;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center;
@@ -714,7 +740,7 @@ html.lite #qphenix .q-emb{animation:none;}
 #miroir .lecture{position:relative;}
 .lecture{position:relative;}
 .reason.lose b[style]{color:#e0708a!important;}
-.lecture img{width:15px;height:15px;border-radius:50%;vertical-align:middle;border:1px solid rgba(201,162,39,.8);}
+.lecture .embimg{width:15px;height:15px;border-radius:50%;vertical-align:middle;border:1px solid rgba(201,162,39,.8);}
 .btn.defi{background:linear-gradient(180deg,#2a2140,#1a1530);border:1px solid rgba(201,162,39,.5);color:#f0e6c8;}
 .btn.defi:hover{border-color:var(--goldL);}
 .btn.soin{background:linear-gradient(180deg,#16301f,#0f2016);border:1px solid rgba(70,190,110,.5);color:#dcefdf;}
@@ -919,6 +945,7 @@ html.lite #liens .lien{animation:none;}
   <button class="btn play" style="width:100%;margin-top:4px" onclick="depuisSplash()">▶ JOUER</button>
   <div class="splash-actions">
     <button class="minibtn" onclick="ouvrirMiroir()">🪞 Ton miroir</button>
+    
     <button class="minibtn" onclick="ouvrirModemploi('splash')">Comment jouer</button>
   </div>
 </div></div>
@@ -1083,10 +1110,6 @@ html.lite #liens .lien{animation:none;}
 
   <button id="phenixBtn" onclick="invoquerPhenix()" style="display:none">🔥 Invoquer Le Phénix <span>— relève ton pilier en feu</span></button>
 
-  <div class="btns">
-    <button class="btn ghost" onclick="nouveauMatch()">↻ Nouveau match</button>
-    <button class="btn ghost" onclick="annuler()" id="btnAnnul" style="display:none">✕ Annuler</button>
-  </div>
 
   <div class="aide">
     <b>1.</b> Touche une carte. <b>2.</b> Touche un <b>pilier</b> pour y verser ses points (max <b>3</b> par pilier).<br>
@@ -1127,6 +1150,7 @@ html.lite #liens .lien{animation:none;}
   </div>
   <div class="splash-actions">
     <button class="minibtn" onclick="ouvrirMiroir()">🪞 Ton miroir</button>
+    
     <button class="minibtn" onclick="ouvrirModemploi('niveau')">Comment jouer</button>
   </div>
 </div></div>
@@ -1778,6 +1802,7 @@ function sauverStats(){ try{ localStorage.setItem(STATS_KEY, JSON.stringify(STAT
 chargerStats();
 /* ── Le Miroir : profil du joueur accumulé sur toutes les parties ── */
 let PROFIL={parties:0, victoires:0, tot:{}, neglige:{}, fort:{}};
+let _miroirAParle=false;   // le miroir vient-il de livrer un reflet ?
 
 /* ══════════ LA QUESTION DU PHÉNIX ══════════
    Après une défaite, sur le pilier qui a lâché. Une seule fois par pilier, jamais reposée.
@@ -1832,8 +1857,21 @@ const QUESTIONS = {
       {k:"jamais", t:"Jamais vraiment",               d:"retrait", m:"tu ne l'as jamais vraiment fait"} ]}
   ]
 };
-/* Le miroir attend d'en avoir assez vu avant de révéler */
-const SEUIL_MIROIR = 3;
+/* Le miroir attend d'en avoir assez vu avant de révéler.
+   6 : à ce stade une pente de 5 fois sur 6 ne s'explique plus par le hasard. */
+const SEUIL_MIROIR = 6;
+/* Une pente n'existe que si elle est NETTE. Seuil calibré par simulation : le compte qu'un joueur
+   SANS aucune pente atteint moins de 2 % du temps (4 piliers, donc 25 % au hasard).
+   Le « +1 » est ce qui sépare le miroir de l'horoscope : sans lui, 15 % des joueurs équilibrés
+   s'entendaient accuser d'un angle mort qu'ils n'ont pas. Le miroir préfère se taire qu'inventer.
+   Prix payé : il ne voit que 42 % des pentes franches à 6 parties — mais 72 % à 15. */
+const PENTE_PART = 0.6, PENTE_FOIS = 4;
+function penteRequise(){
+  return Math.max(PENTE_FOIS, Math.ceil(PENTE_PART * (PROFIL.parties||1)) + 1);
+}
+function penteNette(compteur, p){
+  return (compteur[p]||0) >= penteRequise();
+}
 /* Le Phénix ne revient pas tout de suite : sa 2e question se mérite */
 const ECART_QUESTION = 5;
 let REPONSES={};
@@ -1913,7 +1951,7 @@ function repondre(p, i, k){
   taire();
   // Pas de remerciement : un oracle ne remercie pas. Il donne rendez-vous.
   const merci = k
-    ? `<b>Le miroir a entendu.</b><br>Joue encore ${SEUIL_MIROIR} partie${SEUIL_MIROIR>1?'s':''}, puis va le consulter.`
+    ? `<b>Le miroir a entendu.</b><br>Joue encore ${SEUIL_MIROIR} partie${SEUIL_MIROIR>1?'s':''}. <b>Il viendra.</b>`
     : `C'est entendu. Le Phénix ne te le redemandera pas.`;
   document.getElementById('qTxt').innerHTML = `<span class="q-merci">${merci}</span>`;
   document.getElementById('qRep').innerHTML = '';
@@ -2078,6 +2116,28 @@ function annonceFinMatch(win, nouveauRang){
   if(nouveauRang) txt += ` Nouveau rang : ${nouveauRang}.`;
   parle(txt);
 }
+/* Le miroir a-t-il quelque chose à livrer maintenant ? (une parole assez vieille pour être croisée) */
+function miroirMur(){
+  if(enLigne() || (PROFIL.parties||0) < SEUIL_MIROIR) return false;
+  return P.some(p=>{
+    const r=laParole(p); if(!r || !_laReponse(p, r.i, r.k)) return false;
+    return ((PROFIL.parties||0) - (r.n||0)) >= SEUIL_MIROIR;
+  });
+}
+/* Le miroir a parlé : on remet son compteur à zéro. Il te reverra dans SEUIL parties. */
+function reglerLeCompteur(){
+  let touche=false;
+  P.forEach(p=>{
+    const a=_repArr(p); if(!a.length) return;
+    a.forEach(o=>{
+      if(o && o.k && o.k!=="—" && ((PROFIL.parties||0)-(o.n||0)) >= SEUIL_MIROIR){
+        o.n = (PROFIL.parties||0); touche=true;              // la parole repart d'aujourd'hui
+      }
+    });
+    if(touche) REPONSES[p]=a;
+  });
+  if(touche) sauverReponses();
+}
 /* La question ne vient QUE si tu perds, et seulement sur le pilier qui a lâché */
 function pilierDeLaQuestion(win){
   if(win || enLigne()) return null;
@@ -2124,6 +2184,8 @@ function majFinMatch(win, histo){
     if(!ecranOuvert('fin')) return;                 // l'écran a été fermé entre-temps : on se tait
     // Le Phénix est rare : quand il parle, il ne rivalise pas avec la lecture des piliers
     if(qp){ ouvrirQuestion(qp.p, qp.i); return; }
+    // Pas de question à poser ? Si le miroir est mûr, c'est LUI qui vient à toi.
+    if(miroirMur()){ ouvrirMiroir(true); return; }
     if(_lectureTxt){ parle(_lectureTxt); majLireBtn(); }
     else annonceFinMatch(win, levelUp?apres.titre:null);
   }, qp ? 1600 : 900);
@@ -2257,7 +2319,7 @@ function render(){
     el.onclick=()=>choisir(i);
     mz.appendChild(el);
   });
-  document.getElementById("btnAnnul").style.display = (sel!==null && !locked) ? "" : "none";
+
 
   // Captures : un pilier change de propriétaire → halo + timbre
   P.forEach((p,pi)=>{
@@ -2661,14 +2723,28 @@ function terminer(){
     + `<span class="pipwho ia">Adv</span></span>`;
 
   // détail de la manche
-  const pFaibleV = P.reduce((m,p)=> T[p][1] < T[m][1] ? p : m, P[0]);   // ton point faible = pilier décisif
+  const pFaibleV = P.reduce((m,p)=> T[p][1] < T[m][1] ? p : m, P[0]);   // ton point faible
+  const pFaibleA = P.reduce((m,p)=> T[p][2] < T[m][2] ? p : m, P[0]);   // le sien — souvent un AUTRE pilier
   const heroCls = v.gagnant===0 ? 'nul' : (gagne?'win':'lose');
-  const heroTag = v.gagnant===0 ? 'parfait équilibre' : (gagne?'ton point faible a tenu':'ton point faible');
+  const heroTag = v.gagnant===0 ? 'parfait équilibre' : (gagne?'ton point faible a tenu':'ton point faible a cédé');
   const cf1 = gagne?'#45c97a':(v.gagnant===0?'var(--goldL)':'#e0708a');
+  // On montre les DEUX piliers pesés : sinon « 15 contre 15 » sous un seul nom ment.
   let d = `<div class="fin-hero ${heroCls}" style="--pc:${AURA[pFaibleV]}">
-      <div class="fh-emb">${embImg(pFaibleV,52)}</div>
-      <div class="fh-name">${pFaibleV}</div>
-      <div class="fh-nums"><b style="color:${cf1}">${v.f1}</b><span>contre</span><b>${v.f2}</b></div>
+      <div class="fh-duo">
+        <div class="fh-side">
+          <div class="fh-emb">${embImg(pFaibleV,52)}</div>
+          <div class="fh-name">${pFaibleV}</div>
+          <div class="fh-v" style="color:${cf1}">${v.f1}</div>
+          <div class="fh-who">le tien</div>
+        </div>
+        <div class="fh-vs">contre</div>
+        <div class="fh-side adv" style="--pc:${AURA[pFaibleA]}">
+          <div class="fh-emb">${embImg(pFaibleA,52)}</div>
+          <div class="fh-name">${pFaibleA}</div>
+          <div class="fh-v">${v.f2}</div>
+          <div class="fh-who">le sien</div>
+        </div>
+      </div>
       <div class="fh-tag">${heroTag}</div>
     </div>`;
   d += `<div class="fin-rows">`;
@@ -2681,6 +2757,11 @@ function terminer(){
        + `<div class="fin-bar"><i class="me" style="width:${me}%"></i><i class="ia" style="width:${100-me}%"></i></div>`
        + `</div>`;
   });
+  // Le total est cité dans le verdict : il doit être VISIBLE, pas à recalculer de tête.
+  // On le calcule ici : verdict() ne le renseigne que lorsqu'il sert de départage.
+  const _tv = P.reduce((a,p)=>a+T[p][1],0), _ta = P.reduce((a,p)=>a+T[p][2],0);
+  d += `<div class="fin-tot"><span>Total</span>`
+     + `<span><b class="tm">${_tv}</b> / <b class="ti">${_ta}</b></span></div>`;
   d += `</div>`;
   if(v.motif==="faible"){
     d += gagne
@@ -2851,10 +2932,13 @@ function terminerDefi(){
   fin.classList.add('on');
   if(gagne){ sWin(); if(record){ confetti(90); flash('#f2d98a'); buzz([20,40,20]); } } else sLose();
 }
+/* Le lien du jeu : sans lui, celui qui reçoit un défi ne peut pas le relever */
+const LIEN_JEU = "https://lamicisse33-dotcom.github.io/les-4-plies/";
 function partagerDefi(f1,t1){
   const rep=P.map(p=>`${EMB[p]}${T[p][1]}`).join(' ');
   const txt=`⚖️ ÉQUILIBRE — Défi du ${defiLabel()}\nMon pilier le plus faible : ${f1}\n${rep} · Total ${t1}\nSauras-tu mieux équilibrer tes 4 piliers ?`;
-  if(navigator.share){ navigator.share({text:txt}).catch(()=>{}); return; }
+  if(navigator.share){ navigator.share({text:txt, url:LIEN_JEU}).catch(()=>{}); return; }   // le lien : sinon on ne peut pas répondre au défi
+  txt += "\n👉 " + LIEN_JEU;
   if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(txt).then(()=>flashMsg("Résultat copié — colle-le où tu veux !")).catch(()=>flashMsg("Copie manuelle : "+txt)); }
   else flashMsg(txt);
 }
@@ -2916,27 +3000,48 @@ const MIR_REFUGE = {
   "Argent":"tu cherches d'abord la sécurité et les moyens."
 };
 let miroirRetour='splash';
-function ouvrirMiroir(){
+function ouvrirMiroir(auto){
   ac();
-  miroirRetour = document.getElementById('niveau').classList.contains('on') ? 'niveau' : 'splash';
-  fermerOverlays();
+  if(!auto){                                  // ouverture normale : on vient du menu
+    miroirRetour = document.getElementById('niveau').classList.contains('on') ? 'niveau' : 'splash';
+    fermerOverlays();
+  }
+  document.getElementById("miroir").classList.toggle('auto', !!auto);   // auto = par-dessus l'écran de fin
   const body=document.getElementById("miroirBody");
-  // Le miroir ne parle pas avant d'avoir assez vu : mieux vaut se taire que dire n'importe quoi
+  // Le miroir ne parle pas avant d'avoir assez vu : mieux vaut se taire que dire n'importe quoi.
   if(PROFIL.parties < SEUIL_MIROIR){
-    const reste = SEUIL_MIROIR - PROFIL.parties;
-    const aDitQqch = P.some(p=>_repArr(p).length);
-    body.innerHTML=`<p class="mir-empty"><span class="mm-emb">🪞</span><br>
-      <b>Le miroir est muet.</b><br>
-      Il lui faut ${SEUIL_MIROIR} parties pour te voir.<br>
-      Encore <b>${reste} partie${reste>1?'s':''}</b>.</p>`
-      + (aDitQqch ? `<button class="conf-oubli" onclick="effacerConfidences()">Effacer ce que j'ai confié</button>` : '');
-    _lectureTxt = `Le miroir est muet. Il lui faut ${SEUIL_MIROIR} parties pour te voir. Encore ${reste} partie${reste>1?'s':''}.`;
+    // UN SEUL décompte, sinon il se contredit : le plus long des deux gagne.
+    //  - il lui faut SEUIL parties pour lire ton jeu
+    //  - et SEUIL parties APRÈS ta parole pour la croiser avec elle
+    const paroles = P.map(p=>laParole(p)).filter(Boolean);
+    const resteJeu = SEUIL_MIROIR - PROFIL.parties;
+    // LA PREMIÈRE parole qui mûrit, pas la dernière : sinon chaque nouvelle réponse
+    // repousse le rendez-vous, et le compteur reste bloqué à 6 pour toujours.
+    const resteParole = paroles.length
+      ? Math.min(...paroles.map(r => SEUIL_MIROIR - (PROFIL.parties - (r.n||0))))
+      : 0;
+    const reste = Math.max(resteJeu, resteParole);
+    const aDitQqch = paroles.length > 0;              // une esquive n'est pas une parole
+    const aEfface  = P.some(p=>_repArr(p).length);     // mais elle laisse une trace à effacer
+    const pl = reste>1 ? 's' : '';
+    const tete = aDitQqch
+      ? `<b>Le miroir a entendu.</b><br>Il attend d'en voir assez pour te répondre.<br>`
+      : `<b>Le miroir est muet.</b><br>Il lui faut ${SEUIL_MIROIR} parties pour te voir.<br>`;
+    body.innerHTML=`<p class="mir-empty"><span class="mm-emb">🪞</span><br>${tete}
+      Encore <b>${reste} partie${pl}</b>.</p>`
+      + (aEfface ? `<button class="conf-oubli" onclick="effacerConfidences()">Effacer ce que j'ai confié</button>` : '');
+    _lectureTxt = (aDitQqch
+      ? `Le miroir a entendu. Il attend d'en voir assez pour te répondre.`
+      : `Le miroir est muet. Il lui faut ${SEUIL_MIROIR} parties pour te voir.`)
+      + ` Encore ${reste} partie${pl}.`;
     document.getElementById("miroir").classList.add("on");
     setTimeout(()=>{ parleSurEcran('miroir', _lectureTxt); }, 450);
     return;
   }
-  const angleMort = P.slice().sort((a,b)=> (PROFIL.neglige[b]-PROFIL.neglige[a]) || (PROFIL.tot[a]-PROFIL.tot[b]))[0];
-  const refuge    = P.slice().sort((a,b)=> (PROFIL.fort[b]-PROFIL.fort[a]) || (PROFIL.tot[b]-PROFIL.tot[a]))[0];
+  const _am = P.slice().sort((a,b)=> (PROFIL.neglige[b]-PROFIL.neglige[a]) || (PROFIL.tot[a]-PROFIL.tot[b]))[0];
+  const _rf = P.slice().sort((a,b)=> (PROFIL.fort[b]-PROFIL.fort[a]) || (PROFIL.tot[b]-PROFIL.tot[a]))[0];
+  const angleMort = penteNette(PROFIL.neglige, _am) ? _am : null;   // null = le miroir ne voit rien de net
+  const refuge    = penteNette(PROFIL.fort, _rf)    ? _rf : null;
   const triTot = P.slice().sort((a,b)=>PROFIL.tot[b]-PROFIL.tot[a]);
   const ax = AXE_L[ck(triTot[0],triTot[1])];
   const maxTot=Math.max(...P.map(p=>PROFIL.tot[p]))||1;
@@ -2945,7 +3050,17 @@ function ouvrirMiroir(){
       <span class="mir-lbl">${p}</span>
       <span class="mir-bar"><i style="width:${Math.round(PROFIL.tot[p]/maxTot*100)}%;background:linear-gradient(90deg,${ORB[p]},#fff6)"></i></span>
     </div>`).join('');
-  const negF=PROFIL.neglige[angleMort];
+  const negF = angleMort ? PROFIL.neglige[angleMort] : 0;
+  // Ce que le miroir peut honnêtement dire, selon ce qu'il voit vraiment
+  const ligneAngle = angleMort
+    ? `<p>Ton <b>angle mort</b> : ${embImg(angleMort,15)} <b>${angleMort}</b> — laissé pour compte <b>${negF}</b> fois sur ${PROFIL.parties}. ${MIR_ANGLE[angleMort]}</p>`
+    : `<p>Le miroir ne voit <b>aucune pente</b> en toi : tes quatre piliers se valent.</p>`;
+  const ligneRefuge = refuge
+    ? `<p>Ton <b>refuge</b> : ${embImg(refuge,15)} <b>${refuge}</b> — ${MIR_REFUGE[refuge]}</p>`
+    : '';
+  const ligneDefi = angleMort
+    ? `<p style="color:var(--goldL)">Ton défi : oser nourrir ${embImg(angleMort,15)} <b>${angleMort}</b>, là où tu détournes les yeux.</p>`
+    : `<p style="color:var(--goldL)">Il n'a rien à te reprocher. C'est rare.</p>`;
   body.innerHTML = `
     <div class="mir-stat">${PROFIL.parties} partie${PROFIL.parties>1?'s':''} · ${PROFIL.victoires} victoire${PROFIL.victoires>1?'s':''}</div>
     <div class="mir-cap">Où va ton énergie, au fil des parties</div>
@@ -2953,25 +3068,35 @@ function ouvrirMiroir(){
     <div class="lecture">
       <button class="lire-btn mir-lire" onclick="toggleLecture()" title="Lire / arrêter">🔊</button>
       <div class="lec-h">✦ Ce que ton jeu dit de toi ✦</div>
-      <p>Ton <b>angle mort</b> : ${embImg(angleMort,15)} <b>${angleMort}</b> — laissé pour compte <b>${negF}</b> fois sur ${PROFIL.parties}. ${MIR_ANGLE[angleMort]}</p>
-      <p>Ton <b>refuge</b> : ${embImg(refuge,15)} <b>${refuge}</b> — ${MIR_REFUGE[refuge]}</p>
+      ${ligneAngle}
+      ${ligneRefuge}
       ${ax?`<p>Ton âme penche vers l'axe ${embImg(triTot[0],15)}${embImg(triTot[1],15)} <b>${ax.t}</b> — ${ax.r}</p>`:''}
-      <p style="color:var(--goldL)">Ton défi : oser nourrir ${embImg(angleMort,15)} <b>${angleMort}</b>, là où tu détournes les yeux.</p>
+      ${ligneDefi}
     </div>` + blocConfidences(angleMort, refuge);
   // texte parlé (sans balises)
   let mt = `Le reflet de ton jeu. ${PROFIL.parties} parties, ${PROFIL.victoires} victoire${PROFIL.victoires>1?'s':''}. `;
-  mt += `Ton angle mort : ${angleMort}, laissé pour compte ${negF} fois sur ${PROFIL.parties}. ${MIR_ANGLE[angleMort]} `;
-  mt += `Ton refuge : ${refuge}. ${MIR_REFUGE[refuge]} `;
+  mt += angleMort
+    ? `Ton angle mort : ${angleMort}, laissé pour compte ${negF} fois sur ${PROFIL.parties}. ${MIR_ANGLE[angleMort]} `
+    : `Le miroir ne voit aucune pente en toi : tes quatre piliers se valent. `;
+  if(refuge) mt += `Ton refuge : ${refuge}. ${MIR_REFUGE[refuge]} `;
   if(ax) mt += `Ton âme penche vers l'axe ${ax.t}. ${ax.r} `;
-  mt += `Ton défi : oser nourrir ${angleMort}, là où tu détournes les yeux.`;
+  mt += angleMort
+    ? `Ton défi : oser nourrir ${angleMort}, là où tu détournes les yeux.`
+    : `Il n'a rien à te reprocher. C'est rare.`;
+  // A-t-il livré un reflet (et non une attente) ? Si oui, sa fermeture remettra le compteur à zéro.
+  _miroirAParle = P.some(p=>{ const g=_regardMiroir(p, angleMort, refuge); return g && !g.attend; });
   mt += texteConfidences(angleMort, refuge);
   _lectureTxt = mt;
   document.getElementById("miroir").classList.add("on");
   setTimeout(()=>{ parleSurEcran('miroir', mt); }, 450);
 }
 function fermerMiroir(){
-  document.getElementById("miroir").classList.remove("on");
+  const el=document.getElementById("miroir");
+  const auto=el.classList.contains('auto');
+  el.classList.remove("on","auto");
   taire();
+  if(_miroirAParle){ reglerLeCompteur(); _miroirAParle=false; }   // il a parlé : le compteur repart
+  if(auto) return;                                                // l'écran de fin est resté dessous
   if(miroirRetour==='niveau') ouvrirNiveau(); else ouvrirSplash();
 }
 /* ══════════ LE MIROIR ══════════
@@ -3007,12 +3132,31 @@ function _texteMiroir(p, g){
 function blocConfidences(angleMort, refuge){
   const dits=_confiees();
   if(!dits.length) return "";
-  const blocs = dits.map(p=>{
-    const g=_regardMiroir(p, angleMort, refuge);
-    if(!g) return "";
-    if(g.attend) return `<p class="mir-attend">Le miroir a entendu ta parole sur ${embImg(p,14)} <b>${p}</b>.<br>Il attend d'en voir assez — encore <b>${g.reste}</b> partie${g.reste>1?'s':''}.</p>`;
-    return `<div class="mir-vu">${_texteMiroir(p,g).map((l,i)=>`<p class="${i===2?'mir-clos':''}">${l}</p>`).join("")}</div>`;
-  }).join("");
+  // Trois sorts possibles, et chaque verdict ne se dit QU'UNE FOIS :
+  //  - vus     : le jeu tranche -> reflet complet, il le mérite
+  //  - flous   : le jeu ne tranche pas -> on liste les paroles, un seul verdict
+  //  - att     : trop tôt -> on liste les échéances, un seul « il a entendu »
+  const vus=[], flous=[], att=[];
+  dits.forEach(p=>{
+    const g=_regardMiroir(p, angleMort, refuge); if(!g) return;
+    if(g.attend) att.push({p, reste:g.reste});
+    else if(g.fait==="mitige") flous.push({p, mot:g.mot});
+    else vus.push(`<div class="mir-vu">${_texteMiroir(p,g).map((l,i)=>`<p class="${i===2?'mir-clos':''}">${l}</p>`).join("")}</div>`);
+  });
+  let blocs = vus.join("");
+  if(flous.length){
+    blocs += `<div class="mir-vu">`
+          + flous.map(x=>`<p>Tu dis ${/^[aeiouâêîôûéèàïüœ]/i.test(x.mot)?"qu'":"que "}${x.mot}.</p>`).join("")
+          + `<p class="mir-clos">Ton jeu, lui, ne tranche pas encore. Le miroir observe.</p></div>`;
+  }
+  if(att.length){
+    att.sort((a,b)=>a.reste-b.reste);                       // le plus proche en premier
+    blocs += `<div class="mir-attend"><p class="ma-t">Le miroir a entendu.</p>`
+          +  `<p class="ma-s">Il attend d'en voir assez :</p>`
+          +  `<ul class="ma-l">` + att.map(x=>
+               `<li>${embImg(x.p,14)} <b>${x.p}</b><span>encore <b>${x.reste}</b> partie${x.reste>1?'s':''}</span></li>`).join("")
+          +  `</ul></div>`;
+  }
   return `<div class="lecture mir-conf">
     <div class="lec-h">✦ Ce que le miroir a vu ✦</div>
     ${blocs}
@@ -3023,12 +3167,22 @@ function texteConfidences(angleMort, refuge){
   const dits=_confiees();
   if(!dits.length) return "";
   let t=" Ce que le miroir a vu. ";
+  const att=[], flous=[];
   dits.forEach(p=>{
     const g=_regardMiroir(p, angleMort, refuge); if(!g) return;
-    t += g.attend
-      ? `Le miroir a entendu ta parole sur ${p}. Il attend d'en voir assez. `
-      : _texteMiroir(p,g).map(x=>_strip(x)).join(' ')+' ';
+    if(g.attend) att.push({p, reste:g.reste});
+    else if(g.fait==="mitige") flous.push(g.mot);
+    else t += _texteMiroir(p,g).map(x=>_strip(x)).join(' ')+' ';
   });
+  if(flous.length){                                          // un seul verdict pour toutes ces paroles
+    t += flous.map(m=>`Tu dis ${/^[aeiouâêîôûéèàïüœ]/i.test(m)?"qu'":"que "}${m}.`).join(' ')
+       + " Ton jeu, lui, ne tranche pas encore. Le miroir observe. ";
+  }
+  if(att.length){                                            // une seule fois, puis la liste
+    att.sort((a,b)=>a.reste-b.reste);
+    t += "Le miroir a entendu. Il attend d'en voir assez : "
+       + att.map(x=>`${x.p}, encore ${x.reste} partie${x.reste>1?'s':''}`).join(" ; ") + ". ";
+  }
   return t;
 }
 let _oubliArme=false, _oubliT=null;
