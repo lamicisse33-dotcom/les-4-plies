@@ -3398,27 +3398,28 @@ function majSeuilAide(){
 }
 function ouvrirAide(){ ac(); ouvrirModemploi('jeu'); }
 let memRetour='splash';
-const MEM_TXT = [
-  "Mode d'emploi d'ÉQUILIBRE. Les règles.",
-  "Le but. ÉQUILIBRE se joue à deux. Chacun fait grandir ses quatre piliers de vie : Spiritualité, Amour, Santé, Argent. À la fin, ton pilier le plus faible décide qui gagne. Tu ne peux en abandonner aucun.",
-  "Ton tour. Choisis une carte de ta main. Chaque carte porte deux piliers et une valeur ; pose-la sur l'un des deux, sa valeur s'y ajoute. Un pilier n'accepte que trois cartes.",
-  "Les cartes spéciales. Le Vol ajoute dix chez toi et retire dix à l'adversaire. Le Sacrifice ajoute trente sur un pilier mais retire quinze sur ton plus fort ailleurs. La Tempête retire vingt à l'adversaire.",
-  "Qui remporte la manche. Mains vides, on compare le pilier le plus faible de chacun : le plus haut des deux l'emporte. En cas d'égalité, on départage au total des quatre piliers.",
-  "Gagner le match. Le premier à deux manches sur trois remporte le match, et monte en rang.",
-  "Pour aller plus loin.",
-  "Le feu et le Phénix. Quand ton pilier le plus faible prend trop de retard, il s'embrase. Une fois par match, tu peux invoquer le Phénix : il relève ce pilier à hauteur de l'adversaire. Il te relève, mais ne te donne pas la victoire.",
-  "Les autres voies : Défi, Soin, Agonie, et le Duel en ligne contre un ami.",
-  "Ton Miroir. Au fil des parties, ÉQUILIBRE observe où va ton énergie et te renvoie un reflet de toi.",
-  "Le couple Khalam. Le nom Khalam est né de l'union de leurs deux prénoms : Kha, inspiré de Khadi ; Lam, inspiré de Lamine. Au-delà de cette fusion symbolique, Khalam évoque également le xalam, un instrument traditionnel d'Afrique de l'Ouest, symbole de sagesse, d'harmonie, de transmission et de richesse culturelle. À travers ce nom, le couple a souhaité incarner les valeurs qui fondent le jeu Équilibre : l'amour, l'unité, le dialogue, la réflexion et la recherche d'un équilibre durable entre les dimensions essentielles de la vie.",
-  "Nous avons créé ÉQUILIBRE pour vous aider à réfléchir à ce qui compte vraiment dans la vie, tout en jouant.",
-  "Propriété intellectuelle. Le jeu ÉQUILIBRE a été conçu et développé de A à Z par le couple Khalam. L'ensemble du concept, des règles, des contenus, des illustrations et de tous les éléments qui composent ce jeu est une création originale. Ce jeu est protégé par le droit d'auteur. Toute reproduction, copie, modification, adaptation, diffusion ou exploitation, totale ou partielle, sans l'autorisation écrite préalable des auteurs, est strictement interdite et pourra faire l'objet de poursuites. Tous droits réservés."
-].join(' ');
+/* La voix lisait un texte écrit à la main, en double du HTML. Ils ont divergé :
+   l'écran disait une chose, la voix une autre — et personne ne s'en apercevait.
+   Désormais elle lit L'ÉCRAN. Une seule source, plus de divergence possible. */
+const _EMO = /[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}\u{2190}-\u{21FF}\u{2B00}-\u{2BFF}\u{E000}-\u{F8FF}\u{200D}]/gu;
+function texteModemploi(){
+  const o=document.getElementById('modemploi'); if(!o) return '';
+  const bouts=[];
+  o.querySelectorAll('.ttl, .mem-part, .mem-h, .mem-sec > p, .mem-card, .mem-spec, .kt, .kli, .mem-quote, .mem-kbody > p, .mem-ip-h, .mem-ip > p, .mem-ip-foot, .mem-signoff')
+   .forEach(e=>{
+     let t=(e.textContent||'').replace(_EMO,' ').replace(/\s+/g,' ').trim();
+     if(!t) return;
+     if(!/[.!?:»]$/.test(t)) t+='.';        // un titre sans point s'enchaîne sur la phrase suivante
+     bouts.push(t);
+   });
+  return bouts.join(' ');
+}
 function ouvrirModemploi(from){
   majSeuilAide();          // 3 portes mènent ici : la synchro est dedans, pas devant
   ac();
   memRetour = from || (document.getElementById('niveau').classList.contains('on') ? 'niveau' : 'splash');
   fermerOverlays();
-  _lectureTxt = MEM_TXT;
+  _lectureTxt = texteModemploi();     // lu depuis l'écran, jamais recopié
   const o=document.getElementById('modemploi'); o.classList.add('on');
   const sc=o.querySelector('.mem-scroll'); if(sc) sc.scrollTop=0;
   majLireBtn();
