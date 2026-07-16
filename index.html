@@ -596,7 +596,8 @@ html.lite #qphenix .q-emb{animation:none;}
 #miroir .mir-vu:last-of-type{border-bottom:none;padding-bottom:0;margin-bottom:6px;}
 #miroir .mir-vu p{margin:0 0 5px;}
 #miroir .mir-clos{margin-top:8px !important;font-style:italic;color:var(--goldL);opacity:.92;}
-#miroir .mir-attend .ma-t{color:var(--goldL);font-style:normal;font-weight:700;margin:0 0 2px;}
+#miroir .mir-compte{font-size:11px;color:#a99fc0;font-style:normal;letter-spacing:.2px;}
+.mir-attend .ma-t{color:var(--goldL);font-style:normal;font-weight:700;margin:0 0 2px;}
 .mir-attend .ma-s{margin:0 0 7px;opacity:.85;}
 .mir-attend .ma-l{list-style:none;margin:0;padding:0;text-align:left;max-width:250px;margin-inline:auto;}
 .mir-attend .ma-l li{display:flex;align-items:center;gap:7px;padding:4px 2px;font-style:normal;
@@ -987,6 +988,7 @@ html.lite #liens .lien{animation:none;}
       <div class="mem-h">🃏 Ton tour</div>
       <p>Choisis une carte de ta main. Chaque carte porte <b>deux piliers</b> et une <b>valeur</b> ; pose-la sur l'un des deux, sa valeur s'y ajoute. Puis c'est à l'adversaire.</p>
       <div class="mem-card">Un pilier n'accepte que <b>3 cartes</b>. Renforce plutôt là où tu es faible qu'empiler là où tu es déjà fort.</div>
+      <p>Tu peux <b>fermer le jeu en pleine partie</b> : elle t'attend. Le bouton <b>↻ Reprendre</b> apparaît sur l'accueil.</p>
     </div>
 
     <div class="mem-sec">
@@ -1025,7 +1027,11 @@ html.lite #liens .lien{animation:none;}
 
     <div class="mem-sec">
       <div class="mem-h">🪞 Ton Miroir</div>
-      <p>Au fil des parties, ÉQUILIBRE observe où va ton énergie et te renvoie un reflet : ton <b>refuge</b>, ton <b>angle mort</b>, ton <b>défi</b>. Il ne parle pas que de cartes — il parle un peu de <b>toi</b>.</p>
+      <p>Quand tu perds, <b>le Phénix apparaît</b> et te pose une question sur le pilier qui a lâché. Tu réponds — ou pas : <b>l'esquive est un droit</b>, il ne te la reposera pas.</p>
+      <p>Ensuite il observe. Après <b><span class="mem-seuil">6</span> parties</b>, <b>il vient à toi</b> — tu n'as rien à aller chercher — et il croise <b>ce que tu as dit</b> avec <b>ce que ton jeu montre</b>.</p>
+      <p>Il ne dit que ce qu'il voit. Si tes quatre piliers se valent, il te le dit : <i>« aucune pente en toi »</i>. Il <b>n'invente pas</b> d'angle mort pour avoir quelque chose à raconter.</p>
+      <p>Tes confidences ne quittent <b>jamais</b> ce téléphone, et le bouton <i>« Effacer ce que j'ai confié »</i> les reprend quand tu veux.</p>
+      <p>Il ne parle pas que de cartes — il parle un peu de <b>toi</b>.</p>
     </div>
 
     <div class="mem-div"></div>
@@ -1872,8 +1878,11 @@ const QUESTIONS = {
   ]
 };
 /* Le miroir attend d'en avoir assez vu avant de révéler.
-   6 : à ce stade une pente de 5 fois sur 6 ne s'explique plus par le hasard. */
-const SEUIL_MIROIR = 6;
+   4 : c'est la RÈGLE DE LA PENTE qui garde, pas ce seuil. À 4 parties elle exige 4 fois sur 4
+   (une série parfaite) -> 1,54 % de fausses révélations, MIEUX qu'à 6 (5/6 = 83 %, 1,90 %).
+   Baisser le seuil rend donc le miroir plus honnête, et le met à portée du joueur.
+   Ne pas mettre 5 : accident arithmétique, 6,27 % de faux positifs. */
+const SEUIL_MIROIR = 4;
 /* Une pente n'existe que si elle est NETTE. Seuil calibré par simulation : le compte qu'un joueur
    SANS aucune pente atteint moins de 2 % du temps (4 piliers, donc 25 % au hasard).
    Le « +1 » est ce qui sépare le miroir de l'horoscope : sans lui, 15 % des joueurs équilibrés
@@ -1965,7 +1974,10 @@ function repondre(p, i, k){
   taire();
   // Pas de remerciement : un oracle ne remercie pas. Il donne rendez-vous.
   const merci = k
-    ? `<b>Le miroir a entendu.</b><br>Joue encore ${SEUIL_MIROIR} partie${SEUIL_MIROIR>1?'s':''}. <b>Il viendra.</b>`
+    ? (()=>{ const r=prochainMiroir();          // pas SEUIL_MIROIR en dur : ce qu'il reste VRAIMENT
+        return `<b>Le miroir a entendu.</b><br>` + (r>0
+          ? `Joue encore ${r} partie${r>1?'s':''}. <b>Il viendra.</b>`
+          : `<b>Il vient.</b>`); })()
     : `C'est entendu. Le Phénix ne te le redemandera pas.`;
   document.getElementById('qTxt').innerHTML = `<span class="q-merci">${merci}</span>`;
   document.getElementById('qRep').innerHTML = '';
@@ -2129,6 +2141,18 @@ function annonceFinMatch(win, nouveauRang){
   else if(tot>0) txt += win ? " Bel équilibre, tu n'as rien laissé tomber." : " Ton équilibre était bon, il t'a manqué peu.";
   if(nouveauRang) txt += ` Nouveau rang : ${nouveauRang}.`;
   parle(txt);
+}
+/* Dans combien de parties le miroir aura-t-il quelque chose à dire ?
+   UNE SEULE fonction, appelée par le Phénix ET par le miroir. Tant qu'ils calculaient
+   chacun de leur côté, le Phénix promettait 6 pendant que le miroir en comptait 3.
+   Ils ne peuvent plus se contredire : c'est la même phrase qui les nourrit. */
+function prochainMiroir(){
+  const paroles = P.map(p=>laParole(p)).filter(Boolean);
+  const resteJeu = SEUIL_MIROIR - (PROFIL.parties||0);        // il lui faut assez de jeu pour lire
+  const resteParole = paroles.length                          // la PREMIÈRE parole qui mûrit
+    ? Math.min(...paroles.map(r => SEUIL_MIROIR - ((PROFIL.parties||0) - (r.n||0))))
+    : 0;                    // rien de confié : seul le temps de jeu compte, pas SEUIL en dur
+  return Math.max(0, resteJeu, resteParole);
 }
 /* Le miroir a-t-il quelque chose à livrer maintenant ? (une parole assez vieille pour être croisée) */
 function miroirMur(){
@@ -3367,6 +3391,11 @@ function tutoNav(d){
   tutoI+=d; majTuto();
 }
 function fermerTuto(){ taire(); document.getElementById("tuto").classList.remove("on"); if(tutoRetour==="niveau") ouvrirNiveau(); else if(tutoRetour==="splash") ouvrirSplash(); }
+/* Le seuil est écrit dans le texte : on le synchronise sur la constante,
+   sinon le mode d'emploi mentira le jour où tu changeras SEUIL_MIROIR. */
+function majSeuilAide(){
+  document.querySelectorAll('.mem-seuil').forEach(e=>{ e.textContent = SEUIL_MIROIR; });
+}
 function ouvrirAide(){ ac(); ouvrirModemploi('jeu'); }
 let memRetour='splash';
 const MEM_TXT = [
@@ -3385,6 +3414,7 @@ const MEM_TXT = [
   "Propriété intellectuelle. Le jeu ÉQUILIBRE a été conçu et développé de A à Z par le couple Khalam. L'ensemble du concept, des règles, des contenus, des illustrations et de tous les éléments qui composent ce jeu est une création originale. Ce jeu est protégé par le droit d'auteur. Toute reproduction, copie, modification, adaptation, diffusion ou exploitation, totale ou partielle, sans l'autorisation écrite préalable des auteurs, est strictement interdite et pourra faire l'objet de poursuites. Tous droits réservés."
 ].join(' ');
 function ouvrirModemploi(from){
+  majSeuilAide();          // 3 portes mènent ici : la synchro est dedans, pas devant
   ac();
   memRetour = from || (document.getElementById('niveau').classList.contains('on') ? 'niveau' : 'splash');
   fermerOverlays();
@@ -3570,30 +3600,24 @@ function ouvrirMiroir(auto){
   const body=document.getElementById("miroirBody");
   // Le miroir ne parle pas avant d'avoir assez vu : mieux vaut se taire que dire n'importe quoi.
   if(PROFIL.parties < SEUIL_MIROIR){
-    // UN SEUL décompte, sinon il se contredit : le plus long des deux gagne.
-    //  - il lui faut SEUIL parties pour lire ton jeu
-    //  - et SEUIL parties APRÈS ta parole pour la croiser avec elle
     const paroles = P.map(p=>laParole(p)).filter(Boolean);
-    const resteJeu = SEUIL_MIROIR - PROFIL.parties;
-    // LA PREMIÈRE parole qui mûrit, pas la dernière : sinon chaque nouvelle réponse
-    // repousse le rendez-vous, et le compteur reste bloqué à 6 pour toujours.
-    const resteParole = paroles.length
-      ? Math.min(...paroles.map(r => SEUIL_MIROIR - (PROFIL.parties - (r.n||0))))
-      : 0;
-    const reste = Math.max(resteJeu, resteParole);
+    const reste = prochainMiroir();            // la même source que le Phénix
     const aDitQqch = paroles.length > 0;              // une esquive n'est pas une parole
     const aEfface  = P.some(p=>_repArr(p).length);     // mais elle laisse une trace à effacer
     const pl = reste>1 ? 's' : '';
+    const nb = PROFIL.parties||0;
+    // Le joueur compte en MANCHES, le miroir en PARTIES : afficher le déjà-joué le recale.
+    const compte = `<span class="mir-compte">Tu as joué <b>${nb}</b> partie${nb>1?'s':''} — un match complet chacune.</span><br>`;
     const tete = aDitQqch
       ? `<b>Le miroir a entendu.</b><br>Il attend d'en voir assez pour te répondre.<br>`
       : `<b>Le miroir est muet.</b><br>Il lui faut ${SEUIL_MIROIR} parties pour te voir.<br>`;
-    body.innerHTML=`<p class="mir-empty"><span class="mm-emb">🪞</span><br>${tete}
+    body.innerHTML=`<p class="mir-empty"><span class="mm-emb">🪞</span><br>${tete}${compte}
       Encore <b>${reste} partie${pl}</b>.</p>`
       + (aEfface ? `<button class="conf-oubli" onclick="effacerConfidences()">Effacer ce que j'ai confié</button>` : '');
     _lectureTxt = (aDitQqch
       ? `Le miroir a entendu. Il attend d'en voir assez pour te répondre.`
       : `Le miroir est muet. Il lui faut ${SEUIL_MIROIR} parties pour te voir.`)
-      + ` Encore ${reste} partie${pl}.`;
+      + ` Tu as joué ${nb} partie${nb>1?'s':''}. Encore ${reste} partie${pl}.`;
     document.getElementById("miroir").classList.add("on");
     setTimeout(()=>{ parleSurEcran('miroir', _lectureTxt); }, 450);
     return;
