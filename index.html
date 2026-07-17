@@ -1874,6 +1874,12 @@ const QUESTIONS = {
       {k:"tempsq", t:"Il y a quelque temps",          d:"retrait", m:"cela fait quelque temps"},
       {k:"oubli",  t:"Je ne sais plus",               d:"retrait", m:"tu ne sais plus quand"},
       {k:"jamais", t:"Je ne dis jamais ces choses-là",d:"retrait", m:"tu ne dis jamais ces choses-là"} ]}
+  ,
+    { q:"Ton amour est encore resté au plus bas. À quoi donnes-tu le temps que tu ne leur donnes pas ?", r:[
+      {k:"sac_arg", t:"À mon travail, à l'argent", d:"retrait", c:"Argent",       m:"ton travail passe avant ceux que tu aimes"},
+      {k:"sac_san", t:"À moi, à mon corps",        d:"retrait", c:"Santé",        m:"tu passes avant ceux que tu aimes"},
+      {k:"sac_spi", t:"À ma vie intérieure",       d:"retrait", c:"Spiritualité", m:"ta vie intérieure passe avant ceux que tu aimes"},
+      {k:"sac_non", t:"Je leur donne tout",        d:"soin",                      m:"tu leur donnes tout ce que tu as"} ]}
   ],
   "Santé": [
     { q:"Ta santé a décidé de cette défaite. Comment prends-tu soin de toi ces derniers temps ?", r:[
@@ -1886,6 +1892,12 @@ const QUESTIONS = {
       {k:"repos",   t:"J'ai besoin de repos",         d:"retrait", m:"tu as besoin de repos"},
       {k:"pression",t:"Je suis sous pression",        d:"retrait", m:"tu es sous pression"},
       {k:"epuise",  t:"Je suis épuisé·e",             d:"retrait", m:"tu es épuisé·e"} ]}
+  ,
+    { q:"Ta santé a encore décidé. Qu'est-ce qui passe avant ton corps ?", r:[
+      {k:"sac_arg", t:"Mon travail, mes revenus",  d:"retrait", c:"Argent",       m:"ton travail passe avant ton corps"},
+      {k:"sac_amo", t:"Ceux que j'aime",           d:"retrait", c:"Amour",        m:"les autres passent avant ton corps"},
+      {k:"sac_spi", t:"Ma quête de sens",          d:"retrait", c:"Spiritualité", m:"ta quête de sens passe avant ton corps"},
+      {k:"sac_non", t:"Rien. Il passe d'abord",    d:"soin",                      m:"rien ne passe avant ton corps"} ]}
   ],
   "Argent": [
     { q:"Ton argent t'a coûté la partie. Quel est ton rapport à l'argent aujourd'hui ?", r:[
@@ -1898,6 +1910,12 @@ const QUESTIONS = {
       {k:"parfois", t:"De temps en temps",            d:"soin",    m:"tu les regardes de temps en temps"},
       {k:"oubli",   t:"Je ne sais plus",              d:"retrait", m:"tu ne sais plus quand"},
       {k:"peur",    t:"Je préfère ne pas savoir",     d:"retrait", m:"tu préfères ne pas savoir"} ]}
+  ,
+    { q:"Ton argent t'a encore coûté la partie. Que sacrifies-tu pour lui ?", r:[
+      {k:"sac_san", t:"Ma santé",                  d:"retrait", c:"Santé",        m:"tu sacrifies ta santé pour l'argent"},
+      {k:"sac_amo", t:"Mes proches",               d:"retrait", c:"Amour",        m:"tu sacrifies tes proches pour l'argent"},
+      {k:"sac_spi", t:"Ma paix intérieure",        d:"retrait", c:"Spiritualité", m:"tu sacrifies ta paix pour l'argent"},
+      {k:"sac_non", t:"Rien. Il ne me coûte rien", d:"soin",                      m:"l'argent ne te coûte rien"} ]}
   ],
   "Spiritualité": [
     { q:"Ta spiritualité est restée au plus bas. Quelle place occupe-t-elle dans ta vie aujourd'hui ?", r:[
@@ -1910,6 +1928,12 @@ const QUESTIONS = {
       {k:"tempsq", t:"Il y a quelque temps",          d:"retrait", m:"cela fait quelque temps"},
       {k:"oubli",  t:"Je ne sais plus",               d:"retrait", m:"tu ne sais plus quand"},
       {k:"jamais", t:"Jamais vraiment",               d:"retrait", m:"tu ne l'as jamais vraiment fait"} ]}
+  ,
+    { q:"Ta spiritualité est encore restée au plus bas. Qu'est-ce qui prend la place de ton âme ?", r:[
+      {k:"sac_arg", t:"Le travail, l'argent",      d:"retrait", c:"Argent",       m:"le travail prend la place de ton âme"},
+      {k:"sac_amo", t:"Les autres",                d:"retrait", c:"Amour",        m:"les autres prennent la place de ton âme"},
+      {k:"sac_san", t:"Mon corps, mes urgences",   d:"retrait", c:"Santé",        m:"tes urgences prennent la place de ton âme"},
+      {k:"sac_non", t:"Rien. Elle a sa place",     d:"soin",                      m:"ton âme a toute sa place"} ]}
   ]
 };
 /* Le miroir attend d'en avoir assez vu avant de révéler.
@@ -1918,6 +1942,9 @@ const QUESTIONS = {
    Baisser le seuil rend donc le miroir plus honnête, et le met à portée du joueur.
    Ne pas mettre 5 : accident arithmétique, 6,27 % de faux positifs. */
 const SEUIL_MIROIR = 4;
+/* Après combien de parties une question déjà posée peut-elle revenir ? Assez longtemps pour
+   qu'une vie ait pu bouger, assez court pour qu'un joueur régulier le voie. */
+const RETOUR_QUESTION = 8;
 /* Une pente n'existe que si elle est NETTE, c'est-à-dire inexplicable par le hasard.
    4 piliers -> le hasard pur met chacun au sol 25 % du temps. La question est : à partir de
    combien de fois est-ce trop pour être un hasard ? C'est la LOI BINOMIALE qui répond :
@@ -2010,7 +2037,18 @@ function ouvrirQuestion(p, i){
 }
 function repondre(p, i, k){
   if(!p) return;
-  const a=_repArr(p); a[i] = {k: (k||"—"), n:(PROFIL.parties||0)};   // "—" : demandé, esquivé
+  /* LA MÉMOIRE DU MIROIR. Avant, répondre ÉCRASAIT la réponse précédente : il ne connaissait
+     que ton dernier mot, et une question posée était morte pour toujours. Maintenant :
+       - h[] garde les paroles d'avant, avec leur date
+       - neg photographie le compteur d'abandons du pilier À CET INSTANT
+     C'est cette photo qui permet de dire « avant tu tombais 8 fois sur 12, depuis 3 sur 12 ».
+     Sans elle on n'a qu'un cumul depuis toujours, donc rien à comparer. */
+  const a=_repArr(p);
+  const av=a[i];
+  const hist=(av && av.h) ? av.h.slice() : [];
+  if(av && av.k && av.k!=="—") hist.push({k:av.k, n:av.n||0, neg:av.neg||0});   // l'ancienne descend
+  if(hist.length>4) hist.shift();                                   // 4 paroles suffisent
+  a[i] = {k:(k||"—"), n:(PROFIL.parties||0), neg:(PROFIL.neglige[p]||0), h:hist};
   REPONSES[p]=a; sauverReponses();
   taire();
   // Pas de remerciement : un oracle ne remercie pas. Il donne rendez-vous.
@@ -2197,7 +2235,8 @@ function prochainMiroir(){
   const paroles = P.map(p=>laParole(p)).filter(Boolean);
   const resteJeu = SEUIL_MIROIR - (PROFIL.parties||0);        // il lui faut assez de jeu pour lire
   const resteParole = paroles.length                          // la PREMIÈRE parole qui mûrit
-    ? Math.min(...paroles.map(r => SEUIL_MIROIR - ((PROFIL.parties||0) - (r.n||0))))
+    ? Math.min(...paroles.map(r => { const o=P.map(x=>_repArr(x)[r.i]).find(Boolean);
+        return SEUIL_MIROIR - ((PROFIL.parties||0) - (r.n||0)); }))
     : 0;                    // rien de confié : seul le temps de jeu compte, pas SEUIL en dur
   return Math.max(0, resteJeu, resteParole);
 }
@@ -2206,23 +2245,29 @@ function miroirMur(){
   if(enLigne() || (PROFIL.parties||0) < SEUIL_MIROIR) return false;
   return P.some(p=>{
     const r=laParole(p); if(!r || !_laReponse(p, r.i, r.k)) return false;
-    return ((PROFIL.parties||0) - (r.n||0)) >= SEUIL_MIROIR;
+    const o=_repArr(p)[r.i]; if(!o) return false;
+    return _depuisMiroir(o) >= SEUIL_MIROIR;      // vu, pas n : le miroir a son propre rythme
   });
 }
 /* Le miroir a parlé : on remet son compteur à zéro. Il te reverra dans SEUIL parties. */
+/* ⚠️ DEUX DATES, DEUX USAGES — ne jamais les confondre :
+     o.n  = QUAND LE JOUEUR A PARLÉ. Sert à espacer les questions et à dater sa mémoire.
+     o.vu = QUAND LE MIROIR S'EN EST SERVI. Sert à espacer les révélations.
+   Avant, reglerLeCompteur() écrasait o.n : chaque fois que le miroir parlait, il repoussait
+   la question suivante — donc le questionnaire ne revenait JAMAIS et le Phœnix tournait à vide.
+   Et on remet TOUTES les paroles à zéro, pas seulement les mûres : sinon un joueur qui perd
+   sur les 4 piliers en a une qui mûrit chaque partie, et le Phœnix vient à CHAQUE match. */
 function reglerLeCompteur(){
   let touche=false;
   P.forEach(p=>{
     const a=_repArr(p); if(!a.length) return;
-    a.forEach(o=>{
-      if(o && o.k && o.k!=="—" && ((PROFIL.parties||0)-(o.n||0)) >= SEUIL_MIROIR){
-        o.n = (PROFIL.parties||0); touche=true;              // la parole repart d'aujourd'hui
-      }
-    });
-    if(touche) REPONSES[p]=a;
+    a.forEach(o=>{ if(o && o.k && o.k!=="—"){ o.vu=(PROFIL.parties||0); touche=true; } });
+    REPONSES[p]=a;
   });
   if(touche) sauverReponses();
 }
+/* Depuis quand le miroir n'a-t-il pas parlé de cette parole ? */
+function _depuisMiroir(o){ return (PROFIL.parties||0) - Math.max(o.n||0, o.vu||0); }
 /* ══════════ LA SCÈNE DU PHŒNIX — L'Embrasement des Cauris ══════════
    Capsule hermétique : sa variable AC (son audio) et son T (ses phases) porteraient
    le même nom que celles du jeu. Enfermées ici, elles ne peuvent rien écraser. */
@@ -2692,7 +2737,18 @@ function pilierDeLaQuestion(win){
     }
     return {p:p, i:i};
   }
-  return null;                                              // il a tout demandé sur ce pilier
+  /* Toutes posées ? Elles ne meurent plus. Après une longue absence, la plus ancienne revient —
+     et c'est là que le miroir devient intéressant : il pourra confronter ta parole d'alors à
+     celle d'aujourd'hui, et les deux à ton jeu. Sans ce retour, le questionnaire s'épuisait en
+     une dizaine de parties et le Phœnix revenait à vide, sans plus rien à demander. */
+  let vieux=-1, plusVieux=-1;
+  for(let i=0;i<QUESTIONS[p].length;i++){
+    const o=a[i]; if(!o || !o.k || o.k==="—") continue;      // l'esquive reste un droit définitif
+    const age=(PROFIL.parties||0)-(o.n||0);
+    if(age>=RETOUR_QUESTION && age>plusVieux){ plusVieux=age; vieux=i; }
+  }
+  if(vieux>=0) return {p:p, i:vieux, retour:true};
+  return null;
 }
 function majFinMatch(win, histo){
   effacerPartie();          // le match est joué : plus rien à reprendre
@@ -2948,7 +3004,7 @@ addEventListener("resize", ()=>{ try{ _kActuel=0; _ajRangs=-1; ajusteMain(true);
    Sans marqueur visible, ni le joueur ni le testeur ne savent ce qu'ils jouent, et le
    développeur ne peut pas le lire sur une capture. On a perdu une journée à s'en douter.
    À bumper AVEC le CACHE de sw.js — les deux doivent toujours dire la même chose. */
-const BUILD_TAG = "v72";
+const BUILD_TAG = "v77";
 
 const CLE_LITE = "eq_lite";
 let liteOn = false;
@@ -3840,15 +3896,124 @@ function _confiees(){ return P.filter(p=>{ const r=laParole(p); return r && _laR
 function _regardMiroir(p, angleMort, refuge){
   const r=laParole(p); if(!r) return null;
   const rep=_laReponse(p, r.i, r.k); if(!rep) return null;
-  const vues = (PROFIL.parties||0) - (r.n||0);
+  const _o=_repArr(p)[r.i];
+  const vues = _o ? _depuisMiroir(_o) : ((PROFIL.parties||0)-(r.n||0));
   if(vues < SEUIL_MIROIR) return {attend:true, reste:SEUIL_MIROIR-vues};
-  const fait = (p===angleMort) ? "delaisse" : (p===refuge ? "nourri" : "mitige");
-  return {attend:false, dit:rep.d, fait, mot:rep.m, neg:PROFIL.neglige[p]||0, parties:PROFIL.parties};
+  /* Le regard du miroir avait TROIS états : angle mort, refuge, et « mitigé » pour tout le reste.
+     Avec 4 piliers, deux tombaient TOUJOURS dans « mitigé » -> « ne tranche pas encore ».
+     Et quand aucune pente n'atteint le seuil, angleMort est null : les QUATRE s'y retrouvent.
+     Le miroir se taisait donc dans la moitié à la totalité des cas. On lui donne les chiffres :
+     le taux d'abandon réel comparé au hasard (25 %), et le rang du pilier parmi les quatre. */
+  const N = PROFIL.parties||0;
+  const neg = PROFIL.neglige[p]||0;
+  const part = N ? neg/N : 0;                                    // sa part d'abandons
+  const rang = P.slice().sort((a,b)=>(PROFIL.tot[b]||0)-(PROFIL.tot[a]||0)).indexOf(p)+1;
+  const fort = PROFIL.fort[p]||0;
+  const fait = (p===angleMort) ? "delaisse"
+             : (p===refuge)    ? "nourri"
+             : (part >= 0.34)  ? "penche"      // nettement au-dessus du hasard, sans trancher
+             : (rang <= 2)     ? "porte"       // parmi ses deux piliers les plus hauts
+             : "mitige";                       // vraiment sans relief
+  /* LA MÉMOIRE. Si le joueur a déjà répondu à cette question il y a longtemps, on peut
+     confronter TROIS choses : ce qu'il disait, ce qu'il dit, et ce que son jeu a fait entre
+     les deux. C'est là que le miroir cesse de juger pour devenir témoin. */
+  let hier=null;
+  const arr=_repArr(p), o=arr[r.i];
+  if(o && o.h && o.h.length){
+    const av=o.h[o.h.length-1];                              // la parole juste avant
+    const repAv=_laReponse(p, r.i, av.k);
+    const dAv=(r.n||0)-(av.n||0);                            // parties entre les deux paroles
+    const dDep=N-(r.n||0);                                   // parties depuis la nouvelle
+    if(repAv && av.k!==r.k && dAv>=2 && dDep>=2){
+      const negAv=(av.neg||0), negAlors=(o.neg||0);
+      // repAv.t = LE BOUTON QU'IL A TOUCHÉ, à la première personne : « Je me néglige ».
+      // Le citer vaut mieux que le paraphraser — et ça évite « tu disais que tu te négliges ».
+      hier={ mot:repAv.m, txt:repAv.t, dit:repAv.d, ilya:N-(av.n||0),
+             avant:{n:dAv, neg:negAlors-negAv},              // son jeu AVANT qu'il change d'avis
+             depuis:{n:dDep, neg:neg-negAlors} };            // son jeu DEPUIS
+    }
+  }
+  /* LE SACRIFICE. Le joueur a nommé un AUTRE pilier comme passant avant celui-ci.
+     Le miroir va donc voir dans les données de CE pilier-là si l'échange a réellement eu lieu.
+     C'est la seule question dont la réponse envoie le miroir ailleurs que là où on l'interroge. */
+  let sacr=null;
+  if(rep.c && P.includes(rep.c) && N>0){
+    const c=rep.c;
+    sacr={ cible:c,
+           partSac: part,                                   // ce pilier-ci tombe-t-il vraiment ?
+           partCib: (PROFIL.neglige[c]||0)/N,               // et celui pour qui il tombe ?
+           fortCib: (PROFIL.fort[c]||0)/N,
+           negCib:  PROFIL.neglige[c]||0,
+           fCib:    PROFIL.fort[c]||0 };
+  }
+  return {attend:false, dit:rep.d, fait, mot:rep.m, txt:rep.t, qi:r.i, neg, parties:N, part, rang, fort, requis:penteRequise(), hier, sacr};
 }
 /* Les quatre visages du reflet */
+function _quePhrase(m){ return `${/^[aeiouâêîôûéèàïüœ]/i.test(m) ? "qu'" : "que "}${m}`; }
 function _texteMiroir(p, g){
   const em=embImg(p,14), n=g.neg, N=g.parties;
-  const ouvre = `Tu dis ${/^[aeiouâêîôûéèàïüœ]/i.test(g.mot) ? "qu'" : "que "}${g.mot}.`;
+  const ouvre = `Tu dis ${_quePhrase(g.mot)}.`;
+
+  /* ══ LE TÉMOIN ══ Le joueur a changé d'avis. Le miroir ne juge pas : il cite le joueur
+     à lui-même, et met son jeu à côté. C'est le seul visage qui ne peut jamais se répéter,
+     parce qu'il se nourrit de ce qui a changé — et ce qui change ne s'épuise pas. */
+  if(g.hier){
+    const h=g.hier;
+    const pcA = h.avant.n ? Math.round(100*h.avant.neg/h.avant.n) : 0;
+    const pcD = h.depuis.n ? Math.round(100*h.depuis.neg/h.depuis.n) : 0;
+    const ecart = pcA - pcD;
+    const _mien = k => { const q=(QUESTIONS[p]||[])[g.qi]; return k; };
+    const ouvreH = `Il y a <b>${h.ilya}</b> parties, tu répondais&nbsp;: <i>«&nbsp;${h.txt}&nbsp;»</i>.<br>`
+                 + `Aujourd'hui&nbsp;: <i>«&nbsp;${g.txt}&nbsp;»</i>.`;
+    const chiffres = `Avant, ${em} <b>${p}</b> tombait au plus bas <b>${h.avant.neg}</b> fois sur ${h.avant.n}. Depuis, <b>${h.depuis.neg}</b> fois sur ${h.depuis.n}.`;
+    if(ecart >= 20 && h.dit==="retrait" && g.dit==="soin")     // il a dit mieux, et son jeu a suivi
+      return [ouvreH, chiffres + ` <b>${pcA}&nbsp;%</b>, puis <b>${pcD}&nbsp;%</b>.`,
+              `Ton jeu t'a suivi. Quelque chose a bougé — le miroir l'a vu avant toi.`];
+    if(ecart <= -20 && h.dit==="soin" && g.dit==="retrait")    // il a dit pire, et son jeu aussi
+      return [ouvreH, chiffres + ` <b>${pcA}&nbsp;%</b>, puis <b>${pcD}&nbsp;%</b>.`,
+              `Tu n'as pas seulement changé d'avis. Ta main l'avait déjà fait.`];
+    if(h.dit==="retrait" && g.dit==="soin" && Math.abs(ecart) < 12)   // il dit mieux, son jeu non
+      return [ouvreH, chiffres + ` Rien n'a changé : <b>${pcA}&nbsp;%</b>, puis <b>${pcD}&nbsp;%</b>.`,
+              `Tu as changé d'avis. Pas de vie. Le miroir attend la suite.`];
+    return [ouvreH, chiffres,
+            `Ta parole a bougé. Ton jeu, lui, raconte sa propre histoire.`];
+  }
+
+  /* ══ LE SACRIFICE ══ Il a avoué un échange : « X passe avant Y ». Le miroir ne le croit pas
+     sur parole — il va compter dans les deux piliers. Trois vérités possibles, et la deuxième
+     est la plus dure à lire : payer le prix sans que personne ne rende la monnaie. */
+  if(g.sacr){
+    const S=g.sacr, ec=embImg(S.cible,14);
+    const pcS=Math.round(S.partSac*100), pcC=Math.round(S.fortCib*100);
+    if(S.partSac >= 0.30 && S.fortCib >= 0.30)          // il paie, et il reçoit
+      return [ouvre,
+        `Ton jeu le confirme, sans détour : ${em} <b>${p}</b> est tombé au plus bas <b>${n}</b> fois sur ${N}. Dans le même temps, ${ec} <b>${S.cible}</b> montait en tête <b>${S.fCib}</b> fois.`,
+        `Le marché que tu as passé, tu l'as tenu. Reste à savoir s'il te convient.`];
+    if(S.partSac >= 0.30 && S.partCib >= 0.28)          // il paie, et il ne reçoit RIEN
+      return [ouvre,
+        `Mais ${ec} <b>${S.cible}</b> tombe lui aussi — <b>${S.negCib}</b> fois sur ${N}. Tu laisses ${em} <b>${p}</b> au sol <b>${n}</b> fois pour lui.`,
+        `Tu paies le prix. Personne ne te rend la monnaie.`];
+    if(S.partSac < 0.20)                                 // il dit qu'il sacrifie, son jeu dit non
+      return [ouvre,
+        `Ton jeu dit autre chose : ${em} <b>${p}</b> n'est tombé au plus bas que <b>${n}</b> fois sur ${N} — <b>${pcS}&nbsp;%</b>, moins que le hasard.`,
+        `Tu crois le sacrifier. Ta main le protège.`];
+    return [ouvre,
+      `${em} <b>${p}</b> au sol <b>${n}</b> fois sur ${N} · ${ec} <b>${S.cible}</b> en tête <b>${S.fCib}</b> fois.`,
+      `L'échange que tu décris, le miroir le voit à peine. Il regarde encore.`];
+  }
+  if(g.fait==="penche"){                                // il penche, sans atteindre le seuil
+    const pc = Math.round(g.part*100);
+    return [ouvre,
+      `Ton jeu penche du même côté : ${em} <b>${p}</b> est tombé au plus bas <b>${n}</b> fois sur ${N} — <b>${pc}&nbsp;%</b>, quand le hasard en donnerait 25.`,
+      `Il en faudrait <b>${g.requis}</b> pour que le miroir tranche. Il n'y est pas. Pas encore.`];
+  }
+  if(g.fait==="porte"){                                 // il le porte haut sans en faire son refuge
+    return [ouvre,
+      `Ton jeu ne le dit pas si fort : ${em} <b>${p}</b> est ton <b>${g.rang===1?'premier':(g.rang===2?'deuxième':g.rang+'e')}</b> pilier sur quatre — tu l'as porté en tête <b>${g.fort}</b> fois sur ${N}.`,
+      `Tu le tiens debout sans y penser.`];
+  }
+  // « mitigé » n'arrive jamais ici : blocConfidences() les regroupe en amont (une seule
+  // phrase de clôture pour tous), sinon deux piliers plats répéteraient le même verdict.
   if(g.fait==="mitige")
     return [ouvre, `Ton jeu, lui, ne tranche pas encore.`, `Le miroir observe.`];
   if(g.dit==="soin" && g.fait==="delaisse")            // ① le flagrant délit
@@ -3874,7 +4039,7 @@ function blocConfidences(angleMort, refuge){
   dits.forEach(p=>{
     const g=_regardMiroir(p, angleMort, refuge); if(!g) return;
     if(g.attend) att.push({p, reste:g.reste});
-    else if(g.fait==="mitige") flous.push({p, mot:g.mot});
+    else if(g.fait==="mitige" && !g.hier && !g.sacr) flous.push({p, mot:g.mot});   // mémoire ou sacrifice : il a mieux à dire
     else vus.push(`<div class="mir-vu">${_texteMiroir(p,g).map((l,i)=>`<p class="${i===2?'mir-clos':''}">${l}</p>`).join("")}</div>`);
   });
   let blocs = vus.join("");
@@ -3905,7 +4070,7 @@ function texteConfidences(angleMort, refuge){
   dits.forEach(p=>{
     const g=_regardMiroir(p, angleMort, refuge); if(!g) return;
     if(g.attend) att.push({p, reste:g.reste});
-    else if(g.fait==="mitige") flous.push(g.mot);
+    else if(g.fait==="mitige" && !g.hier && !g.sacr) flous.push(g.mot);
     else t += _texteMiroir(p,g).map(x=>_strip(x)).join(' ')+' ';
   });
   if(flous.length){                                          // un seul verdict pour toutes ces paroles
