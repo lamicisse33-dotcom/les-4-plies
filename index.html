@@ -3100,7 +3100,7 @@ function majFinMatch(win, histo){
   }, qp ? 1600 : 900);
 }
 let JEU='solo';                       // 'solo' | 'net'
-const NET={ role:null, aQui:null, connected:false, sendRaw:null, peer:null, conn:null };
+const NET={ role:null, aQui:null, connected:false, sendRaw:null, peer:null, conn:null, dernier:null, vu:0, pouls:null };
 function enLigne(){ return JEU==='net'; }
 function advLabel(){ return 'Adv'; }
 const MATCH_CIBLE=2;                  // premier à 2 manches
@@ -3302,7 +3302,7 @@ addEventListener("resize", ()=>{ try{ _kActuel=0; _ajRangs=-1; ajusteMain(true);
    Sans marqueur visible, ni le joueur ni le testeur ne savent ce qu'ils jouent, et le
    développeur ne peut pas le lire sur une capture. On a perdu une journée à s'en douter.
    À bumper AVEC le CACHE de sw.js — les deux doivent toujours dire la même chose. */
-const BUILD_TAG = "v89";
+const BUILD_TAG = "v91";
 
 const CLE_LITE = "eq_lite";
 let liteOn = false;
@@ -3607,7 +3607,13 @@ function poser(p){
       if(defApres < defAvant || maitrise) steamFX(p, maitrise);
     }
     if(finiePartie()){ locked=false; return terminer(); }
-    if(enLigne()) return netApres();       // hôte : au tour de l'adversaire
+    if(enLigne()){
+      /* L'invité reçoit un plateau DÉJÀ à jour : il n'a aucun moyen de deviner ce qui vient de
+         changer, donc la carte lui apparaissait d'un coup pendant que l'hôte, lui, la voyait
+         voler. On lui dit donc QUELLE carte, sur QUEL pilier — il pourra l'animer. */
+      NET.dernier = { p, c };
+      return netApres();
+    }
     lancerIA();
   };
   volerCarte(cardEl, borneEl, c, "moi", commit);
@@ -4884,9 +4890,30 @@ document.addEventListener("click", e=>{
 }, {passive:true});
 
 /* ══════════ DUEL EN LIGNE (PeerJS, hôte-autoritaire) ══════════ */
+/* ══════════ LE POULS DU DUEL ══════════
+   Un seul téléphone détectait la coupure. L'autre attendait son adversaire pour toujours —
+   parce qu'entre deux coups, le silence est NORMAL : rien ne permettait de distinguer
+   « il réfléchit » de « il est mort ».
+   Pire : quitterDuel() envoie un 'bye'… sur une connexion déjà morte. L'autre ne reçoit rien.
+   Maintenant chaque côté bat toutes les 4 s. Celui qui n'entend plus rien pendant 14 s le sait.
+   Effet de bord voulu : quand un téléphone se met en veille, ses timers gèlent — au réveil,
+   l'écart dépasse 14 s et il comprend immédiatement que la partie est finie. */
+const POULS_MS = 4000, SILENCE_MS = 14000;
+function netPoulsDemarre(){
+  netPoulsArrete();
+  NET.vu = Date.now();
+  NET.pouls = setInterval(()=>{
+    if(JEU!=='net' || !NET.connected) return netPoulsArrete();
+    netSend({t:'ping'});
+    if(Date.now() - (NET.vu||0) > SILENCE_MS){ netPoulsArrete(); netPerdu(); }
+  }, POULS_MS);
+}
+function netPoulsArrete(){ if(NET.pouls){ clearInterval(NET.pouls); NET.pouls=null; } }
 function netSend(o){ try{ if(NET.sendRaw) NET.sendRaw(o); }catch(e){} }
 function netRecv(m){
   if(!m||!m.t) return;
+  NET.vu = Date.now();          // il a parlé : il est vivant
+  if(m.t==='ping') return;      // le battement seul ne fait rien d'autre
   if(NET.role==='host'){
     if(m.t==='coup') netHoteCoup(m.idx, m.p);
     else if(m.t==='bye') netPerdu();
@@ -4901,9 +4928,14 @@ function netRecv(m){
 function vueGuest(aToi, msg){
   const Tg={}; P.forEach(p=>{ const b=T[p]; Tg[p]={1:b[2],2:b[1],n1:b.n2,n2:b.n1}; });
   return { T:Tg, maMain:mainIA, nbAdv:mainJ.length, aToi:!!aToi, msg:msg||null,
-           matchMoi:matchIA, matchAdv:matchMe, mancheNo };
+           matchMoi:matchIA, matchAdv:matchMe, mancheNo,
+           dernier: NET.dernier || null };      // le coup que l'hôte vient de jouer, à animer
+
 }
-function netEnvoyerEtat(guestAToi, msg){ netSend({t:'etat', v:vueGuest(guestAToi, msg)}); }
+function netEnvoyerEtat(guestAToi, msg){
+  netSend({t:'etat', v:vueGuest(guestAToi, msg)});
+  NET.dernier = null;      // il a été transmis : on ne le rejouera pas au prochain état
+}
 
 /* — Hôte : démarrage, distribution, enchaînement des tours — */
 function demarrerDuelHote(){
@@ -4974,6 +5006,17 @@ function netHoteCoup(idx,p){
 
 /* — Invité : reçoit une vue et l'affiche via le rendu existant — */
 function appliquerVue(v){
+  /* On applique l'état APRÈS l'animation, jamais avant : sinon la carte serait déjà sur le
+     pilier pendant qu'elle vole encore. C'est exactement ce que fait l'hôte de son côté. */
+  const d = v.dernier;
+  if(d && d.c && d.p && !_reduit() && typeof T==='object' && document.getElementById("borne-"+P.indexOf(d.p))){
+    const borne = document.getElementById("borne-"+P.indexOf(d.p));
+    try{ if(estSpec(d.c)) sSpecial(d.c.type); else sIA(d.p, d.c.pts); buzz(10); }catch(e){}
+    return volerDepuisIA(borne, d.c, ()=>_poserVue(v));
+  }
+  _poserVue(v);
+}
+function _poserVue(v){
   JEU='net'; NET.role='guest'; MODE='classique';
   T={}; P.forEach(p=>{ const b=v.T[p]; T[p]={1:b[1],2:b[2],n1:b.n1,n2:b.n2}; });
   mainJ = v.maMain||[];                 // ordre conservé (les index correspondent chez l'hôte)
@@ -5051,15 +5094,17 @@ function quitterDuel(){ netSend({t:'bye'}); netFermer(); JEU='solo'; fermerOverl
 /* — Déconnexion — */
 function netPerdu(){
   if(JEU!=='net') return;
+  netPoulsArrete();            // sinon il se rappellerait en boucle
+  NET.connected=false;
   locked=true;
   const fe=document.getElementById("finemoji"), ft=document.getElementById("fintitre");
   fe.textContent="🔌"; ft.style.color=""; ft.textContent="CONNEXION PERDUE";
   document.getElementById("finpips").innerHTML="";
-  document.getElementById("findetail").innerHTML=`<div style="text-align:center;color:var(--muet)">La liaison avec l'adversaire a été interrompue.</div>`;
+  document.getElementById("findetail").innerHTML=`<div style="text-align:center;color:var(--muet)">La liaison avec l'adversaire a été interrompue.<br><br><span style="font-size:13px;opacity:.75">C'est fréquent quand un téléphone se met en veille : la connexion directe ne survit pas à l'écran éteint. Relancez un Duel pour rejouer.</span></div>`;
   document.getElementById("finbtns").innerHTML=`<button class="btn" style="flex:1" onclick="quitterDuel()">Retour au menu</button>`;
   document.getElementById("fin").classList.add("on");
 }
-function netFermer(){ try{ if(NET.conn) NET.conn.close(); }catch(e){} try{ if(NET.peer) NET.peer.destroy(); }catch(e){} NET.conn=null; NET.peer=null; NET.connected=false; NET.role=null; NET.sendRaw=null; }
+function netFermer(){ netPoulsArrete(); try{ if(NET.conn) NET.conn.close(); }catch(e){} try{ if(NET.peer) NET.peer.destroy(); }catch(e){} NET.conn=null; NET.peer=null; NET.connected=false; NET.role=null; NET.sendRaw=null; }
 
 /* — Lobby & transport PeerJS — */
 function genCode(){ const A="ACDEFGHJKLMNPQRTUVWXY3479"; let s=""; for(let i=0;i<5;i++) s+=A[Math.floor(Math.random()*A.length)]; return s; }
@@ -5108,7 +5153,7 @@ function duelCreer(){
   peer.on('error', e=>{ duelVue("Erreur : "+((e&&e.type)||e)); });
   peer.on('connection', c=>{
     NET.conn=c;
-    c.on('open', ()=>{ NET.sendRaw=(o)=>{ try{c.send(o);}catch(e){} }; NET.connected=true; duelVue("Adversaire connecté !"); setTimeout(demarrerDuelHote,300); });
+    c.on('open', ()=>{ NET.sendRaw=(o)=>{ try{c.send(o);}catch(e){} }; NET.connected=true; netPoulsDemarre(); duelVue("Adversaire connecté !"); setTimeout(demarrerDuelHote,300); });
     c.on('data', netRecv);
     c.on('close', netPerdu);
   });
@@ -5126,7 +5171,7 @@ function duelRejoindre(){
   peer.on('error', e=>{ duelVue("Introuvable ou erreur : "+((e&&e.type)||e)); });
   peer.on('open', ()=>{
     const c=peer.connect('EQ4-'+code, {reliable:true}); NET.conn=c;
-    c.on('open', ()=>{ NET.sendRaw=(o)=>{ try{c.send(o);}catch(e){} }; NET.connected=true; duelVue("Connecté ! En attente de l'hôte…"); netSend({t:'salut'}); });
+    c.on('open', ()=>{ NET.sendRaw=(o)=>{ try{c.send(o);}catch(e){} }; NET.connected=true; netPoulsDemarre(); duelVue("Connecté ! En attente de l'hôte…"); netSend({t:'salut'}); });
     c.on('data', netRecv);
     c.on('close', netPerdu);
   });
