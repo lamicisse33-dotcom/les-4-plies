@@ -2053,7 +2053,13 @@ function majProfil(win){
   sauverProfil();
 }
 chargerProfil(); chargerReponses();
-function _reduit(){ return (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) || document.documentElement.classList.contains('lite'); }
+function _reduit(){ return _animOff() || document.documentElement.classList.contains('lite'); }
+/* ⚠️ _reduit() mélange DEUX choses différentes : un choix d'accessibilité du joueur, et une
+   mesure de performance. Pour les fioritures c'est équivalent — on les coupe dans les deux cas.
+   Mais PAS pour le Phœnix : le mode léger s'allume tout seul sur les mobiles lents, et il
+   supprimait alors la cérémonie la plus importante du jeu, sans que personne ne l'ait demandé.
+   _animOff() ne dit QUE le choix du joueur : lui seul peut renoncer au Phœnix. */
+function _animOff(){ return !!(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches); }
 function countUp(el, to, dur){
   if(!el) return; if(_reduit()){ el.textContent=to; return; }
   const t0=performance.now();
@@ -2635,10 +2641,10 @@ function frame(now){
 /* ═══ LA PORTE : la seule chose que la capsule expose au jeu ═══
    La scène boucle sur 23,8 s. On en joue l'arc entier sauf la toute fin :
      1,3s lueur · 3s approche · 8,8s ruée · 9s cri+flash · 9,2s le phœnix · 9,35s son nom
-     10,8s -> 15,4s la caméra descend sur les cauris · puis 5 s pleines dessus.
+     10,8s -> 15,4s la caméra descend sur les cauris · puis ~3 s dessus (5 s était trop long).
    Couper à 11,5 s (comme au début) tranchait EN PLEIN mouvement de caméra :
    le joueur ne voyait jamais les cauris enflammés, qui sont le cœur de l'image. */
-var FIN_CINE = 20.5, raf=0, fondu=false, hote=null, fini_cb=null;
+var FIN_CINE = 18.3, raf=0, fondu=false, hote=null, fini_cb=null;
 function arreter(){
   if(raf){ cancelAnimationFrame(raf); raf=0; }
   window.removeEventListener('resize', resize);
@@ -2716,17 +2722,18 @@ function majFinMatch(win, histo){
   setTimeout(()=>{
     if(!ecranOuvert('fin')) return;                 // l'écran a été fermé entre-temps : on se tait
     // Le Phénix est rare : quand il parle, il ne rivalise pas avec la lecture des piliers
-    /* LE VERDICT PASSE DEVANT. Le miroir ne parle que s'il a DÉJÀ entendu et assez observé —
-       il ne peut donc jamais doubler la question qui le nourrit. Mais quand il a vu, il passe :
-       sinon la question suivante le repousse indéfiniment. Il y a 4 piliers et plusieurs
-       questions chacun : tant qu'il en restait UNE, le miroir ne venait JAMAIS de lui-même,
-       et le joueur ne pouvait le lire qu'en touchant 🪞 — sans le Phœnix, sans cérémonie.
-       Après qu'il a parlé, reglerLeCompteur() le remet à zéro : la question reprend la main. */
+    /* LES QUESTIONS D'ABORD. Le joueur en répond plusieurs, le miroir accumule.
+       pilierDeLaQuestion() les épuise tout seul : une question par pilier faible, jamais
+       reposée, et ECART_QUESTION parties entre deux du même pilier. Quand il n'en reste
+       aucune à poser, le miroir a ce qu'il lui faut — et LE RÔLE DU PHŒNIX EST DE L'OUVRIR.
+       C'est tout. Il n'interroge pas, il ne double pas la question : il ouvre le miroir. */
+    if(qp){ ouvrirQuestion(qp.p, qp.i); return; }
+
     if(miroirMur()){
-      /* Le mode léger allège le Phœnix (simple résolution) mais ne le SUPPRIME pas :
-         il sert à tenir 40 min de jeu, pas à sacrifier les 20 s qui comptent le plus.
-         Seul « animations réduites » le saute — là c'est un choix du joueur, pas une panne. */
-      if(_reduit()){
+      /* _animOff() et NON _reduit() : le mode léger allège le Phœnix (simple résolution)
+         mais ne le supprime pas. Il sert à tenir 40 min de jeu, pas à sacrifier les 20 s
+         qui comptent le plus. Seul le joueur peut y renoncer, via son réglage système. */
+      if(_animOff()){
         ouvrirMiroir(true);
       } else {
         try{ taire(); }catch(e){}
@@ -2734,9 +2741,6 @@ function majFinMatch(win, histo){
       }
       return;
     }
-
-    // Rien à révéler ? Alors le Phœnix interroge — nu, sans fracas : c'est un moment intime.
-    if(qp){ ouvrirQuestion(qp.p, qp.i); return; }
     if(_lectureTxt){ parle(_lectureTxt); majLireBtn(); }
     else annonceFinMatch(win, levelUp?apres.titre:null);
   }, qp ? 1600 : 900);
@@ -2944,7 +2948,7 @@ addEventListener("resize", ()=>{ try{ _kActuel=0; _ajRangs=-1; ajusteMain(true);
    Sans marqueur visible, ni le joueur ni le testeur ne savent ce qu'ils jouent, et le
    développeur ne peut pas le lire sur une capture. On a perdu une journée à s'en douter.
    À bumper AVEC le CACHE de sw.js — les deux doivent toujours dire la même chose. */
-const BUILD_TAG = "v71";
+const BUILD_TAG = "v72";
 
 const CLE_LITE = "eq_lite";
 let liteOn = false;
@@ -3724,7 +3728,7 @@ let miroirRetour='splash';
    révélation, pas à la porte : une fois qu'il a parlé, on relit librement. */
 function demanderMiroir(){
   try{ ac(); }catch(e){}
-  if(miroirMur() && !_reduit() && typeof CINE_PHENIX!=='undefined'){
+  if(miroirMur() && !_animOff() && typeof CINE_PHENIX!=='undefined'){
     try{ taire(); fermerOverlays(); }catch(e){}
     CINE_PHENIX.jouer(function(){ ouvrirMiroir(true); });
   } else ouvrirMiroir();
