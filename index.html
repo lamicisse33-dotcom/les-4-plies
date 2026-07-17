@@ -3100,7 +3100,7 @@ function majFinMatch(win, histo){
   }, qp ? 1600 : 900);
 }
 let JEU='solo';                       // 'solo' | 'net'
-const NET={ role:null, aQui:null, connected:false, sendRaw:null, peer:null, conn:null, dernier:null, vu:0, pouls:null };
+const NET={ role:null, aQui:null, connected:false, sendRaw:null, peer:null, conn:null, dernier:null, vu:0, pouls:null, code:null, enPartie:false, reprise:false };
 function enLigne(){ return JEU==='net'; }
 function advLabel(){ return 'Adv'; }
 const MATCH_CIBLE=2;                  // premier à 2 manches
@@ -3302,7 +3302,7 @@ addEventListener("resize", ()=>{ try{ _kActuel=0; _ajRangs=-1; ajusteMain(true);
    Sans marqueur visible, ni le joueur ni le testeur ne savent ce qu'ils jouent, et le
    développeur ne peut pas le lire sur une capture. On a perdu une journée à s'en douter.
    À bumper AVEC le CACHE de sw.js — les deux doivent toujours dire la même chose. */
-const BUILD_TAG = "v91";
+const BUILD_TAG = "v92";
 
 const CLE_LITE = "eq_lite";
 let liteOn = false;
@@ -4890,6 +4890,58 @@ document.addEventListener("click", e=>{
 }, {passive:true});
 
 /* ══════════ DUEL EN LIGNE (PeerJS, hôte-autoritaire) ══════════ */
+/* ══════════ LA RECONNEXION ══════════
+   Ce qui marche : l'INVITÉ s'endort, l'hôte reste éveillé. L'invité revient, recompose le code,
+   l'hôte reconnaît une reprise et lui renvoie l'état. La partie continue.
+   Ce qui ne marchera PAS toujours : si c'est l'HÔTE qui s'endort, son identité (EQ4-code)
+   disparaît du serveur d'annuaire, et elle peut rester réservée ~1 minute avant qu'il puisse
+   la reprendre. Aucune app web ne contourne ça — le pair-à-pair meurt avec l'écran éteint. */
+function duelReconnecter(){
+  if(!NET.code || NET.role!=='guest'){ quitterDuel(); return; }   // l'hôte ne peut que réémettre
+  document.getElementById("fin").classList.remove("on");
+  duelVue("Reconnexion…");
+  document.getElementById('duel').classList.add('on');
+
+  const relier = ()=>{
+    let c;
+    try{ c = NET.peer.connect('EQ4-'+NET.code, {reliable:true}); }
+    catch(e){ duelVue("Reconnexion impossible. L'adversaire a peut-être quitté."); return; }
+    NET.conn=c;
+    c.on('open', ()=>{
+      NET.sendRaw=(o)=>{ try{c.send(o);}catch(e){} };
+      NET.connected=true; netPoulsDemarre();
+      duelVue("Reconnecté ! En attente de l'hôte…");
+      netSend({t:'salut'});                       // l'hôte répondra par l'état : appliquerVue rouvrira le plateau
+    });
+    c.on('data', netRecv);
+    c.on('close', netPerdu);
+    setTimeout(()=>{ if(!NET.connected) duelVue("L'adversaire ne répond pas. Il a peut-être fermé le jeu."); }, 9000);
+  };
+
+  if(!NET.peer || NET.peer.destroyed){        // notre pair est mort : on en refait un
+    try{
+      const p = new Peer(); NET.peer=p;
+      p.on('open', relier);
+      p.on('error', e=>duelVue("Reconnexion impossible : "+((e&&e.type)||e)));
+    }catch(e){ duelVue("Reconnexion impossible."); }
+    return;
+  }
+  if(NET.peer.disconnected){                  // il vit encore mais a perdu l'annuaire
+    try{ NET.peer.reconnect(); }catch(e){}
+    setTimeout(relier, 900);
+    return;
+  }
+  relier();
+}
+
+/* Au retour de veille : si un Duel était en cours et qu'il est tombé, on tente seul. */
+document.addEventListener('visibilitychange', ()=>{
+  if(document.hidden) return;
+  if(JEU==='net' && NET.enPartie && !NET.connected && NET.role==='guest' && NET.code){
+    setTimeout(()=>{ if(!NET.connected) duelReconnecter(); }, 600);
+  }
+});
+
 /* ══════════ LE POULS DU DUEL ══════════
    Un seul téléphone détectait la coupure. L'autre attendait son adversaire pour toujours —
    parce qu'entre deux coups, le silence est NORMAL : rien ne permettait de distinguer
@@ -4945,6 +4997,7 @@ function demarrerDuelHote(){
   netDealManche();
 }
 function netDealManche(){
+  NET.enPartie = true;      // à partir d'ici, une reconnexion doit REPRENDRE, pas redistribuer
   const dn=melange(paquetNormal()), ds=melange(pileSpeciale());
   mainJ = tireNormales(dn).concat(ds.splice(0,SPEC_PAR_MAIN));   // hôte = joueur 1
   mainIA= tireNormales(dn).concat(ds.splice(0,SPEC_PAR_MAIN));   // invité = joueur 2
@@ -5089,7 +5142,7 @@ function afficherFinDuel(d, hote){
 }
 function mancheSuivanteDuel(){ mancheNo++; netDealManche(); }
 function rejouerDuel(){ matchMe=0; matchIA=0; mancheNo=1; netDealManche(); }
-function quitterDuel(){ netSend({t:'bye'}); netFermer(); JEU='solo'; fermerOverlays(); ouvrirNiveau(); }
+function quitterDuel(){ netSend({t:'bye'}); netFermer(); NET.enPartie=false; NET.code=null; JEU='solo'; fermerOverlays(); ouvrirNiveau(); }
 
 /* — Déconnexion — */
 function netPerdu(){
@@ -5101,7 +5154,11 @@ function netPerdu(){
   fe.textContent="🔌"; ft.style.color=""; ft.textContent="CONNEXION PERDUE";
   document.getElementById("finpips").innerHTML="";
   document.getElementById("findetail").innerHTML=`<div style="text-align:center;color:var(--muet)">La liaison avec l'adversaire a été interrompue.<br><br><span style="font-size:13px;opacity:.75">C'est fréquent quand un téléphone se met en veille : la connexion directe ne survit pas à l'écran éteint. Relancez un Duel pour rejouer.</span></div>`;
-  document.getElementById("finbtns").innerHTML=`<button class="btn" style="flex:1" onclick="quitterDuel()">Retour au menu</button>`;
+  document.getElementById("finbtns").innerHTML =
+    (NET.enPartie && NET.role==='guest' && NET.code)
+      ? `<button class="btn" style="flex:1" onclick="duelReconnecter()">Reconnecter</button>
+         <button class="btn ghost" style="flex:1" onclick="quitterDuel()">Retour au menu</button>`
+      : `<button class="btn" style="flex:1" onclick="quitterDuel()">Retour au menu</button>`;
   document.getElementById("fin").classList.add("on");
 }
 function netFermer(){ netPoulsArrete(); try{ if(NET.conn) NET.conn.close(); }catch(e){} try{ if(NET.peer) NET.peer.destroy(); }catch(e){} NET.conn=null; NET.peer=null; NET.connected=false; NET.role=null; NET.sendRaw=null; }
@@ -5147,13 +5204,31 @@ function duelCreer(){
     chargePeerJS(ok=>{ if(!ok){ duelVue("Connexion impossible. Vérifie ta connexion internet."); return; } duelCreer(); });
     return;
   }
-  const code=genCode(); NET.role='host';
+  const code=genCode(); NET.role='host'; NET.code=code; NET.enPartie=false;
   duelVue("En attente d'un adversaire…", code);
   const peer=new Peer('EQ4-'+code); NET.peer=peer;
   peer.on('error', e=>{ duelVue("Erreur : "+((e&&e.type)||e)); });
   peer.on('connection', c=>{
+    /* LE POINT CRITIQUE. Sans ce test, une reconnexion appelait demarrerDuelHote() — qui remet
+       matchMe=0, matchIA=0, mancheNo=1 et redistribue : le match était EFFACÉ. L'hôte ne faisait
+       aucune différence entre « un nouveau joueur arrive » et « mon joueur est revenu ». */
+    const reprise = NET.enPartie;
     NET.conn=c;
-    c.on('open', ()=>{ NET.sendRaw=(o)=>{ try{c.send(o);}catch(e){} }; NET.connected=true; netPoulsDemarre(); duelVue("Adversaire connecté !"); setTimeout(demarrerDuelHote,300); });
+    c.on('open', ()=>{
+      NET.sendRaw=(o)=>{ try{c.send(o);}catch(e){} };
+      NET.connected=true; netPoulsDemarre();
+      if(reprise){
+        document.getElementById("fin").classList.remove("on");    // l'écran 🔌 s'efface
+        fermerDuel();
+        dire("<b>L'adversaire est revenu.</b>", 1);
+        NET.dernier=null;                                   // rien à rejouer : on renvoie l'état nu
+        netEnvoyerEtat(NET.aQui==='guest', null);
+        render();
+      } else {
+        duelVue("Adversaire connecté !");
+        setTimeout(demarrerDuelHote,300);
+      }
+    });
     c.on('data', netRecv);
     c.on('close', netPerdu);
   });
@@ -5166,7 +5241,7 @@ function duelRejoindre(){
   }
   const code=(document.getElementById('duelCode').value||'').trim().toUpperCase();
   if(code.length<4){ document.getElementById('duelStatus').textContent="Entrez le code."; duelVue("Entrez le code de la partie."); return; }
-  NET.role='guest'; duelVue("Connexion à "+code+"…");
+  NET.role='guest'; NET.code=code; NET.enPartie=false; duelVue("Connexion à "+code+"…");
   const peer=new Peer(); NET.peer=peer;
   peer.on('error', e=>{ duelVue("Introuvable ou erreur : "+((e&&e.type)||e)); });
   peer.on('open', ()=>{
