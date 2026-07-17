@@ -1,6 +1,6 @@
 /* ÉQUILIBRE — service worker. Bumpe CACHE à chaque déploiement pour forcer la mise à jour. */
-const CACHE = 'equilibre-v82';
-const ASSETS = ['./','./index.html','./manifest.json','./icon-192.png','./icon-512.png','./icon-180.png'];
+const CACHE = 'equilibre-v89';
+const ASSETS = ['./','./index.html','./manifest.json','./icon-192.png','./icon-512.png','./icon-180.png','./confidentialite.html'];
 
 self.addEventListener('install', e => {
   self.skipWaiting();

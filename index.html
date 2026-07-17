@@ -53,7 +53,9 @@ html.lite #ambiance .glow{animation:none;} html.lite .mote{display:none;}
   background:linear-gradient(180deg,rgba(30,20,52,.96),rgba(15,9,28,.98));border:1px solid rgba(201,162,39,.4);
   box-shadow:0 0 60px rgba(201,162,39,.2),0 20px 60px rgba(0,0,0,.6);animation:cardin .5s cubic-bezier(.2,1.1,.3,1) both;}
 .splash-brand{font-family:'Cinzel',serif;font-weight:900;font-size:11px;letter-spacing:5px;color:var(--goldL);opacity:.85;margin-bottom:8px;}
-.splash-emb{font-size:56px;line-height:1;filter:drop-shadow(0 0 18px rgba(240,208,96,.6));animation:crownfloat 3.4s ease-in-out infinite;}
+.splash-emb{line-height:0;display:flex;justify-content:center;filter:drop-shadow(0 0 18px rgba(240,208,96,.6));animation:crownfloat 3.4s ease-in-out infinite;}
+.splash-emb svg{display:block;}
+html.lite .splash-emb{animation:none;filter:none;}   /* mobile lent : l'emblème ne flotte pas */
 .splash-title{font-family:'Cinzel',serif;font-weight:900;font-size:40px;letter-spacing:2px;margin:4px 0 2px;
   background:linear-gradient(100deg,#f6e6a8,#c9a227 45%,#fff3c4 55%,#c9a227);-webkit-background-clip:text;background-clip:text;
   -webkit-text-fill-color:transparent;background-size:220% auto;animation:shine 3.5s linear infinite;}
@@ -106,7 +108,49 @@ html.lite #ambiance .glow{animation:none;} html.lite .mote{display:none;}
 .mem-ip p{font-size:12.5px;line-height:1.5;color:#cfc6de;margin:0 0 9px;}
 .mem-ip b{color:#f0dc9a;}
 .mem-ip-foot{text-align:center;font-family:'Cinzel',serif;font-weight:900;font-size:12.5px;letter-spacing:1px;color:var(--goldL);border-top:1px solid rgba(201,162,39,.3);padding-top:12px;margin-top:4px;}
-.mem-signoff .mem-efface{text-align:center;margin:10px 0 4px;}
+.mem-signoff .regcard{max-width:min(94vw,440px);}
+.reg-cap{text-align:center;font-size:10px;letter-spacing:2.6px;text-transform:uppercase;color:#8d84a8;margin-bottom:4px;}
+.reg-liste{display:flex;flex-direction:column;gap:9px;margin-top:14px;}
+.reg-l{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;
+  background:rgba(255,255,255,.028);border:1px solid rgba(201,162,39,.2);border-radius:14px;
+  padding:14px 16px;color:#EFE9DA;font-family:inherit;font-size:15px;text-align:left;cursor:pointer;
+  transition:border-color .18s, background .18s;}
+button.reg-l:active{background:rgba(255,255,255,.06);border-color:rgba(201,162,39,.5);}
+.reg-n{display:flex;align-items:center;gap:11px;}
+.reg-e{font-size:17px;line-height:1;}
+.reg-v{font-family:'Cinzel',serif;font-weight:700;font-size:10.5px;letter-spacing:1.3px;
+  text-transform:uppercase;color:var(--goldL);white-space:nowrap;}
+.reg-v.off{color:#6f6885;}
+.reg-vol{flex-wrap:wrap;cursor:default;}
+#regVol{-webkit-appearance:none;appearance:none;width:100%;height:5px;border-radius:3px;margin:12px 0 4px;
+  background:rgba(255,255,255,.12);outline:none;}
+#regVol::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;
+  background:#F7EFD2;border:none;box-shadow:0 0 8px rgba(240,208,96,.55);cursor:pointer;}
+#regVol::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:#F7EFD2;border:none;cursor:pointer;}
+.reg-pc{font-family:'Cinzel',serif;font-weight:700;font-size:11px;color:var(--goldL);}
+.maj{position:fixed;left:50%;transform:translateX(-50%) translateY(-120%);
+  top:calc(env(safe-area-inset-top,0px) + 8px);z-index:95;
+  display:flex;align-items:center;gap:11px;max-width:min(92vw,420px);
+  background:linear-gradient(180deg,#2A1B4A,#1A1030);border:1px solid var(--gold);
+  border-radius:13px;padding:10px 12px;box-shadow:0 8px 28px rgba(0,0,0,.6), 0 0 18px rgba(240,208,96,.2);
+  transition:transform .45s cubic-bezier(.2,.9,.3,1.2);}
+.maj.on{transform:translateX(-50%) translateY(0);}
+.maj-t{flex:1;font-size:13px;line-height:1.38;color:#EFE9DA;}
+.maj-t b{color:var(--goldL);}
+.maj-b{background:linear-gradient(180deg,#F7EFD2,#C9A227);color:#241634;border:none;border-radius:9px;
+  padding:8px 13px;font-family:'Cinzel',serif;font-weight:700;font-size:11px;letter-spacing:.8px;
+  cursor:pointer;white-space:nowrap;}
+.maj-x{background:none;border:none;color:#8d84a8;font-size:18px;line-height:1;padding:2px 4px;cursor:pointer;}
+.inst{background:rgba(155,89,182,.1);border:1px solid rgba(201,162,39,.3);border-radius:14px;
+  padding:13px 14px;margin:2px 0 10px;text-align:left;position:relative;}
+.inst-t{font-family:'Cinzel',serif;font-weight:700;font-size:11.5px;letter-spacing:1.1px;
+  text-transform:uppercase;color:var(--goldL);margin-bottom:6px;padding-right:22px;}
+.inst-p{font-size:13.5px;line-height:1.5;color:#d8d0e6;margin:0;}
+.inst-p b{color:#F7EFD2;}
+.inst-x{position:absolute;top:6px;right:8px;background:none;border:none;color:#8d84a8;
+  font-size:19px;line-height:1;padding:4px 6px;cursor:pointer;font-family:inherit;}
+.inst-b{width:100%;margin-top:9px;}
+.mem-efface{text-align:center;margin:10px 0 4px;}
 .mem-build{font-size:9px;color:#6b6280;letter-spacing:1.2px;margin-top:8px;font-family:'Cinzel',serif;font-weight:400;}
 .mem-signoff{text-align:center;margin-top:20px;}
 .mem-signoff .mem-balance{font-size:32px;line-height:1;filter:drop-shadow(0 0 10px rgba(240,208,96,.35));}
@@ -969,17 +1013,42 @@ body.mode-agonie #liens{display:block;}
 html.lite #liens .lien{animation:none;}
 
 </style>
-<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 </head>
 <body>
 <div id="ambiance"><span class="glow g1"></span><span class="glow g2"></span><div class="motes"></div></div>
 <div id="vignette"></div>
 <div id="splash" class="overlay"><div class="splashcard">
   <div class="splash-brand">✦ KHALAM ✦</div>
-  <div class="splash-emb">⚖️</div>
+  <div class="splash-emb">
+    <!-- L'EMBLÈME. C'était un emoji ⚖️ : une balance système, différente sur chaque téléphone,
+         et hors de ton contrôle. Ici c'est du SVG dans le fichier : net à toute taille, identique
+         partout, hors ligne. Les 4 points portent les VRAIES couleurs de tes piliers (--spi, --amo,
+         --san, --arg) — le logo dit le jeu au lieu de le décorer. -->
+    <svg viewBox="0 0 120 120" width="118" height="118" role="img" aria-label="ÉQUILIBRE">
+      <!-- le cercle de cauris : 48 tirets d'or -->
+      <circle cx="60" cy="60" r="50" fill="none" stroke="var(--gold)" stroke-width="3.4"
+              stroke-linecap="round" stroke-dasharray="1.6 4.9" opacity=".92"/>
+      <!-- l'anneau intérieur, discret : il porte les piliers -->
+      <circle cx="60" cy="60" r="33" fill="none" stroke="var(--gold)" stroke-width=".9" opacity=".3"/>
+      <!-- la balance : fléau, mât, plateaux -->
+      <g stroke="#F3E3B0" stroke-width="2.6" stroke-linecap="round" fill="none">
+        <line x1="60" y1="40" x2="60" y2="78"/>
+        <line x1="35" y1="52" x2="85" y2="52"/>
+        <line x1="46" y1="78" x2="74" y2="78"/>
+      </g>
+      <path d="M35 52 L27 70 L43 70 Z" fill="none" stroke="#F3E3B0" stroke-width="2.4" stroke-linejoin="round"/>
+      <path d="M85 52 L77 70 L93 70 Z" fill="none" stroke="#F3E3B0" stroke-width="2.4" stroke-linejoin="round"/>
+      <!-- les quatre piliers, à leur point cardinal -->
+      <circle cx="60" cy="27" r="8.5" fill="var(--spi)"/>
+      <circle cx="93" cy="60" r="8.5" fill="var(--amo)"/>
+      <circle cx="60" cy="93" r="8.5" fill="var(--san)"/>
+      <circle cx="27" cy="60" r="8.5" fill="var(--arg)"/>
+    </svg>
+  </div>
   <div class="splash-title">ÉQUILIBRE</div>
   <div class="splash-sub">Les Quatre Piliers de Vie</div>
   <div id="splashRang" class="splash-rang"></div>
+  <div id="installSlot"></div>
   <div id="repriseSlot"></div>
   <button class="btn play" style="width:100%;margin-top:4px" onclick="depuisSplash()">▶ JOUER</button>
   <div class="splash-actions">
@@ -987,6 +1056,33 @@ html.lite #liens .lien{animation:none;}
     
     <button class="minibtn" onclick="ouvrirModemploi('splash')">Comment jouer</button>
   </div>
+</div></div>
+<div id="majBar" class="maj">
+  <div class="maj-t"><b>Nouvelle version</b><br>Le jeu a été amélioré.</div>
+  <button class="maj-b" onclick="appliquerMaj()">Actualiser</button>
+  <button class="maj-x" onclick="cacherMaj()" aria-label="Plus tard">×</button>
+</div>
+<div id="reglages" class="overlay"><div class="card regcard">
+  <div class="reg-cap">Personnalise ton expérience</div>
+  <div class="ttl">⚙️ RÉGLAGES</div>
+  <div class="reg-liste">
+    <button class="reg-l" onclick="regToggle('son')">
+      <span class="reg-n"><span class="reg-e">🔊</span>Sons du jeu</span><span class="reg-v" id="regSon"></span></button>
+    <button class="reg-l" onclick="regToggle('mus')">
+      <span class="reg-n"><span class="reg-e">🎵</span>Musique d'ambiance</span><span class="reg-v" id="regMus"></span></button>
+    <button class="reg-l" onclick="regToggle('voix')">
+      <span class="reg-n"><span class="reg-e">🗣️</span>Voix du guide</span><span class="reg-v" id="regVoix"></span></button>
+    <button class="reg-l" onclick="regToggle('vib')">
+      <span class="reg-n"><span class="reg-e">📳</span>Vibrations</span><span class="reg-v" id="regVib"></span></button>
+    <button class="reg-l" onclick="regToggle('lite')">
+      <span class="reg-n"><span class="reg-e">✨</span>Effets visuels</span><span class="reg-v" id="regLite"></span></button>
+    <div class="reg-l reg-vol">
+      <span class="reg-n">Volume général</span>
+      <input id="regVol" type="range" min="0" max="100" step="5" oninput="regVolume(this.value)"/>
+      <span class="reg-pc" id="regVolPc"></span>
+    </div>
+  </div>
+  <button class="btn" style="width:100%;margin-top:14px" onclick="fermerReglages()">Enregistrer et fermer</button>
 </div></div>
 <div id="miroir" class="overlay"><div class="card">
   <div class="ttlmini">Le reflet de ton jeu</div>
@@ -1108,10 +1204,7 @@ html.lite #liens .lien{animation:none;}
     </div>
     <div id="niveauBadge">⚖️ NORMAL</div>
     <div class="tb-right">
-      <button class="iconbtn" id="voixBtn" onclick="toggleVoix()" title="Voix (annonces)">🗣️</button>
-      <button class="iconbtn" id="muteBtn" onclick="toggleMute()" title="Son &amp; musique">🔊</button>
-      <button class="iconbtn" id="musBtn" onclick="toggleMusique()" title="Musique">🎵</button>
-      <button class="iconbtn" id="liteBtn" onclick="toggleLite()" title="Mode léger (fluidité)">✨</button>
+      <button class="tb" onclick="ouvrirReglages()" title="Réglages" aria-label="Réglages">⚙️</button>
     </div>
   </div>
   <h1>⚖️ LES QUATRE PILIERS</h1>
@@ -1452,7 +1545,15 @@ function budgetR(){
 }
 
 /* ══════════ SON — moteur audio synthétique (autonome, offline) ══════════ */
-let AC=null, muted=false, MASTER=null, ambiOn=false, ambiNodes=null, MUSG=null;
+/* ══════════ LES RÉGLAGES ══════════
+   muted n'était PAS sauvegardé : le joueur coupait le son, fermait l'app, et le son revenait.
+   La vibration ne se réglait pas du tout. Le volume était figé à 0.9 dans le code.
+   Tout se règle maintenant, et tout survit à la fermeture. */
+const CLE_SON="eq_son", CLE_VIB="eq_vib", CLE_VOL="eq_vol";
+let AC=null, MASTER=null, ambiOn=false, ambiNodes=null, MUSG=null;
+let muted = (localStorage.getItem(CLE_SON)==='0');
+let vibOn = (localStorage.getItem(CLE_VIB)!=='0');
+let volume = (()=>{ const v=parseFloat(localStorage.getItem(CLE_VOL)); return (isFinite(v)&&v>=0&&v<=1) ? v : 0.9; })();
 let musOn = (localStorage.getItem('eq_mus')!=='0');
 let voixOn=true;
 try{ voixOn = localStorage.getItem('eq_voix')!=='0'; }catch(e){}
@@ -1475,7 +1576,7 @@ function impulse(a,dur,decay){
 function ac(){
   if(!AC){
     try{ AC=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ AC=null; return null; }
-    MASTER=AC.createGain(); MASTER.gain.value=0.9;
+    MASTER=AC.createGain(); MASTER.gain.value=volume;   // le réglage du joueur, pas une constante
     const comp=AC.createDynamicsCompressor();
     comp.threshold.value=-16; comp.ratio.value=3; comp.attack.value=0.003; comp.release.value=0.25;
     MASTER.connect(comp); comp.connect(AC.destination);
@@ -1700,9 +1801,141 @@ function stopAmbient(){
 }
 function ensureAudio(){ const a=ac(); if(a && !muted) startAmbient(); }
 function toggleMute(){
-  muted=!muted; document.getElementById("muteBtn").textContent=muted?"🔇":"🔊";
+  muted=!muted;
+  try{ localStorage.setItem(CLE_SON, muted?'0':'1'); }catch(e){}   // il était oublié à la fermeture
+  const b=document.getElementById("muteBtn"); if(b) b.textContent=muted?"🔇":"🔊";
   if(muted){ stopAmbient(); }
   else { ac(); startAmbient(); sClick(); }
+}
+/* ══════════ LE PANNEAU DES RÉGLAGES ══════════
+   UNE SEULE SOURCE DE VÉRITÉ : l'affichage est TOUJOURS recalculé depuis les variables
+   (muted, musOn, voixOn, vibOn, liteOn, volume). Rien n'est recopié, donc rien ne peut
+   se contredire — les 4 boutons de la barre du haut et ce panneau disent forcément
+   la même chose, quel que soit l'ordre dans lequel on y touche. */
+function majReglages(){
+  const mk=(id,on,oui,non)=>{ const e=document.getElementById(id); if(!e) return;
+    e.textContent = on?oui:non; e.classList.toggle('off', !on); };
+  mk('regSon',  !muted,  'Activés',  'Coupés');
+  mk('regMus',  musOn,   'Activée',  'Coupée');
+  mk('regVoix', voixOn,  'Activée',  'Coupée');
+  mk('regVib',  vibOn,   'Activées', 'Coupées');
+  mk('regLite', !liteOn, 'Complets', 'Allégés');
+  const sl=document.getElementById('regVol'); if(sl) sl.value = Math.round(volume*100);
+  const pc=document.getElementById('regVolPc'); if(pc) pc.textContent = Math.round(volume*100)+' %';
+}
+function regToggle(quoi){
+  try{ ac(); }catch(e){}
+  if(quoi==='son')  toggleMute();
+  if(quoi==='mus')  toggleMusique();
+  if(quoi==='voix') toggleVoix();
+  if(quoi==='vib')  toggleVib();
+  if(quoi==='lite') toggleLite();
+  majReglages();                       // on relit les variables : jamais d'état recopié
+}
+function regVolume(v){
+  reglerVolume(parseInt(v,10)/100);
+  const pc=document.getElementById('regVolPc'); if(pc) pc.textContent = Math.round(volume*100)+' %';
+}
+let reglagesRetour='splash';
+/* ══════════ LA MISE À JOUR ══════════
+   Sans ça, un joueur peut rester des SEMAINES sur une vieille version : le service worker
+   installe bien la nouvelle en arrière-plan, mais la page ouverte ne bouge pas — et sur iPhone
+   une PWA reste suspendue des jours sans jamais être vraiment fermée.
+   On ne recharge JAMAIS dans son dos : il pourrait être en pleine partie. On le prévient,
+   il décide. (Sa partie serait reprise, mais forcer un rechargement reste une agression.) */
+function montrerMaj(){
+  const b=document.getElementById('majBar'); if(!b) return;
+  b.classList.add('on');
+  try{ buzz(12); }catch(e){}
+}
+function cacherMaj(){
+  const b=document.getElementById('majBar'); if(b) b.classList.remove('on');
+  try{ sClick(); }catch(e){}     // « plus tard » : elle reviendra au prochain lancement
+}
+function appliquerMaj(){
+  try{ sauverPartie(); }catch(e){}          // on ne perd pas la partie en cours
+  location.reload();
+}
+/* ══════════ L'INVITATION À INSTALLER ══════════
+   Sur iPhone, Safari n'affiche JAMAIS de bannière d'installation : personne ne sait que le jeu
+   peut vivre sur l'écran d'accueil. C'est probablement ce qui coûte le plus de joueurs.
+   Règles : on ne harcèle pas. Elle n'apparaît qu'à quelqu'un qui a DÉJÀ joué une partie —
+   celui qui vient d'arriver n'a rien à installer — et une fois écartée, elle ne revient plus. */
+const CLE_INST = "eq_inst";
+let _promptAndroid = null;
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); _promptAndroid = e; majInstall(); });
+window.addEventListener('appinstalled', () => { try{ localStorage.setItem(CLE_INST,'1'); }catch(e){} majInstall(); });
+
+function dejaInstalle(){
+  return (window.navigator.standalone === true)                                   // iOS
+      || (window.matchMedia && matchMedia('(display-mode: standalone)').matches);  // Android/bureau
+}
+function _iOS(){ return /iPhone|iPad|iPod/i.test(navigator.userAgent||''); }
+function _safariIOS(){ const u=navigator.userAgent||''; return _iOS() && !/CriOS|FxiOS|EdgiOS|OPiOS/i.test(u); }
+
+function ecarterInstall(){
+  try{ localStorage.setItem(CLE_INST,'1'); sClick(); }catch(e){}
+  majInstall();
+}
+function installerAndroid(){
+  if(!_promptAndroid) return;
+  _promptAndroid.prompt();
+  _promptAndroid.userChoice.finally(()=>{ _promptAndroid=null; majInstall(); });
+}
+function majInstall(){
+  const z=document.getElementById('installSlot'); if(!z) return;
+  z.innerHTML='';
+  if(dejaInstalle()) return;                                   // il l'a déjà : on se tait
+  try{ if(localStorage.getItem(CLE_INST)==='1') return; }catch(e){}   // il a dit non : on se tait
+  if((PROFIL.parties||0) < 1) return;                          // il vient d'arriver : on se tait
+
+  if(_promptAndroid){
+    z.innerHTML = `<div class="inst">
+      <button class="inst-x" onclick="ecarterInstall()" aria-label="Fermer">×</button>
+      <div class="inst-t">✦ Garde-le sur ton écran ✦</div>
+      <p class="inst-p">Installe ÉQUILIBRE : il s'ouvrira en plein écran, <b>même sans connexion</b>.</p>
+      <button class="btn inst-b" onclick="installerAndroid()">Installer</button></div>`;
+    return;
+  }
+  if(_safariIOS()){
+    z.innerHTML = `<div class="inst">
+      <button class="inst-x" onclick="ecarterInstall()" aria-label="Fermer">×</button>
+      <div class="inst-t">✦ Garde-le sur ton écran ✦</div>
+      <p class="inst-p">Touche <b>Partager</b> <span style="opacity:.8">⬆︎</span> en bas, puis <b>« Sur l'écran d'accueil »</b>.<br>
+      Il s'ouvrira en plein écran, <b>même sans connexion</b>.</p></div>`;
+    return;
+  }
+  if(_iOS()){                                                  // Chrome sur iPhone : ça ne marche pas
+    z.innerHTML = `<div class="inst">
+      <button class="inst-x" onclick="ecarterInstall()" aria-label="Fermer">×</button>
+      <div class="inst-t">✦ Garde-le sur ton écran ✦</div>
+      <p class="inst-p">Ouvre ce lien dans <b>Safari</b>, puis <b>Partager</b> → <b>« Sur l'écran d'accueil »</b>.
+      Sur iPhone, seul Safari sait installer une app.</p></div>`;
+  }
+}
+function ouvrirReglages(){
+  try{ ac(); }catch(e){}
+  reglagesRetour = document.getElementById('niveau').classList.contains('on') ? 'niveau'
+                 : (document.getElementById('splash').classList.contains('on') ? 'splash' : '');
+  fermerOverlays();
+  majReglages();
+  document.getElementById('reglages').classList.add('on');
+}
+function fermerReglages(){
+  try{ sClick(); }catch(e){}
+  document.getElementById('reglages').classList.remove('on');
+  if(reglagesRetour==='splash') document.getElementById('splash').classList.add('on');
+  else if(reglagesRetour==='niveau') document.getElementById('niveau').classList.add('on');
+}
+function reglerVolume(v){
+  volume = Math.max(0, Math.min(1, v));
+  try{ localStorage.setItem(CLE_VOL, String(volume)); }catch(e){}
+  if(MASTER) MASTER.gain.value = volume;
+}
+function toggleVib(){
+  vibOn=!vibOn;
+  try{ localStorage.setItem(CLE_VIB, vibOn?'1':'0'); }catch(e){}
+  if(vibOn) buzz(18);                                  // on la sent tout de suite
 }
 function toggleMusique(){
   ac(); musOn=!musOn;
@@ -1713,7 +1946,7 @@ function toggleMusique(){
   try{ sClick(); }catch(e){}
 }
 function initMusBtn(){ const b=document.getElementById('musBtn'); if(b) b.classList.toggle('off', !musOn); }
-function buzz(ms){ if(navigator.vibrate) try{ navigator.vibrate(ms); }catch(e){} }
+function buzz(ms){ if(!vibOn) return; if(navigator.vibrate) try{ navigator.vibrate(ms); }catch(e){} }
 
 /* ══════════ SENSATIONS (game feel) ══════════ */
 const LITE=()=>document.documentElement.classList.contains("lite")
@@ -1980,10 +2213,50 @@ const RETOUR_QUESTION = 8;
    linéairement alors que le seuil réel converge vers 25 %. À 29 parties elle exigeait 19 fois
    (66 %) au lieu de 14 (48 %) : le miroir devenait AVEUGLE à mesure qu'on jouait. Il ne voyait
    plus que 2 % des vraies pentes, contre 43 % maintenant — pour la même honnêteté. */
+/* ══════════ L'AXE : UN SIGNE QU'ON GAGNE ══════════
+   L'axe (Élan vital, Sagesse pratique…) était déclaré à TOUT LE MONDE, dès la 1re partie,
+   sur le simple classement des points cumulés. Mesuré sur 30 000 joueurs : un joueur sans
+   aucun penchant voyait son « signe » changer 4,7 fois en 40 parties, décidé par 2,3 %
+   d'écart entre le 2e et le 3e pilier. Juste 57 % du temps — une pièce qui tombe, avec un
+   joli nom. C'est-à-dire exactement un horoscope.
+   Avec 6 % d'écart exigé : déclaré à 6 % des joueurs plats seulement, à 76 % de ceux qui
+   ont un vrai penchant, et JUSTE À 94 %. L'axe cesse d'être donné : il se mérite. */
+const AXE_ECART = 0.06;
+function axeNet(triTot){
+  const t2=PROFIL.tot[triTot[1]]||0, t3=PROFIL.tot[triTot[2]]||0;
+  if(t2<=0) return false;
+  return ((t2-t3)/t2) >= AXE_ECART;
+}
 const PENTE_Z = 2.6, PENTE_FOIS = 4;
-function penteRequise(){
-  const n = PROFIL.parties||1;
+function penteRequise(n){
+  n = n || PROFIL.parties || 1;      // sans argument : aujourd'hui. Avec : une partie future.
   return Math.max(PENTE_FOIS, Math.ceil(n*0.25 + PENTE_Z*Math.sqrt(n*0.1875)));
+}
+/* ══════════ LE GLISSEMENT ══════════
+   J'ai d'abord écrit une PROPHÉTIE ici : « ton Argent sera ton angle mort dans 18 parties ».
+   Mesurée sur 200 000 joueurs, elle tombait juste 52 % du temps — et 9 % sur un joueur au
+   hasard. Un horoscope avec des chiffres. Retirée.
+   Le GLISSEMENT, lui, est juste à 91 % : on ne prédit pas une date, on compare deux périodes
+   réelles. Chaque parole a photographié le compteur d'abandons (o.neg) à sa date (o.n) : on a
+   donc AVANT la parole et DEPUIS. Un écart de 20 points ne se produit que dans 9 % des cas
+   par pur hasard, et attrape 67 % des vrais glissements.
+   Le miroir ne promet rien. Il montre que ça bouge, et dans quel sens. */
+function _glissement(p){
+  const N = PROFIL.parties||0;
+  if(N < 12) return null;
+  const r = laParole(p); if(!r) return null;
+  const o = _repArr(p)[r.i]; if(!o || o.neg==null) return null;
+  const nAv = o.n||0, nAp = N - nAv;
+  if(nAv < 6 || nAp < 6) return null;                  // il faut DEUX périodes réelles
+  const neg   = PROFIL.neglige[p]||0;
+  const negAv = o.neg||0, negAp = neg - negAv;
+  const av = negAv/nAv, ap = negAp/nAp;
+  const ec = ap - av;
+  if(ec >= 0.20 && ap >= 0.35)
+    return {sens:"glisse", av, ap, negAv, negAp, nAv, nAp, dejaAM: neg>=penteRequise(N)};
+  if(ec <= -0.20 && av >= 0.35)
+    return {sens:"remonte", av, ap, negAv, negAp, nAv, nAp, dejaAM:false};
+  return null;
 }
 function penteNette(compteur, p){
   return (compteur[p]||0) >= penteRequise();
@@ -3029,7 +3302,7 @@ addEventListener("resize", ()=>{ try{ _kActuel=0; _ajRangs=-1; ajusteMain(true);
    Sans marqueur visible, ni le joueur ni le testeur ne savent ce qu'ils jouent, et le
    développeur ne peut pas le lire sur une capture. On a perdu une journée à s'en douter.
    À bumper AVEC le CACHE de sw.js — les deux doivent toujours dire la même chose. */
-const BUILD_TAG = "v82";
+const BUILD_TAG = "v89";
 
 const CLE_LITE = "eq_lite";
 let liteOn = false;
@@ -3778,7 +4051,7 @@ function taire(){
 }
 function fermerOverlays(){
   taire();
-  ["tuto","niveau","fin","splash","miroir","modemploi","qphenix"].forEach(id=>{const e=document.getElementById(id); if(e) e.classList.remove("on");});
+  ["tuto","niveau","fin","splash","miroir","modemploi","qphenix","reglages"].forEach(id=>{const e=document.getElementById(id); if(e) e.classList.remove("on");});
 }
 /* Une partie suspendue ? Le bouton n'apparaît que s'il y a vraiment quelque chose à reprendre. */
 function poserReprise(){
@@ -3795,6 +4068,7 @@ function poserReprise(){
 const MODE_NOM = { classique:'', soin:'Voie du Soin · ', defi:'Défi du jour · ', agonie:'Agonie · ' };
 function ouvrirSplash(){
   poserReprise();
+  majInstall();          // l'invitation se décide ici : elle relit l'état, elle ne le recopie pas
   fermerOverlays();
   const n=niveauInfo(STATS.xp);
   const pct=Math.round(n.prog*100);
@@ -3873,7 +4147,7 @@ function ouvrirMiroir(auto){
   const angleMort = penteNette(PROFIL.neglige, _am) ? _am : null;   // null = le miroir ne voit rien de net
   const refuge    = penteNette(PROFIL.fort, _rf)    ? _rf : null;
   const triTot = P.slice().sort((a,b)=>PROFIL.tot[b]-PROFIL.tot[a]);
-  const ax = AXE_L[ck(triTot[0],triTot[1])];
+  const ax = axeNet(triTot) ? AXE_L[ck(triTot[0],triTot[1])] : null;   // sinon : rien de net à déclarer
   const maxTot=Math.max(...P.map(p=>PROFIL.tot[p]))||1;
   const barres = P.map(p=>`<div class="mir-row">
       <span class="mir-emb">${embImg(p,20)}</span>
@@ -3905,7 +4179,10 @@ function ouvrirMiroir(auto){
       <div class="lec-h">✦ Ce que ton jeu dit de toi ✦</div>
       ${ligneAngle}
       ${ligneRefuge}
-      ${ax?`<p>Ton âme penche vers l'axe ${embImg(triTot[0],15)}${embImg(triTot[1],15)} <b>${ax.t}</b> — ${ax.r}</p>`:''}
+      ${ax
+        ? `<p>Ton âme penche vers l'axe ${embImg(triTot[0],15)}${embImg(triTot[1],15)} <b>${ax.t}</b> — ${ax.r}</p>`
+        : (PROFIL.parties>=SEUIL_MIROIR
+            ? `<p>Aucun axe ne se dessine encore : tes deux piliers de tête se tiennent de trop près. Un axe, ça se mérite.</p>` : '')}
       ${ligneDefi}
     </div>` + blocConfidences(angleMort, refuge);
   // texte parlé (sans balises)
@@ -3916,6 +4193,7 @@ function ouvrirMiroir(auto){
       + (_nP>0 ? `${_am} penche le plus, ${_nP} fois sur ${PROFIL.parties}. Il en faudrait ${_reqP} pour qu'il tranche. ` : '');
   if(refuge) mt += `Ton refuge : ${refuge}. ${MIR_REFUGE[refuge]} `;
   if(ax) mt += `Ton âme penche vers l'axe ${ax.t}. ${ax.r} `;
+  else if(PROFIL.parties>=SEUIL_MIROIR) mt += `Aucun axe ne se dessine encore : tes deux piliers de tête se tiennent de trop près. Un axe, ça se mérite. `;
   mt += angleMort
     ? `Ton défi : oser nourrir ${angleMort}, là où tu détournes les yeux.`
     : `Il n'a rien à te reprocher. C'est rare.`;
@@ -4001,7 +4279,7 @@ function _regardMiroir(p, angleMort, refuge){
            negCib:  PROFIL.neglige[c]||0,
            fCib:    PROFIL.fort[c]||0 };
   }
-  return {attend:false, dit:rep.d, fait, mot:rep.m, txt:rep.t, qi:r.i, neg, parties:N, part, rang, fort, requis:penteRequise(), hier, sacr};
+  return {attend:false, dit:rep.d, fait, mot:rep.m, txt:rep.t, qi:r.i, neg, parties:N, part, rang, fort, requis:penteRequise(), hier, sacr, gliss:_glissement(p)};
 }
 /* Les quatre visages du reflet */
 function _quePhrase(m){ return `${/^[aeiouâêîôûéèàïüœ]/i.test(m) ? "qu'" : "que "}${m}`; }
@@ -4034,27 +4312,53 @@ function _texteMiroir(p, g){
             `Ta parole a bougé. Ton jeu, lui, raconte sa propre histoire.`];
   }
 
+  /* ══ LE GLISSEMENT ══ Le seul visage qui parle du MOUVEMENT. Deux périodes réelles,
+     séparées par le jour où le joueur a parlé. Aucune promesse sur l'avenir : le miroir
+     montre le sens, et la conclusion s'impose d'elle-même. */
+  if(g.gliss){
+    const G=g.gliss, pcA=Math.round(G.av*100), pcD=Math.round(G.ap*100);
+    if(G.sens==="glisse"){
+      const suite = G.dejaAM
+        ? `Il est devenu ton angle mort. Ce n'est pas arrivé d'un coup — le miroir a vu la pente.`
+        : `Ce n'est pas encore ton angle mort. À ce rythme-là, il le deviendra.`;
+      return [ouvre,
+        `Depuis ce jour-là, ton jeu a changé de sens : ${em} <b>${p}</b> tombait au plus bas <b>${G.negAv}</b> fois sur ${G.nAv} — <b>${pcA}&nbsp;%</b>. Depuis, <b>${G.negAp}</b> fois sur ${G.nAp} — <b>${pcD}&nbsp;%</b>.`,
+        `<b>Il glisse.</b> ${suite}`];
+    }
+    return [ouvre,
+      `Depuis ce jour-là, tu l'as relevé : ${em} <b>${p}</b> tombait au plus bas <b>${G.negAv}</b> fois sur ${G.nAv} — <b>${pcA}&nbsp;%</b>. Depuis, <b>${G.negAp}</b> fois sur ${G.nAp} — <b>${pcD}&nbsp;%</b>.`,
+      `<b>Il remonte.</b> Tu n'en as peut-être rien su. Ta main, elle, le savait.`];
+  }
+
   /* ══ LE SACRIFICE ══ Il a avoué un échange : « X passe avant Y ». Le miroir ne le croit pas
      sur parole — il va compter dans les deux piliers. Trois vérités possibles, et la deuxième
      est la plus dure à lire : payer le prix sans que personne ne rende la monnaie. */
   if(g.sacr){
     const S=g.sacr, ec=embImg(S.cible,14);
     const pcS=Math.round(S.partSac*100), pcC=Math.round(S.fortCib*100);
-    if(S.partSac >= 0.30 && S.fortCib >= 0.30)          // il paie, et il reçoit
+    /* SEUILS RELATIFS AU HASARD, pas absolus. Avec 4 piliers, tomber au plus bas ou monter
+       en tête vaut 25 % par pur hasard. Exiger « 30 % » n'exigeait presque rien — et 27 %
+       passait juste dessous : le miroir se taisait avec 60 parties de données en main.
+       On demande un ÉCART NET au hasard : +40 % relatif, soit 35 %. */
+    const SEUIL_H = 0.35, PLANCHER = 0.18;
+    if(S.partSac >= SEUIL_H && S.fortCib >= SEUIL_H)    // il paie, et il reçoit
       return [ouvre,
         `Ton jeu le confirme, sans détour : ${em} <b>${p}</b> est tombé au plus bas <b>${n}</b> fois sur ${N}. Dans le même temps, ${ec} <b>${S.cible}</b> montait en tête <b>${S.fCib}</b> fois.`,
         `Le marché que tu as passé, tu l'as tenu. Reste à savoir s'il te convient.`];
-    if(S.partSac >= 0.30 && S.partCib >= 0.28)          // il paie, et il ne reçoit RIEN
+    if(S.partSac >= SEUIL_H && S.partCib >= 0.30)       // il paie, et il ne reçoit RIEN
       return [ouvre,
         `Mais ${ec} <b>${S.cible}</b> tombe lui aussi — <b>${S.negCib}</b> fois sur ${N}. Tu laisses ${em} <b>${p}</b> au sol <b>${n}</b> fois pour lui.`,
         `Tu paies le prix. Personne ne te rend la monnaie.`];
-    if(S.partSac < 0.20)                                 // il dit qu'il sacrifie, son jeu dit non
+    if(S.partSac < PLANCHER)                             // il dit qu'il sacrifie, son jeu dit non
       return [ouvre,
         `Ton jeu dit autre chose : ${em} <b>${p}</b> n'est tombé au plus bas que <b>${n}</b> fois sur ${N} — <b>${pcS}&nbsp;%</b>, moins que le hasard.`,
         `Tu crois le sacrifier. Ta main le protège.`];
+    /* Le repli : ni marché tenu, ni marché rompu, ni sacrifice imaginaire. On ne dit pas
+       « je ne vois rien » — on dit CE QU'ON VOIT, avec l'écart au hasard. */
+    const pS=Math.round(S.partSac*100), pC=Math.round(S.fortCib*100);
     return [ouvre,
-      `${em} <b>${p}</b> au sol <b>${n}</b> fois sur ${N} · ${ec} <b>${S.cible}</b> en tête <b>${S.fCib}</b> fois.`,
-      `L'échange que tu décris, le miroir le voit à peine. Il regarde encore.`];
+      `${em} <b>${p}</b> au sol <b>${pS}&nbsp;%</b> du temps · ${ec} <b>${S.cible}</b> en tête <b>${pC}&nbsp;%</b>. Le hasard en donnerait 25 de chaque.`,
+      `L'échange existe, mais il est léger. Tu paies moins cher que tu ne le crois.`];
   }
   if(g.fait==="penche"){                                // il penche, sans atteindre le seuil
     const pc = Math.round(g.part*100);
@@ -4094,7 +4398,7 @@ function blocConfidences(angleMort, refuge){
   dits.forEach(p=>{
     const g=_regardMiroir(p, angleMort, refuge); if(!g) return;
     if(g.attend) att.push({p, reste:g.reste});
-    else if(g.fait==="mitige" && !g.hier && !g.sacr) flous.push({p, mot:g.mot});   // mémoire ou sacrifice : il a mieux à dire
+    else if(g.fait==="mitige" && !g.hier && !g.sacr && !g.gliss) flous.push({p, mot:g.mot});   // mémoire, sacrifice ou glissement : il a mieux à dire
     else vus.push(`<div class="mir-vu">${_texteMiroir(p,g).map((l,i)=>`<p class="${i===2?'mir-clos':''}">${l}</p>`).join("")}</div>`);
   });
   let blocs = vus.join("");
@@ -4125,7 +4429,7 @@ function texteConfidences(angleMort, refuge){
   dits.forEach(p=>{
     const g=_regardMiroir(p, angleMort, refuge); if(!g) return;
     if(g.attend) att.push({p, reste:g.reste});
-    else if(g.fait==="mitige" && !g.hier && !g.sacr) flous.push(g.mot);
+    else if(g.fait==="mitige" && !g.hier && !g.sacr && !g.gliss) flous.push(g.mot);
     else t += _texteMiroir(p,g).map(x=>_strip(x)).join(' ')+' ';
   });
   if(flous.length){                                          // un seul verdict pour toutes ces paroles
@@ -4772,8 +5076,32 @@ function duelVue(txt, codeVal){
   const box=document.getElementById('duelCodeBox');
   if(codeVal){ box.style.display=''; document.getElementById('duelCodeVal').textContent=codeVal; } else box.style.display='none';
 }
+/* ══════════ PEERJS, À LA DEMANDE ══════════
+   Il était dans le <head> : un script BLOQUANT à chaque lancement, pour une bibliothèque que
+   9 joueurs sur 10 n'ouvriront jamais. Conséquence invisible mais réelle : unpkg.com
+   (Cloudflare) recevait l'adresse IP de TOUS tes joueurs — y compris ceux qui jouent seuls,
+   hors ligne, et qui n'ont jamais demandé à parler à personne.
+   Il ne se charge plus qu'au moment où l'on ouvre un Duel. */
+let _peerFile=null;
+function chargePeerJS(cb){
+  if(typeof Peer!=='undefined') return cb(true);
+  if(_peerFile){ _peerFile.push(cb); return; }              // déjà en route : on fait la queue
+  _peerFile=[cb];
+  const fini=(ok)=>{ const q=_peerFile||[]; _peerFile=null; q.forEach(f=>{ try{ f(ok); }catch(e){} }); };
+  const sc=document.createElement('script');
+  sc.src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js";
+  sc.async=true;
+  sc.onload =()=>fini(typeof Peer!=='undefined');
+  sc.onerror=()=>fini(false);
+  setTimeout(()=>{ if(_peerFile) fini(typeof Peer!=='undefined'); }, 12000);   // réseau mort : on ne pend pas
+  document.head.appendChild(sc);
+}
 function duelCreer(){
-  if(typeof Peer==='undefined'){ duelVue("PeerJS indisponible (hors ligne ?)."); return; }
+  if(typeof Peer==='undefined'){
+    duelVue("Connexion en cours…");
+    chargePeerJS(ok=>{ if(!ok){ duelVue("Connexion impossible. Vérifie ta connexion internet."); return; } duelCreer(); });
+    return;
+  }
   const code=genCode(); NET.role='host';
   duelVue("En attente d'un adversaire…", code);
   const peer=new Peer('EQ4-'+code); NET.peer=peer;
@@ -4786,7 +5114,11 @@ function duelCreer(){
   });
 }
 function duelRejoindre(){
-  if(typeof Peer==='undefined'){ duelVue("PeerJS indisponible (hors ligne ?)."); return; }
+  if(typeof Peer==='undefined'){
+    duelVue("Connexion en cours…");
+    chargePeerJS(ok=>{ if(!ok){ duelVue("Connexion impossible. Vérifie ta connexion internet."); return; } duelRejoindre(); });
+    return;
+  }
   const code=(document.getElementById('duelCode').value||'').trim().toUpperCase();
   if(code.length<4){ document.getElementById('duelStatus').textContent="Entrez le code."; duelVue("Entrez le code de la partie."); return; }
   NET.role='guest'; duelVue("Connexion à "+code+"…");
@@ -4827,7 +5159,35 @@ if(_premiere) ouvrirTuto("splash"); else ouvrirSplash();
 _initEnCours = false;      // à partir d'ici, tout coup joué est gravé
 </script>
 <script>
-if('serviceWorker' in navigator){ window.addEventListener('load',function(){ navigator.serviceWorker.register('./sw.js').catch(function(){}); }); }
+/* ══ SERVICE WORKER + DÉTECTION DE MISE À JOUR ══
+   Deux manques réparés :
+   1. Le navigateur ne revérifiait le sw.js qu'au chargement — une PWA iPhone reste suspendue
+      des jours, donc le joueur pouvait rester des SEMAINES en retard. On redemande à chaque
+      retour dans l'app (visibilitychange) et toutes les heures.
+   2. Rien ne prévenait le joueur. Maintenant un bandeau apparaît, et c'est LUI qui décide
+      quand actualiser — jamais dans son dos, il pourrait être en pleine partie. */
+if('serviceWorker' in navigator){
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('./sw.js').then(function(reg){
+      // une nouvelle version arrive-t-elle ?
+      reg.addEventListener('updatefound', function(){
+        var neuf = reg.installing;
+        if(!neuf) return;
+        neuf.addEventListener('statechange', function(){
+          // « installed » + un contrôleur déjà là = c'est une MISE À JOUR, pas la 1re visite
+          if(neuf.state === 'installed' && navigator.serviceWorker.controller){
+            try{ montrerMaj(); }catch(e){}
+          }
+        });
+      });
+      // on redemande au retour dans l'app, et toutes les heures si elle reste ouverte
+      document.addEventListener('visibilitychange', function(){
+        if(!document.hidden){ try{ reg.update(); }catch(e){} }
+      });
+      setInterval(function(){ try{ reg.update(); }catch(e){} }, 3600000);
+    }).catch(function(){});
+  });
+}
 </script>
 </body>
 </html>
