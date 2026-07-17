@@ -3315,7 +3315,7 @@ addEventListener("resize", ()=>{ try{ _kActuel=0; _ajRangs=-1; ajusteMain(true);
    Sans marqueur visible, ni le joueur ni le testeur ne savent ce qu'ils jouent, et le
    développeur ne peut pas le lire sur une capture. On a perdu une journée à s'en douter.
    À bumper AVEC le CACHE de sw.js — les deux doivent toujours dire la même chose. */
-const BUILD_TAG = "v94";
+const BUILD_TAG = "v95";
 
 const CLE_LITE = "eq_lite";
 let liteOn = false;
@@ -5168,11 +5168,33 @@ function rejouerDuel(){ matchMe=0; matchIA=0; mancheNo=1; netDealManche(); }
 function quitterDuel(){ netSend({t:'bye'}); netFermer(); NET.enPartie=false; NET.code=null; JEU='solo'; fermerOverlays(); ouvrirNiveau(); }
 
 /* — Déconnexion — */
+/* L'HÔTE N'ABANDONNE PAS.
+   Ma faute de conception : je n'avais donné « Reconnecter » qu'à l'invité, et à l'hôte la seule
+   sortie « Retour au menu » — qui appelle netFermer() et DÉTRUIT son identité EQ4-code. L'invité
+   revenait alors composer un code auquel plus personne ne répondait. La reconnexion ne pouvait
+   pas marcher : je réparais un seul bout du fil.
+   L'hôte garde donc son pair VIVANT et attend. Son peer.on('connection') est toujours en
+   écoute : quand l'invité recompose, la branche « reprise » repart et le match continue. */
+function netAttendreRetour(){
+  const fe=document.getElementById("finemoji"), ft=document.getElementById("fintitre");
+  fe.textContent="⏳"; ft.style.color=""; ft.textContent="ADVERSAIRE ABSENT";
+  document.getElementById("finpips").innerHTML="";
+  document.getElementById("findetail").innerHTML=
+    `<div style="text-align:center;color:var(--muet)">Son téléphone s'est mis en veille.<br><br>
+     <b style="color:var(--goldL)">Ne quitte pas : ta partie est gardée.</b><br>
+     <span style="font-size:13px;opacity:.75">Dès qu'il rouvre le jeu, la manche reprendra où vous l'avez laissée.
+     Le score est intact.</span></div>`;
+  document.getElementById("finbtns").innerHTML=
+    `<button class="btn ghost" style="flex:1" onclick="quitterDuel()">Abandonner le Duel</button>`;
+  document.getElementById("fin").classList.add("on");
+}
 function netPerdu(){
   if(JEU!=='net') return;
   netPoulsArrete();            // sinon il se rappellerait en boucle
   NET.connected=false;
   locked=true;
+  /* L'hôte en pleine partie garde la ligne ouverte : lui seul peut accueillir le revenant. */
+  if(NET.role==='host' && NET.enPartie && NET.peer && !NET.peer.destroyed) return netAttendreRetour();
   const fe=document.getElementById("finemoji"), ft=document.getElementById("fintitre");
   fe.textContent="🔌"; ft.style.color=""; ft.textContent="CONNEXION PERDUE";
   document.getElementById("finpips").innerHTML="";
