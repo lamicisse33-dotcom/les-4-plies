@@ -106,7 +106,8 @@ html.lite #ambiance .glow{animation:none;} html.lite .mote{display:none;}
 .mem-ip p{font-size:12.5px;line-height:1.5;color:#cfc6de;margin:0 0 9px;}
 .mem-ip b{color:#f0dc9a;}
 .mem-ip-foot{text-align:center;font-family:'Cinzel',serif;font-weight:900;font-size:12.5px;letter-spacing:1px;color:var(--goldL);border-top:1px solid rgba(201,162,39,.3);padding-top:12px;margin-top:4px;}
-.mem-signoff .mem-build{font-size:9px;color:#6b6280;letter-spacing:1.2px;margin-top:8px;font-family:'Cinzel',serif;font-weight:400;}
+.mem-signoff .mem-efface{text-align:center;margin:10px 0 4px;}
+.mem-build{font-size:9px;color:#6b6280;letter-spacing:1.2px;margin-top:8px;font-family:'Cinzel',serif;font-weight:400;}
 .mem-signoff{text-align:center;margin-top:20px;}
 .mem-signoff .mem-balance{font-size:32px;line-height:1;filter:drop-shadow(0 0 10px rgba(240,208,96,.35));}
 .mem-signoff .mem-seal{font-family:'Cinzel',serif;font-weight:900;font-size:12px;letter-spacing:4px;color:var(--goldL);margin-top:8px;}
@@ -982,7 +983,7 @@ html.lite #liens .lien{animation:none;}
   <div id="repriseSlot"></div>
   <button class="btn play" style="width:100%;margin-top:4px" onclick="depuisSplash()">▶ JOUER</button>
   <div class="splash-actions">
-    <button class="minibtn" onclick="demanderMiroir()">🪞 Ton miroir</button>
+    <button class="minibtn" onclick="ouvrirMiroir()">🪞 Ton miroir</button>
     
     <button class="minibtn" onclick="ouvrirModemploi('splash')">Comment jouer</button>
   </div>
@@ -1051,9 +1052,10 @@ html.lite #liens .lien{animation:none;}
     <div class="mem-sec">
       <div class="mem-h">🪞 Ton Miroir</div>
       <p>Quand tu perds, <b>le Phénix apparaît</b> et te pose une question sur le pilier qui a lâché. Tu réponds — ou pas : <b>l'esquive est un droit</b>, il ne te la reposera pas.</p>
-      <p>Ensuite il observe. Après <b><span class="mem-seuil">6</span> parties</b>, <b>il vient à toi</b> — tu n'as rien à aller chercher — et il croise <b>ce que tu as dit</b> avec <b>ce que ton jeu montre</b>.</p>
+      <p>Ensuite il observe. Après <b><span class="mem-seuil">6</span> parties</b>, le Phénix <b>l'ouvre devant toi</b> — tu n'as rien à aller chercher. Il croise alors <b>ce que tu as dit</b> avec <b>ce que ton jeu montre</b>, et <b>te révèle tout ce qu'il sait de toi</b>.</p>
       <p>Il ne dit que ce qu'il voit. Si tes quatre piliers se valent, il te le dit : <i>« aucune pente en toi »</i>. Il <b>n'invente pas</b> d'angle mort pour avoir quelque chose à raconter.</p>
-      <p>Tes confidences ne quittent <b>jamais</b> ce téléphone, et le bouton <i>« Effacer ce que j'ai confié »</i> les reprend quand tu veux.</p>
+      <p>Tes confidences ne quittent <b>jamais</b> ce téléphone. Tu peux les reprendre quand tu veux&nbsp;:</p>
+      <div id="memEfface" class="mem-efface"></div>
       <p>Il ne parle pas que de cartes — il parle un peu de <b>toi</b>.</p>
     </div>
 
@@ -1194,7 +1196,7 @@ html.lite #liens .lien{animation:none;}
     <button class="modepill m-duel" onclick="ouvrirDuel()"><span class="sc emb2"><i class="e-bg">🌐</i><i class="e-fg">⚔️</i></span><em>Duel</em></button>
   </div>
   <div class="splash-actions">
-    <button class="minibtn" onclick="demanderMiroir()">🪞 Ton miroir</button>
+    <button class="minibtn" onclick="ouvrirMiroir()">🪞 Ton miroir</button>
     
     <button class="minibtn" onclick="ouvrirModemploi('niveau')">Comment jouer</button>
   </div>
@@ -1306,6 +1308,24 @@ const AG_MOT={"Spiritualité":"votre foi","Amour":"votre amour","Santé":"votre 
 function agDmg(def){ return 12 + Math.min(28, Math.floor(def/4)); }
 function vivantP(p){ return !(MODE==='agonie' && AGO.etat[p]==='eteint'); }
 
+/* Tire NORM_PAR_MAIN normales SANS deux jumelles en main. Le paquet contient DEUX cartes
+   par couple+valeur (48 = 6 couples × 4 valeurs × 2 noms) : « Générosité » et « Abondance »
+   sont le même Argent+Spiritualité 40, au nom près. 69 % des mains en contenaient une paire :
+   deux cartes aux noms différents et au jeu identique, ça ressemble à un bug.
+   On repousse la jumelle EN FOND DE PAQUET au lieu de la jeter : le paquet reste complet,
+   et les points par pilier ne bougent pas d'un dixième (mesuré sur 100 000 mains). */
+function tireNormales(dn){
+  const main=[], vus=new Set(), rejet=[];
+  while(main.length < NORM_PAR_MAIN && dn.length){
+    const c = dn.shift();
+    const k = c.combo + "|" + c.pts;
+    if(vus.has(k)){ rejet.push(c); continue; }
+    vus.add(k); main.push(c);
+  }
+  while(main.length < NORM_PAR_MAIN && rejet.length) main.push(rejet.shift());  // paquet à sec : tant pis
+  dn.push(...rejet);
+  return main;
+}
 function paquetNormal(){
   const d=[];
   COMBOS.forEach(c=>VAL.forEach(v=>{ d.push({type:"normal",combo:c,pts:v,nomi:0}); d.push({type:"normal",combo:c,pts:v,nomi:1}); }));
@@ -1945,6 +1965,11 @@ const SEUIL_MIROIR = 4;
 /* Après combien de parties une question déjà posée peut-elle revenir ? Assez longtemps pour
    qu'une vie ait pu bouger, assez court pour qu'un joueur régulier le voie. */
 const RETOUR_QUESTION = 8;
+/* LE MIROIR EST MUET, sauf UNE FOIS. Quand le Phœnix l'ouvre, il laisse UNE lecture en
+   réserve : le joueur peut y revenir une seule fois par le bouton 🪞 du menu. Après quoi
+   le miroir se referme jusqu'au Phœnix suivant.
+   C'est ce qui rend tenable la promesse « il te révélera tout ce qu'il sait de toi » :
+   personne ne peut l'ouvrir à vide, et le verdict reste un événement, pas une page. */
 /* Une pente n'existe que si elle est NETTE, c'est-à-dire inexplicable par le hasard.
    4 piliers -> le hasard pur met chacun au sol 25 % du temps. La question est : à partir de
    combien de fois est-ce trop pour être un hasard ? C'est la LOI BINOMIALE qui répond :
@@ -2055,8 +2080,8 @@ function repondre(p, i, k){
   const merci = k
     ? (()=>{ const r=prochainMiroir();          // pas SEUIL_MIROIR en dur : ce qu'il reste VRAIMENT
         return `<b>Le miroir a entendu.</b><br>` + (r>0
-          ? `Joue encore ${r} partie${r>1?'s':''}. <b>Il viendra.</b>`
-          : `<b>Il vient.</b>`); })()
+          ? `Joue encore ${r} partie${r>1?'s':''}.<br><b>Il s'ouvrira et te révélera tout ce qu'il sait de toi.</b>`
+          : `<b>Il s'ouvre. Il va te révéler tout ce qu'il sait de toi.</b>`); })()
     : `C'est entendu. Le Phénix ne te le redemandera pas.`;
   document.getElementById('qTxt').innerHTML = `<span class="q-merci">${merci}</span>`;
   document.getElementById('qRep').innerHTML = '';
@@ -2136,7 +2161,7 @@ const AXE_L = {
   "Santé+Spiritualité": {t:"Harmonie intérieure",r:"tu as accordé le corps et l'esprit, l'ancrage et le souffle."}
 };
 const HARM_G = ["Rare équilibre, et la victoire au bout : tes quatre piliers ont avancé ensemble. La vraie force n'est pas d'exceller en un point, mais de ne rien laisser tomber."];
-const HARM_P = ["Bel équilibre, malgré la défaite : tu n'as sacrifié personne. Il t'a juste manqué un souffle — l'harmonie, elle, était déjà là."];
+const HARM_P = ["Bel équilibre, malgré la défaite : tu n'as rien sacrifié. Il t'a juste manqué un souffle — l'harmonie, elle, était déjà là."];
 let _lectureMatchTxt="";
 const _strip = h => String(h).replace(/<[^>]+>/g,'');
 function lectureFinale(win){
@@ -2812,8 +2837,8 @@ function demarrerSoin(){ effacerPartie(); ac(); MODE='soin'; AGO.on=false; docum
 
 function demarrer(){
   const dn=melange(paquetNormal()), ds=melange(pileSpeciale());
-  mainJ = dn.splice(0,NORM_PAR_MAIN).concat(ds.splice(0,SPEC_PAR_MAIN));
-  mainIA= dn.splice(0,NORM_PAR_MAIN).concat(ds.splice(0,SPEC_PAR_MAIN));
+  mainJ = tireNormales(dn).concat(ds.splice(0,SPEC_PAR_MAIN));
+  mainIA= tireNormales(dn).concat(ds.splice(0,SPEC_PAR_MAIN));
   trier(mainJ);
   T=tableVide(); tour=0; sel=null; fini=false; locked=false; histo=[]; prevOwners={};
   fermerOverlays();
@@ -3004,7 +3029,7 @@ addEventListener("resize", ()=>{ try{ _kActuel=0; _ajRangs=-1; ajusteMain(true);
    Sans marqueur visible, ni le joueur ni le testeur ne savent ce qu'ils jouent, et le
    développeur ne peut pas le lire sur une capture. On a perdu une journée à s'en douter.
    À bumper AVEC le CACHE de sw.js — les deux doivent toujours dire la même chose. */
-const BUILD_TAG = "v77";
+const BUILD_TAG = "v82";
 
 const CLE_LITE = "eq_lite";
 let liteOn = false;
@@ -3603,6 +3628,7 @@ function texteModemploi(){
 }
 function ouvrirModemploi(from){
   majSeuilAide();          // 3 portes mènent ici : la synchro est dedans, pas devant
+  majEffaceAide();         // le bouton d'effacement vit ici maintenant
   ac();
   memRetour = from || (document.getElementById('niveau').classList.contains('on') ? 'niveau' : 'splash');
   fermerOverlays();
@@ -3632,8 +3658,8 @@ function demarrerDefi(){
   matchMe=0; matchIA=0; mancheNo=1; mancheHisto=[]; resetBilan();
   const rng=mulberry32((defiKey()^0x9e3779b9)>>>0);
   const dn=melangeSeed(paquetNormal(), rng), ds=melangeSeed(pileSpeciale(), rng);
-  mainJ = dn.splice(0,NORM_PAR_MAIN).concat(ds.splice(0,SPEC_PAR_MAIN));
-  mainIA= dn.splice(0,NORM_PAR_MAIN).concat(ds.splice(0,SPEC_PAR_MAIN));
+  mainJ = tireNormales(dn).concat(ds.splice(0,SPEC_PAR_MAIN));
+  mainIA= tireNormales(dn).concat(ds.splice(0,SPEC_PAR_MAIN));
   trier(mainJ);
   T=tableVide(); tour=0; sel=null; fini=false; locked=false; histo=[]; prevOwners={};
   fermerOverlays();
@@ -3680,6 +3706,21 @@ function terminerDefi(){
   fb.insertAdjacentHTML('afterend','');
   fin.classList.add('on');
   if(gagne){ sWin(); if(record){ confetti(90); flash('#f2d98a'); buzz([20,40,20]); } } else sLose();
+}
+/* Partager le jeu. Il a remplacé la porte 🪞 : le miroir ne s'ouvre plus que par le Phœnix,
+   et c'est ce qui rend sa promesse tenable — personne ne peut plus l'ouvrir à vide. */
+function partagerJeu(){
+  try{ ac(); }catch(e){}
+  const txt = `⚖️ ÉQUILIBRE — Les Quatre Piliers\n`
+    + `Spiritualité · Amour · Santé · Argent.\n`
+    + `Ton pilier le plus faible décide de la partie.\n\n`
+    + `Et au bout de quelques parties, le jeu te dit qui tu es.\n`
+    + `👉 ${LIEN_JEU}`;
+  if(navigator.share){ navigator.share({ text:txt, url:LIEN_JEU }).catch(()=>{}); return; }
+  try{ window.open("https://wa.me/?text="+encodeURIComponent(txt), "_blank"); return; }catch(e){}
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(txt).then(()=>flashMsg("Copié")).catch(()=>flashMsg(LIEN_JEU));
+  } else flashMsg(LIEN_JEU);
 }
 /* Partager SA victoire — pas le jeu à froid. Le lien voyage avec l'exploit. */
 function partagerVictoire(){
@@ -3778,27 +3819,33 @@ const MIR_REFUGE = {
   "Argent":"tu cherches d'abord la sécurité et les moyens."
 };
 let miroirRetour='splash';
-/* La porte 🪞 de l'accueil et du menu laissait lire le verdict SANS le Phœnix : une porte
-   dérobée sur la cérémonie. On ne la retire pas — « Effacer ce que j'ai confié » vit derrière,
-   et c'est une promesse — on met le Phœnix devant. La cérémonie appartient à la PREMIÈRE
-   révélation, pas à la porte : une fois qu'il a parlé, on relit librement. */
-function demanderMiroir(){
-  try{ ac(); }catch(e){}
-  if(miroirMur() && !_animOff() && typeof CINE_PHENIX!=='undefined'){
-    try{ taire(); fermerOverlays(); }catch(e){}
-    CINE_PHENIX.jouer(function(){ ouvrirMiroir(true); });
-  } else ouvrirMiroir();
-}
+/* demanderMiroir() a été retiré avec les boutons 🪞 : le miroir ne s'ouvre QUE par le Phœnix,
+   quand il a vraiment quelque chose à révéler. C'est ce qui rend tenable sa promesse
+   « il te révélera tout ce qu'il sait de toi » — on ne peut plus l'ouvrir à vide. */
+
+/* Le miroir n'est lisible qu'UNE FOIS après que le Phœnix l'a ouvert. Cette lecture dépensée,
+   la porte 🪞 mène à l'écran muet — qui garde le décompte et « Effacer ce que j'ai confié »,
+   donc rien n'est perdu — jusqu'au retour du Phœnix. */
+function miroirLisible(){ return PROFIL.miroirLe!=null && !PROFIL.miroirLu; }
 function ouvrirMiroir(auto){
   ac();
+  if(auto){
+    /* Le Phœnix révèle : il laisse UNE lecture en réserve et règle le compteur — ICI,
+       une seule fois. (Avant, reglerLeCompteur() tournait à chaque fermeture : le joueur
+       était puni de relire, chaque relecture repoussait le Phœnix suivant.) */
+    PROFIL.miroirLe = (PROFIL.parties||0); PROFIL.miroirLu = false; sauverProfil();
+    reglerLeCompteur();
+  }
+  let _consomme = false;
   if(!auto){                                  // ouverture normale : on vient du menu
     miroirRetour = document.getElementById('niveau').classList.contains('on') ? 'niveau' : 'splash';
     fermerOverlays();
+    _consomme = miroirLisible();              // c'est LA lecture : elle sera dépensée
   }
   document.getElementById("miroir").classList.toggle('auto', !!auto);   // auto = par-dessus l'écran de fin
   const body=document.getElementById("miroirBody");
   // Le miroir ne parle pas avant d'avoir assez vu : mieux vaut se taire que dire n'importe quoi.
-  if(PROFIL.parties < SEUIL_MIROIR){
+  if(PROFIL.parties < SEUIL_MIROIR || !miroirLisible()){
     const paroles = P.map(p=>laParole(p)).filter(Boolean);
     const reste = prochainMiroir();            // la même source que le Phénix
     const aDitQqch = paroles.length > 0;              // une esquive n'est pas une parole
@@ -3877,6 +3924,9 @@ function ouvrirMiroir(auto){
   mt += texteConfidences(angleMort, refuge);
   _lectureTxt = mt;
   document.getElementById("miroir").classList.add("on");
+  /* LA LECTURE EST DÉPENSÉE. Le verdict est affiché : le jeton est consommé, et le miroir
+     redeviendra muet dès la prochaine ouverture — jusqu'à ce que le Phœnix revienne. */
+  if(_consomme){ PROFIL.miroirLu = true; sauverProfil(); }
   // La carte met 2,6 s à monter du flou. La voix ne doit pas parler pendant qu'on ne peut pas lire.
   setTimeout(()=>{ parleSurEcran('miroir', mt); }, auto ? 1900 : 450);
 }
@@ -3885,7 +3935,7 @@ function fermerMiroir(){
   const auto=el.classList.contains('auto');
   el.classList.remove("on","auto");
   taire();
-  if(_miroirAParle){ reglerLeCompteur(); _miroirAParle=false; }   // il a parlé : le compteur repart
+  _miroirAParle=false;   // le compteur est réglé à l'OUVERTURE par le Phœnix, pas ici
   if(auto) return;                                                // l'écran de fin est resté dessous
   if(miroirRetour==='niveau') ouvrirNiveau(); else ouvrirSplash();
 }
@@ -3896,8 +3946,13 @@ function _confiees(){ return P.filter(p=>{ const r=laParole(p); return r && _laR
 function _regardMiroir(p, angleMort, refuge){
   const r=laParole(p); if(!r) return null;
   const rep=_laReponse(p, r.i, r.k); if(!rep) return null;
+  /* PENDANT LA FENÊTRE, on compte depuis LA PAROLE (o.n) : le miroir vient de parler, il doit
+     redire la même chose si on le rouvre — sinon la fenêtre est vide, puisque reglerLeCompteur()
+     vient justement de redater o.vu. HORS FENÊTRE, on compte depuis SA DERNIÈRE VISITE (o.vu) :
+     il se tait jusqu'à ce qu'il ait de nouveau assez vu. */
   const _o=_repArr(p)[r.i];
-  const vues = _o ? _depuisMiroir(_o) : ((PROFIL.parties||0)-(r.n||0));
+  const vues = miroirLisible() ? ((PROFIL.parties||0)-(r.n||0))
+                               : (_o ? _depuisMiroir(_o) : ((PROFIL.parties||0)-(r.n||0)));
   if(vues < SEUIL_MIROIR) return {attend:true, reste:SEUIL_MIROIR-vues};
   /* Le regard du miroir avait TROIS états : angle mort, refuge, et « mitigé » pour tout le reste.
      Avec 4 piliers, deux tombaient TOUJOURS dans « mitigé » -> « ne tranche pas encore ».
@@ -4086,23 +4141,36 @@ function texteConfidences(angleMort, refuge){
 }
 let _oubliArme=false, _oubliT=null;
 /* Effacer se fait en deux temps : un geste malheureux ne doit pas emporter une confidence. */
+/* Ce bouton vivait UNIQUEMENT dans le miroir. Or le miroir ne s'ouvre plus que par le Phœnix :
+   le joueur n'aurait plus jamais pu effacer ses confidences de lui-même, alors que le mode
+   d'emploi lui promet qu'il les reprend « quand tu veux ». Il vit donc aussi dans le mode
+   d'emploi maintenant — juste sous la phrase qui promet la confidentialité, à sa place. */
 function effacerConfidences(){
-  const btn=document.querySelector('#miroir .conf-oubli');
+  const btns=[...document.querySelectorAll('.conf-oubli')];
   if(!_oubliArme){
     _oubliArme=true;
-    if(btn){ btn.textContent="Confirmer l'effacement"; btn.classList.add('armee'); }
+    btns.forEach(b=>{ b.textContent="Confirmer l'effacement"; b.classList.add('armee'); });
     clearTimeout(_oubliT);
     _oubliT=setTimeout(()=>{ _oubliArme=false;
-      const b2=document.querySelector('#miroir .conf-oubli');
-      if(b2){ b2.textContent="Effacer ce que j'ai confié"; b2.classList.remove('armee'); } }, 4000);
+      document.querySelectorAll('.conf-oubli').forEach(b=>{
+        b.textContent="Effacer ce que j'ai confié"; b.classList.remove('armee'); }); }, 4000);
     return;
   }
   clearTimeout(_oubliT); _oubliArme=false;
   oublierReponses(); taire();
   const msg = `<p class="conf-vide">C'est effacé. Le Phénix te reposera ses questions.</p>`;
   const c=document.querySelector('#miroir .mir-conf');
-  if(c){ c.innerHTML = msg; return; }
-  if(btn) btn.outerHTML = msg;
+  if(c) c.innerHTML = msg;
+  document.querySelectorAll('.conf-oubli').forEach(b=>{ b.outerHTML = msg; });
+  majEffaceAide();
+}
+/* Le bouton du mode d'emploi n'a de sens que s'il y a quelque chose à effacer. */
+function majEffaceAide(){
+  const z=document.getElementById('memEfface'); if(!z) return;
+  const yA = P.some(p=>_repArr(p).some(o=>o && o.k && o.k!=="—"));
+  z.innerHTML = yA
+    ? `<button class="conf-oubli" onclick="effacerConfidences()">Effacer ce que j'ai confié</button>`
+    : `<p class="conf-vide">Tu n'as encore rien confié au miroir.</p>`;
 }
 
 /* ══════════ MODE AGONIE — moteur ══════════ */
@@ -4115,8 +4183,8 @@ function demarrerAgonie(){
 }
 function nouvelleRondeAgonie(){
   const dn=melange(paquetNormal()), ds=melange(pileSpeciale());
-  mainJ = dn.splice(0,NORM_PAR_MAIN).concat(ds.splice(0,SPEC_PAR_MAIN));
-  mainIA= dn.splice(0,NORM_PAR_MAIN).concat(ds.splice(0,SPEC_PAR_MAIN));
+  mainJ = tireNormales(dn).concat(ds.splice(0,SPEC_PAR_MAIN));
+  mainIA= tireNormales(dn).concat(ds.splice(0,SPEC_PAR_MAIN));
   trier(mainJ);
   T=tableVide(); tour=0; sel=null; fini=false; locked=false; histo=[]; prevOwners={}; AGO.sauveManche={};
   fermerOverlays();
@@ -4542,8 +4610,8 @@ function demarrerDuelHote(){
 }
 function netDealManche(){
   const dn=melange(paquetNormal()), ds=melange(pileSpeciale());
-  mainJ = dn.splice(0,NORM_PAR_MAIN).concat(ds.splice(0,SPEC_PAR_MAIN));   // hôte = joueur 1
-  mainIA= dn.splice(0,NORM_PAR_MAIN).concat(ds.splice(0,SPEC_PAR_MAIN));   // invité = joueur 2
+  mainJ = tireNormales(dn).concat(ds.splice(0,SPEC_PAR_MAIN));   // hôte = joueur 1
+  mainIA= tireNormales(dn).concat(ds.splice(0,SPEC_PAR_MAIN));   // invité = joueur 2
   trier(mainJ);
   T=tableVide(); tour=0; sel=null; fini=false; locked=false; histo=[]; prevOwners={};
   const hoteOuvre = (mancheNo % 2 === 1);          // alternance : hôte ouvre les manches impaires
