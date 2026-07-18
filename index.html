@@ -142,18 +142,18 @@ button.reg-l:active{background:rgba(255,255,255,.06);border-color:rgba(201,162,3
 #regVol::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:#F7EFD2;border:none;cursor:pointer;}
 .reg-pc{font-family:'Cinzel',serif;font-weight:700;font-size:11px;color:var(--goldL);}
 .maj{position:fixed;left:50%;transform:translateX(-50%) translateY(-120%);
-  top:calc(env(safe-area-inset-top,0px) + 8px);z-index:95;
-  display:flex;align-items:center;gap:11px;max-width:min(92vw,420px);
+  top:calc(env(safe-area-inset-top,0px) + 8px);z-index:10001;
+  display:flex;align-items:center;gap:11px;max-width:min(94vw,440px);
   background:linear-gradient(180deg,#2A1B4A,#1A1030);border:1px solid var(--gold);
-  border-radius:13px;padding:10px 12px;box-shadow:0 8px 28px rgba(0,0,0,.6), 0 0 18px rgba(240,208,96,.2);
+  border-radius:13px;padding:12px 14px;box-shadow:0 8px 28px rgba(0,0,0,.6), 0 0 22px rgba(240,208,96,.28);
   transition:transform .45s cubic-bezier(.2,.9,.3,1.2);}
 .maj.on{transform:translateX(-50%) translateY(0);}
-.maj-t{flex:1;font-size:13px;line-height:1.38;color:#EFE9DA;}
-.maj-t b{color:var(--goldL);}
+.maj-t{flex:1;font-size:13.5px;line-height:1.4;color:#EFE9DA;}
+.maj-t b{color:var(--goldL);font-size:14.5px;}
 .maj-b{background:linear-gradient(180deg,#F7EFD2,#C9A227);color:#241634;border:none;border-radius:9px;
-  padding:8px 13px;font-family:'Cinzel',serif;font-weight:700;font-size:11px;letter-spacing:.8px;
-  cursor:pointer;white-space:nowrap;}
-.maj-x{background:none;border:none;color:#8d84a8;font-size:18px;line-height:1;padding:2px 4px;cursor:pointer;}
+  padding:10px 15px;font-family:'Cinzel',serif;font-weight:800;font-size:12px;letter-spacing:.8px;
+  cursor:pointer;white-space:nowrap;animation:majPulse 1.6s ease-in-out infinite;}
+@keyframes majPulse{0%,100%{box-shadow:0 0 0 rgba(240,208,96,0)}50%{box-shadow:0 0 16px 2px rgba(240,208,96,.65)}}
 .inst{background:rgba(155,89,182,.1);border:1px solid rgba(201,162,39,.3);border-radius:14px;
   padding:13px 14px;margin:2px 0 10px;text-align:left;position:relative;}
 .inst-t{font-family:'Cinzel',serif;font-weight:700;font-size:11.5px;letter-spacing:1.1px;
@@ -1025,6 +1025,22 @@ body.mode-agonie #liens{display:block;}
 #liens .lien-pulse{filter:drop-shadow(0 0 6px currentColor);}
 html.lite #liens .lien{animation:none;}
 
+@keyframes bruleCarte{
+  0%{transform:scale(1);filter:brightness(1);opacity:1}
+  22%{filter:brightness(1.5) sepia(.4) hue-rotate(-15deg);box-shadow:0 0 26px 4px rgba(255,140,0,.85)}
+  60%{transform:scale(.94) rotate(-3deg);filter:brightness(1.1) sepia(.9) contrast(1.25);box-shadow:0 0 38px 8px rgba(255,80,0,.7);opacity:.9}
+  100%{transform:scale(.35) translateY(22px) rotate(-9deg);filter:brightness(.25) sepia(1);opacity:0;box-shadow:0 0 8px rgba(120,20,0,.4)}
+}
+@keyframes bruleGlow{0%{opacity:0}30%{opacity:1}100%{opacity:0}}
+.carte.brule{position:relative;animation:bruleCarte .78s ease-in forwards;pointer-events:none;z-index:3}
+.carte.brule::after{content:"";position:absolute;inset:0;border-radius:inherit;background:radial-gradient(ellipse at 50% 108%, rgba(255,180,40,.95), rgba(255,70,0,.5) 42%, transparent 72%);mix-blend-mode:screen;animation:bruleGlow .78s ease-in forwards;pointer-events:none}
+.coris-btn{background:linear-gradient(180deg,#f4e6a8,#c9a227 46%,#a9812a);color:#1a1207;border:1px solid rgba(255,244,200,.6);box-shadow:0 0 22px -4px rgba(201,162,39,.7);font-weight:800;letter-spacing:.04em}
+.coris-btn:hover{box-shadow:0 0 30px -2px rgba(201,162,39,.9)}
+.coris-ov{position:fixed;inset:0;z-index:9999;background:#000;display:none}
+.coris-ov.on{display:block}
+.coris-ov iframe{width:100%;height:100%;border:0;display:block}
+.coris-close{position:fixed;bottom:calc(env(safe-area-inset-bottom) + 16px);right:16px;z-index:10000;display:flex;align-items:center;gap:6px;padding:9px 14px;border-radius:22px;cursor:pointer;font-family:'Cinzel',serif;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:#e6ce7a;background:rgba(0,0,0,.55);border:1px solid rgba(201,162,39,.6);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.coris-close:hover{box-shadow:0 0 18px -4px rgba(201,162,39,.8)}
 </style>
 </head>
 <body>
@@ -1071,9 +1087,8 @@ html.lite #liens .lien{animation:none;}
   </div>
 </div></div>
 <div id="majBar" class="maj">
-  <div class="maj-t"><b>Nouvelle version</b><br>Le jeu a été amélioré.</div>
-  <button class="maj-b" onclick="appliquerMaj()">Actualiser</button>
-  <button class="maj-x" onclick="cacherMaj()" aria-label="Plus tard">×</button>
+  <div class="maj-t"><b>Nouvelle version disponible</b><br>Mets à jour pour profiter des dernières améliorations.</div>
+  <button class="maj-b" onclick="appliquerMaj()">Mettre à jour</button>
 </div>
 <div id="reglages" class="overlay"><div class="card regcard">
   <div class="reg-cap">Personnalise ton expérience</div>
@@ -1121,6 +1136,7 @@ html.lite #liens .lien{animation:none;}
       <div class="mem-h">🃏 Ton tour</div>
       <p>Choisis une carte de ta main. Chaque carte porte <b>deux piliers</b> et une <b>valeur</b> ; pose-la sur l'un des deux, sa valeur s'y ajoute. Puis c'est à l'adversaire.</p>
       <div class="mem-card">Un pilier n'accepte que <b>3 cartes</b>. Renforce plutôt là où tu es faible qu'empiler là où tu es déjà fort.</div>
+      <p>Vers la fin d'une manche, une carte dont les <b>deux piliers sont pleins</b> ne peut plus servir : elle <b>se consume et disparaît</b> d'elle-même de ta main.</p>
       <p>Tu peux <b>fermer le jeu en pleine partie</b> : elle t'attend. Le bouton <b>↻ Reprendre</b> apparaît sur l'accueil.</p>
     </div>
 
@@ -1130,6 +1146,7 @@ html.lite #liens .lien{animation:none;}
       <div class="mem-spec"><span class="ic">🗡️</span><span><b>Vol</b> — +10 chez toi, −10 sur le même pilier de l'adversaire.</span></div>
       <div class="mem-spec"><span class="ic">🔥</span><span><b>Sacrifice</b> — +30 sur un pilier, mais −15 sur ton plus fort ailleurs.</span></div>
       <div class="mem-spec"><span class="ic">⛈️</span><span><b>Tempête</b> — −20 sur un pilier de l'adversaire.</span></div>
+      <div class="mem-card">Contrairement aux cartes normales, ces trois <b>frappent partout — même un pilier déjà plein</b> — et ne comptent pas dans la limite des 3.</div>
     </div>
 
     <div class="mem-sec">
@@ -1166,6 +1183,13 @@ html.lite #liens .lien{animation:none;}
       <p>Tes confidences ne quittent <b>jamais</b> ce téléphone. Tu peux les reprendre quand tu veux&nbsp;:</p>
       <div id="memEfface" class="mem-efface"></div>
       <p>Il ne parle pas que de cartes — il parle un peu de <b>toi</b>.</p>
+    </div>
+
+    <div class="mem-sec">
+      <div class="mem-h">🐚 La Révélation des Coris</div>
+      <p>Après une <b>victoire</b>, à certains moments choisis, <b>deux cauris de lumière</b> se rejoignent dans un éclair et font apparaître une <b>carte du jour</b> rien que pour toi.</p>
+      <p>Elle t'offre une <b>lecture symbolique</b> selon ton signe : un message pour chacun de tes quatre piliers, et une <b>synthèse du jour</b> — couleur, mot-clé, et une action à réaliser. Touche un pilier pour l'écouter, ou le bouton <b>Guide</b> pour te laisser porter à la voix.</p>
+      <div class="mem-card">Elle t'attend à <b>ta première victoire du jour</b>, puis revient <b>toutes les 3 victoires</b> — uniquement sur l'écran de résultats, sans jamais gêner ta partie.</div>
     </div>
 
     <div class="mem-div"></div>
@@ -1454,7 +1478,7 @@ function ciblesDe(c,T,j){
   const o=opp(j);
   let base;
   if(c.type==="tempete") base=P.filter(p=>T[p][o]>0);
-  else if(c.type==="vol"||c.type==="sacrifice") base=P.filter(p=>libre(T,p,j));
+  else if(c.type==="vol"||c.type==="sacrifice") base=P.slice();   // jokers : frappent partout, même pilier plein
   else base=piliersDe(c).filter(p=>libre(T,p,j));
   if(MODE==='soin' && c.type!=="tempete" && base.length){   // Voie du Soin : uniquement ton pilier le plus bas atteignable
     const lo=Math.min(...base.map(p=>T[p][j]));
@@ -1470,8 +1494,8 @@ function coupsPossibles(main,T,j){
 function appliquer(T,main,mv,j){
   const c=main[mv.i], p=mv.p, o=opp(j);
   if(c.type==="tempete"){ T[p][o]=Math.max(0,T[p][o]-20); }
-  else if(c.type==="vol"){ T[p][j]+=c.pts; T[p][o]=Math.max(0,T[p][o]-10); T[p]["n"+j]++; }
-  else if(c.type==="sacrifice"){ T[p][j]+=c.pts; const q=plusFortAutre(T,j,p); if(q&&T[q][j]>0) T[q][j]=Math.max(0,T[q][j]-15); T[p]["n"+j]++; }
+  else if(c.type==="vol"){ T[p][j]+=c.pts; T[p][o]=Math.max(0,T[p][o]-10); }   // joker : ne remplit pas le pilier
+  else if(c.type==="sacrifice"){ T[p][j]+=c.pts; const q=plusFortAutre(T,j,p); if(q&&T[q][j]>0) T[q][j]=Math.max(0,T[q][j]-15); }   // joker : ne remplit pas le pilier
   else { T[p][j]+=c.pts; T[p]["n"+j]++; }
   main.splice(mv.i,1); return c;
 }
@@ -1860,10 +1884,6 @@ function montrerMaj(){
   const b=document.getElementById('majBar'); if(!b) return;
   b.classList.add('on');
   try{ buzz(12); }catch(e){}
-}
-function cacherMaj(){
-  const b=document.getElementById('majBar'); if(b) b.classList.remove('on');
-  try{ sClick(); }catch(e){}     // « plus tard » : elle reviendra au prochain lancement
 }
 function appliquerMaj(){
   try{ sauverPartie(); }catch(e){}          // on ne perd pas la partie en cours
@@ -3061,6 +3081,32 @@ function pilierDeLaQuestion(win){
   if(vieux>=0) return {p:p, i:vieux, retour:true};
   return null;
 }
+/* ── La Révélation des Coris : déclenchement après le tableau de résultats final ──
+   1ère victoire du jour, puis toutes les 3 victoires. N'interfère pas avec le reste
+   du jeu : bouton sur l'écran de résultats, ouverture en surimpression (iframe). */
+function corisShouldTrigger(){
+  try{
+    var d=new Date();
+    var key=d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();
+    var last=localStorage.getItem('coris_last_daily');
+    if(last!==key){ localStorage.setItem('coris_last_daily', key); return true; }   // 1ère victoire du jour
+    var v=(typeof PROFIL==='object' && PROFIL && PROFIL.victoires)||0;
+    if(v>0 && v%3===0) return true;                                                // toutes les 3 victoires
+    return false;
+  }catch(e){ return false; }
+}
+function ouvrirCoris(){
+  var ov=document.getElementById('corisOverlay'), fr=document.getElementById('corisFrame');
+  if(!ov||!fr) return;
+  try{ if(typeof taire==='function') taire(); }catch(e){}   // couper la voix du jeu
+  fr.src='./la-revelation-des-coris.html';
+  ov.classList.add('on');
+}
+function fermerCoris(){
+  var ov=document.getElementById('corisOverlay'), fr=document.getElementById('corisFrame');
+  if(ov) ov.classList.remove('on');
+  if(fr) fr.src='about:blank';                              // stoppe l'audio et l'animation
+}
 function majFinMatch(win, histo){
   effacerPartie();          // le match est joué : plus rien à reprendre
   STATS.matchsJoues++;
@@ -3077,6 +3123,8 @@ function majFinMatch(win, histo){
   const levelUp = apres.lvl > avant.lvl;
   sauverStats();
   majProfil(win);
+  let corisNow=false; try{ corisNow = !!(win && corisShouldTrigger()); }catch(e){ corisNow=false; }
+  if(corisNow){ var _cfb=document.getElementById('finbtns'); if(_cfb){ _cfb.insertAdjacentHTML('afterbegin', '<button class="btn coris-btn" style="flex:1 0 100%;margin-bottom:8px" onclick="ouvrirCoris()">\u2728 La R\u00e9v\u00e9lation des Coris</button>'); } }
   const finEl=document.getElementById('fin');
   finEl.classList.remove('epicwin','epicloss'); finEl.classList.add(win?'epicwin':'epicloss');
   document.getElementById('findetail').innerHTML = panneauProgression(histo) + panneauXP(gain, avant, apres, levelUp) + lectureFinale(win);
@@ -3085,9 +3133,10 @@ function majFinMatch(win, histo){
   if(win){ confetti(120); flash('#f2d98a'); buzz([20,40,20,60]); setTimeout(()=>confetti(70),480); setTimeout(()=>confetti(50),980); }
   else { lightning(); buzz(60); }
   if(levelUp){ setTimeout(()=>{ confetti(90); flash('#e6ce7a'); try{sWin();}catch(e){} }, 1200); }
-  const qp = pilierDeLaQuestion(win);
+  const qp = corisNow ? null : pilierDeLaQuestion(win);   // à son heure, la Révélation prime : le Phénix attend ce tour
   setTimeout(()=>{
     if(!ecranOuvert('fin')) return;                 // l'écran a été fermé entre-temps : on se tait
+    if(corisNow){ ouvrirCoris(); return; }          // la Révélation des Coris vient — définitivement, sans que le Phénix la remplace
     // Le Phénix est rare : quand il parle, il ne rivalise pas avec la lecture des piliers
     /* LES QUESTIONS D'ABORD. Le joueur en répond plusieurs, le miroir accumule.
        pilierDeLaQuestion() les épuise tout seul : une question par pilier faible, jamais
@@ -3096,7 +3145,7 @@ function majFinMatch(win, histo){
        C'est tout. Il n'interroge pas, il ne double pas la question : il ouvre le miroir. */
     if(qp){ ouvrirQuestion(qp.p, qp.i); return; }
 
-    if(miroirMur()){
+    if(!win && miroirMur()){          // le Phénix du Miroir ne vient JAMAIS après une victoire — seulement sur une défaite
       /* _animOff() et NON _reduit() : le mode léger allège le Phœnix (simple résolution)
          mais ne le supprime pas. Il sert à tenir 40 min de jeu, pas à sacrifier les 20 s
          qui comptent le plus. Seul le joueur peut y renoncer, via son réglage système. */
@@ -3110,7 +3159,7 @@ function majFinMatch(win, histo){
     }
     if(_lectureTxt){ parle(_lectureTxt); majLireBtn(); }
     else annonceFinMatch(win, levelUp?apres.titre:null);
-  }, qp ? 1600 : 900);
+  }, corisNow ? 1100 : (qp ? 1600 : 900));
 }
 let JEU='solo';                       // 'solo' | 'net'
 const NET={ role:null, aQui:null, connected:false, sendRaw:null, peer:null, conn:null, dernier:null, vu:0, pouls:null, code:null, enPartie:false, reprise:false };
@@ -3315,7 +3364,7 @@ addEventListener("resize", ()=>{ try{ _kActuel=0; _ajRangs=-1; ajusteMain(true);
    Sans marqueur visible, ni le joueur ni le testeur ne savent ce qu'ils jouent, et le
    développeur ne peut pas le lire sur une capture. On a perdu une journée à s'en douter.
    À bumper AVEC le CACHE de sw.js — les deux doivent toujours dire la même chose. */
-const BUILD_TAG = "v95";
+const BUILD_TAG = "v124";
 
 const CLE_LITE = "eq_lite";
 let liteOn = false;
@@ -3632,6 +3681,22 @@ function poser(p){
   volerCarte(cardEl, borneEl, c, "moi", commit);
 }
 function finiePartie(){ return mainJ.length===0 && mainIA.length===0; }
+/* Cartes devenues injouables (leurs piliers sont pleins) : elles brûlent sur place,
+   se consument et disparaissent. Les jokers gardent toujours des cibles, donc épargnés. */
+async function brulerMortes(){
+  if(enLigne()) return;                                   // le duel a son propre flux réseau
+  sel=null;
+  let morts = mainJ.map((c,i)=>i).filter(i => ciblesDe(mainJ[i],T,1).length===0);
+  if(!morts.length) return;
+  try{ beep(200,0.18,'sawtooth',0.05); beep(130,0.34,'sawtooth',0.04,0.07); }catch(e){}
+  try{ buzz([15,30,15]); }catch(e){}
+  morts.forEach(i=>{ const el=document.getElementById("carte-"+i); if(el) el.classList.add("brule"); });
+  dire(morts.length>1 ? "Des cartes devenues inutiles se consument." : "Une carte devenue inutile se consume.", 3);
+  await wait(760);
+  mainJ = mainJ.filter(c => ciblesDe(c,T,1).length>0);
+  trier(mainJ); render();
+  await wait(140);
+}
 function txtCoup(qui,c,p){
   if(c.type==="tempete") return `${qui} : ⛈️ Tempête sur ${p}`;
   if(c.type==="vol")     return `${qui} : 🗡️ Vol sur ${p}`;
@@ -3671,11 +3736,9 @@ async function lancerIA(){
   }
   tour++;
   if(finiePartie()){ locked=false; return terminer(); }
-  // Joueur sans coup possible (piliers pleins) : la carte est perdue, on avance
-  while(mainJ.length && coupsPossibles(mainJ,T,1).length===0){
-    mainJ.pop(); dire("Vous n'avez plus de place : une carte est perdue."); trier(mainJ); render(); await wait(650);
-    if(finiePartie()){ locked=false; return terminer(); }
-  }
+  // Cartes devenues injouables (piliers pleins) : elles brûlent sur place et disparaissent
+  await brulerMortes();
+  if(finiePartie()){ locked=false; return terminer(); }
   if(!mainJ.length){ await wait(360); return lancerIA(); }
   locked=false;
   await wait(420);
@@ -5334,6 +5397,8 @@ _initEnCours = false;      // à partir d'ici, tout coup joué est gravé
 if('serviceWorker' in navigator){
   window.addEventListener('load', function(){
     navigator.serviceWorker.register('./sw.js').then(function(reg){
+      // une mise à jour déjà installée et en attente ? on l'affiche tout de suite
+      if(reg.waiting && navigator.serviceWorker.controller){ try{ montrerMaj(); }catch(e){} }
       // une nouvelle version arrive-t-elle ?
       reg.addEventListener('updatefound', function(){
         var neuf = reg.installing;
@@ -5354,5 +5419,9 @@ if('serviceWorker' in navigator){
   });
 }
 </script>
+<div id="corisOverlay" class="coris-ov">
+  <iframe id="corisFrame" title="La Révélation des Coris" allow="autoplay"></iframe>
+  <button class="coris-close" onclick="fermerCoris()" aria-label="Fermer">✕ Fermer</button>
+</div>
 </body>
 </html>
