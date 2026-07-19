@@ -3418,7 +3418,7 @@ addEventListener("resize", ()=>{ try{ _kActuel=0; _ajRangs=-1; ajusteMain(true);
    Sans marqueur visible, ni le joueur ni le testeur ne savent ce qu'ils jouent, et le
    développeur ne peut pas le lire sur une capture. On a perdu une journée à s'en douter.
    À bumper AVEC le CACHE de sw.js — les deux doivent toujours dire la même chose. */
-const BUILD_TAG = "v149";
+const BUILD_TAG = "v151";
 
 const CLE_LITE = "eq_lite";
 let liteOn = false;
@@ -5041,26 +5041,40 @@ function duelReconnecter(){
   duelVue("Reconnexion…");
   document.getElementById('duel').classList.add('on');
 
+  let essais = 0, tentative = 0;                 // tentative : seule la dernière a le droit d'aboutir
   const relier = ()=>{
+    const moi = ++tentative;
     let c;
     try{ c = NET.peer.connect('EQ4-'+NET.code, {reliable:true}); }
     catch(e){ duelVue("Reconnexion impossible. L'adversaire a peut-être quitté."); return; }
     NET.conn=c;
     c.on('open', ()=>{
+      if(moi!==tentative){ try{c.close();}catch(e){} return; }   // une tentative plus récente a pris le relais
       NET.sendRaw=(o)=>{ try{c.send(o);}catch(e){} };
       NET.connected=true; netPoulsDemarre();
       duelVue("Reconnecté ! En attente de l'hôte…");
       netSend({t:'salut'});                       // l'hôte répondra par l'état : appliquerVue rouvrira le plateau
     });
     c.on('data', netRecv);
-    c.on('close', netPerdu);
-    setTimeout(()=>{ if(!NET.connected) duelVue("L'adversaire ne répond pas. Il a peut-être fermé le jeu."); }, 9000);
+    c.on('close', ()=>{ if(NET.conn===c) netPerdu(); });   // une vieille tentative qui meurt ne doit pas tuer la reprise
+    // l'hôte peut mettre plusieurs secondes à se re-signaler après une longue pause : on réessaie patiemment
+    setTimeout(()=>{
+      if(NET.connected || moi!==tentative) return;
+      if(essais < 6){
+        essais++;
+        if(NET.peer && NET.peer.disconnected){ try{ NET.peer.reconnect(); }catch(e){} }   // notre propre lien annuaire a pu tomber
+        relier();
+      } else {
+        duelVue("L'adversaire ne répond pas. Il a peut-être fermé le jeu.");
+      }
+    }, 3500);
   };
 
   if(!NET.peer || NET.peer.destroyed){        // notre pair est mort : on en refait un
     try{
       const p = new Peer(); NET.peer=p;
       p.on('open', relier);
+      p.on('disconnected', ()=>{ if(!p.destroyed){ try{ p.reconnect(); }catch(e){} } });
       p.on('error', e=>duelVue("Reconnexion impossible : "+((e&&e.type)||e)));
     }catch(e){ duelVue("Reconnexion impossible."); }
     return;
@@ -5220,6 +5234,7 @@ function appliquerVue(v){
 }
 function _poserVue(v){
   JEU='net'; NET.role='guest'; MODE='classique';
+  NET.enPartie = true;   // l'invité est en partie : au retour de veille, la reconnexion doit REPRENDRE (pas rester bloquée)
   T={}; P.forEach(p=>{ const b=v.T[p]; T[p]={1:b[1],2:b[2],n1:b.n1,n2:b.n2}; });
   mainJ = v.maMain||[];                 // ordre conservé (les index correspondent chez l'hôte)
   matchMe=v.matchMoi; matchIA=v.matchAdv; mancheNo=v.mancheNo;
@@ -5379,6 +5394,7 @@ function duelCreer(){
   duelVue("En attente d'un adversaire…", code);
   const peer=new Peer('EQ4-'+code); NET.peer=peer;
   peer.on('error', e=>{ duelVue("Erreur : "+((e&&e.type)||e)); });
+  peer.on('disconnected', ()=>{ if(!peer.destroyed){ try{ peer.reconnect(); }catch(e){} } });   // rester joignable sous EQ4-code même après une longue attente (l'annuaire déconnecte les pairs inactifs)
   peer.on('connection', c=>{
     /* LE POINT CRITIQUE. Sans ce test, une reconnexion appelait demarrerDuelHote() — qui remet
        matchMe=0, matchIA=0, mancheNo=1 et redistribue : le match était EFFACÉ. L'hôte ne faisait
