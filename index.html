@@ -168,6 +168,7 @@ button.reg-l:active{background:rgba(255,255,255,.06);border-color:rgba(201,162,3
   -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
   transition:transform .5s cubic-bezier(.2,.9,.3,1.2);}
 .instbar.on{transform:translateX(-50%) translateY(0);}
+.instbar:not(.on){pointer-events:none;}   /* masquée : ne bloque jamais le jeu dessous */
 .instbar .ib-em{font-size:20px;line-height:1;filter:drop-shadow(0 0 6px rgba(240,208,96,.4))}
 .instbar .ib-txt{flex:1;min-width:0}
 .instbar .ib-t{font-family:'Cinzel',serif;font-weight:700;font-size:12.5px;letter-spacing:.4px;color:var(--goldL);line-height:1.25}
@@ -1950,7 +1951,7 @@ function installerAndroid(){
 function majInstall(){
   const bar=document.getElementById('instBar'); if(!bar) return;
   const hide=()=>bar.classList.remove('on');
-  if(dejaInstalle()){ hide(); return; }                                 // déjà installé : on se tait
+  if(dejaInstalle()){ try{ localStorage.setItem(CLE_INST,'1'); }catch(e){} hide(); return; }   // déjà installé : on se tait, et on le mémorise pour ne plus jamais reparaître
   try{ if(localStorage.getItem(CLE_INST)==='1'){ hide(); return; } }catch(e){}   // il a dit non
   if((PROFIL.parties||0) < 1){ hide(); return; }                        // il vient d'arriver
   const sp=document.getElementById('splash');
@@ -1961,13 +1962,7 @@ function majInstall(){
   if(_promptAndroid){
     sub.innerHTML='Plein écran, <b>même sans connexion</b>.';
     act.style.display=''; act.textContent='Installer'; act.onclick=installerAndroid;
-  } else if(_safariIOS()){
-    sub.innerHTML="Touche <b>Partager</b> \u2B06\uFE0E puis <b>« Sur l'écran d'accueil »</b>.";
-    act.style.display='none'; act.onclick=null;
-  } else if(_iOS()){
-    sub.innerHTML="Ouvre ce lien dans <b>Safari</b>, puis Partager \u2192 écran d'accueil.";
-    act.style.display='none'; act.onclick=null;
-  } else { hide(); return; }                                            // desktop sans invite : on n'insiste pas
+  } else { hide(); return; }   // iPhone & ordinateur : pas de bannière (l'install 1-clic n'existe pas, et elle gênait sur iPhone)
   bar.classList.add('on');
 }
 // la bannière suit l'écran d'accueil : elle apparaît sur le splash, disparaît dès qu'on le quitte
@@ -3397,7 +3392,7 @@ addEventListener("resize", ()=>{ try{ _kActuel=0; _ajRangs=-1; ajusteMain(true);
    Sans marqueur visible, ni le joueur ni le testeur ne savent ce qu'ils jouent, et le
    développeur ne peut pas le lire sur une capture. On a perdu une journée à s'en douter.
    À bumper AVEC le CACHE de sw.js — les deux doivent toujours dire la même chose. */
-const BUILD_TAG = "v138";
+const BUILD_TAG = "v140";
 
 const CLE_LITE = "eq_lite";
 let liteOn = false;
