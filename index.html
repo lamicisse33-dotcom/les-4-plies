@@ -1073,6 +1073,23 @@ html.lite #liens .lien{animation:none;}
 .coris-close{position:fixed;bottom:calc(env(safe-area-inset-bottom) + 16px);right:16px;z-index:10000;display:flex;align-items:center;gap:6px;padding:9px 14px;border-radius:22px;cursor:pointer;font-family:'Cinzel',serif;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:#e6ce7a;background:rgba(0,0,0,.55);border:1px solid rgba(201,162,39,.6);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);opacity:0;visibility:hidden;pointer-events:none;transition:opacity .3s ease}
 .coris-close.show{opacity:1;visibility:visible;pointer-events:auto}
 .coris-close:hover{box-shadow:0 0 18px -4px rgba(201,162,39,.8)}
+#chatBtn{position:fixed;right:14px;bottom:calc(env(safe-area-inset-bottom,0px) + 80px);z-index:70;width:52px;height:52px;border-radius:50%;display:none;align-items:center;justify-content:center;font-size:22px;cursor:pointer;background:linear-gradient(180deg,rgba(40,28,60,.96),rgba(20,14,32,.96));border:1px solid rgba(201,162,39,.55);box-shadow:0 6px 20px rgba(0,0,0,.5);color:#e6ce7a}
+#chatBtn.on{display:flex}
+.chat-dot{position:absolute;top:5px;right:5px;width:12px;height:12px;border-radius:50%;background:#e0506a;border:2px solid #140e20;display:none}
+.chat-dot.on{display:block}
+.chat-ov{position:fixed;inset:0;z-index:9999;display:none;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.5)}
+.chat-ov.on{display:flex}
+.chat-box{width:min(96vw,460px);height:min(72vh,580px);display:flex;flex-direction:column;background:linear-gradient(180deg,rgba(26,18,42,.99),rgba(15,10,24,.99));border:1px solid rgba(201,162,39,.4);border-radius:16px 16px 0 0;overflow:hidden}
+.chat-head{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid rgba(201,162,39,.25);font-family:'Cinzel',serif;color:#e6ce7a;font-size:14px;letter-spacing:.06em}
+.chat-x{background:none;border:none;color:#c9a227;font-size:18px;cursor:pointer;line-height:1}
+.chat-msgs{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px}
+.chat-vide{color:var(--muet,#8a7fa0);text-align:center;font-size:13px;margin:auto;opacity:.7}
+.chat-msg{max-width:80%;padding:8px 12px;border-radius:14px;font-size:14px;line-height:1.35;word-break:break-word}
+.chat-msg.moi{align-self:flex-end;background:rgba(201,162,39,.22);border:1px solid rgba(201,162,39,.4);color:#f4ead0;border-bottom-right-radius:4px}
+.chat-msg.lui{align-self:flex-start;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:#e7dcf0;border-bottom-left-radius:4px}
+.chat-input{display:flex;gap:8px;padding:10px;border-top:1px solid rgba(201,162,39,.25)}
+.chat-input input{flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(201,162,39,.35);border-radius:10px;padding:10px 12px;color:#fff;font-size:16px;outline:none}
+.chat-send{background:linear-gradient(180deg,#e7cf86,#c9a227);border:none;border-radius:10px;padding:0 16px;font-family:'Cinzel',serif;font-weight:700;color:#241634;cursor:pointer}
 </style>
 </head>
 <body>
@@ -3419,7 +3436,7 @@ addEventListener("resize", ()=>{ try{ _kActuel=0; _ajRangs=-1; ajusteMain(true);
    Sans marqueur visible, ni le joueur ni le testeur ne savent ce qu'ils jouent, et le
    développeur ne peut pas le lire sur une capture. On a perdu une journée à s'en douter.
    À bumper AVEC le CACHE de sw.js — les deux doivent toujours dire la même chose. */
-const BUILD_TAG = "v154";
+const BUILD_TAG = "v158";
 
 const CLE_LITE = "eq_lite";
 let liteOn = false;
@@ -3682,7 +3699,8 @@ function reagitPilier(p, who, delta){
 }
 /* Le moment le plus sûr : quand l'appli part en arrière-plan (appel, notification, changement d'appli). */
 window.addEventListener('pagehide', ()=>{ try{ sauverPartie(); }catch(e){} });
-document.addEventListener('visibilitychange', ()=>{ if(document.hidden){ try{ sauverPartie(); }catch(e){} } });
+document.addEventListener('visibilitychange', ()=>{ if(document.hidden){ try{ sauverPartie(); }catch(e){} try{ sauvegarderDuel(); }catch(e){} try{ if(JEU==='net' && NET.enPartie && NET.connected) netSend({t:'away'}); }catch(e){} } });   // prévenir l'adversaire tout de suite
+window.addEventListener('pagehide', ()=>{ try{ if(JEU==='net' && NET.enPartie && NET.connected) netSend({t:'away'}); }catch(e){} });   // fermeture/onglet : dernier signal avant de partir
 // perf : suspendre le moteur audio quand l'app n'est pas à l'écran, reprendre au retour
 document.addEventListener('visibilitychange', ()=>{
   try{
@@ -5148,14 +5166,19 @@ function netRecv(m){
   if(!m||!m.t) return;
   NET.vu = Date.now();          // il a parlé : il est vivant
   if(m.t==='ping') return;      // le battement seul ne fait rien d'autre
+  if(m.t==='away'){             // l'adversaire vient de quitter l'app : écran d'attente IMMÉDIAT (plus besoin d'attendre les 14 s de silence)
+    netPoulsArrete(); NET.connected=false;
+    if(NET.role==='host') netAttendreRetour(); else netPerdu();
+    return;
+  }
+  if(m.t==='bye'){ duelTermineParAutre(); return; }   // l'adversaire a appuyé sur « Se déconnecter » : fin nette, pas de reprise
+  if(m.t==='chat'){ if(typeof m.txt==='string') ajouterMsgChat(m.txt.slice(0,200), false); return; }   // message de discussion
   if(NET.role==='host'){
     if(m.t==='coup') netHoteCoup(m.idx, m.p);
     else if(m.t==='salut'){ if(NET.enPartie){ NET.dernier=null; netEnvoyerEtat(NET.aQui==='guest', null); } }   // l'invité (re)demande l'état → on renvoie l'instantané complet, autant de fois qu'il le faut
-    else if(m.t==='bye') netPerdu();
   } else {
     if(m.t==='etat') appliquerVue(m.v);
     else if(m.t==='fin') afficherFinDuel(m.d, false);
-    else if(m.t==='bye') netPerdu();
   }
 }
 
@@ -5170,6 +5193,7 @@ function vueGuest(aToi, msg){
 function netEnvoyerEtat(guestAToi, msg){
   netSend({t:'etat', v:vueGuest(guestAToi, msg)});
   NET.dernier = null;      // il a été transmis : on ne le rejouera pas au prochain état
+  sauvegarderDuel();       // l'état vient de changer : on le mémorise pour survivre à une fermeture
 }
 
 /* — Hôte : démarrage, distribution, enchaînement des tours — */
@@ -5182,6 +5206,7 @@ function demarrerDuelHote(){
 }
 function netDealManche(){
   NET.enPartie = true;      // à partir d'ici, une reconnexion doit REPRENDRE, pas redistribuer
+  majBoutonChat(true);
   const dn=melange(paquetNormal()), ds=melange(pileSpeciale());
   mainJ = tireNormales(dn).concat(ds.splice(0,SPEC_PAR_MAIN));   // hôte = joueur 1
   mainIA= tireNormales(dn).concat(ds.splice(0,SPEC_PAR_MAIN));   // invité = joueur 2
@@ -5257,6 +5282,7 @@ function _poserVue(v){
   JEU='net'; NET.role='guest'; MODE='classique';
   ac(); if(!muted && musOn) startAmbient();   // musique de manche (Duel, invité)
   NET.enPartie = true;   // l'invité est en partie : au retour de veille, la reconnexion doit REPRENDRE (pas rester bloquée)
+  majBoutonChat(true);
   NET._reprisOK = true;  // l'état est arrivé : on arrête de le redemander
   T={}; P.forEach(p=>{ const b=v.T[p]; T[p]={1:b[1],2:b[2],n1:b.n1,n2:b.n2}; });
   mainJ = v.maMain||[];                 // ordre conservé (les index correspondent chez l'hôte)
@@ -5267,6 +5293,7 @@ function _poserVue(v){
   majMatch();
   dire(v.aToi ? "<b>À vous de jouer.</b> Touchez une carte." : (v.msg||"En attente de l'adversaire…"), v.aToi?1:3);
   render();
+  sauvegarderDuel();       // l'invité mémorise qu'il est en duel (code + rôle) pour reprendre après fermeture
 }
 
 /* — Fin de manche/match (hôte calcule, envoie la vue à l'invité) — */
@@ -5317,19 +5344,32 @@ function afficherFinDuel(d, hote){
   else if(d.motif==='total') html+=`<div style="margin-top:10px;padding-top:8px;border-top:1px solid rgba(255,255,255,.12)">Piliers faibles à égalité. Départage au <b>total</b> : ${d.totMoi} contre ${d.totAdv}.</div>`;
   document.getElementById("findetail").innerHTML=html;
   if(d.matchFini) majFinMatch(d.jGagneMatch, null);
+  if(d.matchFini) effacerDuel();   // match terminé : plus de reprise auto (Rejouer relance une partie neuve qui se resauvegardera)
   const fb=document.getElementById("finbtns");
   if(hote){
     fb.innerHTML = d.matchFini
-      ? `<button class="btn" style="flex:1" onclick="rejouerDuel()">Rejouer</button><button class="btn ghost" onclick="quitterDuel()">Quitter</button>`
-      : `<button class="btn" style="flex:1" onclick="mancheSuivanteDuel()">Manche suivante →</button>`;
+      ? `<button class="btn" style="flex:1" onclick="rejouerDuel()">Rejouer</button><button class="btn ghost" onclick="seDeconnecterDuel()">Se déconnecter</button>`
+      : `<button class="btn" style="flex:1" onclick="mancheSuivanteDuel()">Manche suivante →</button><button class="btn ghost" onclick="seDeconnecterDuel()">Se déconnecter</button>`;
   } else {
-    fb.innerHTML = `<div style="flex:1;text-align:center;color:var(--muet);font-size:12px" class="dots">En attente de l'hôte</div><button class="btn ghost" onclick="quitterDuel()">Quitter</button>`;
+    fb.innerHTML = `<div style="flex:1;text-align:center;color:var(--muet);font-size:12px" class="dots">En attente de l'hôte</div><button class="btn ghost" onclick="seDeconnecterDuel()">Se déconnecter</button>`;
   }
   document.getElementById("fin").classList.add("on");
 }
 function mancheSuivanteDuel(){ mancheNo++; netDealManche(); }
 function rejouerDuel(){ matchMe=0; matchIA=0; mancheNo=1; netDealManche(); }
-function quitterDuel(){ netSend({t:'bye'}); netFermer(); NET.enPartie=false; NET.code=null; JEU='solo'; fermerOverlays(); ouvrirNiveau(); }
+function quitterDuel(){ effacerDuel(); netSend({t:'bye'}); netFermer(); NET.enPartie=false; NET.code=null; JEU='solo'; viderChat(); majBoutonChat(false); fermerOverlays(); ouvrirNiveau(); }
+function duelTermineParAutre(){
+  effacerDuel(); netPoulsArrete(); NET.connected=false; NET.enPartie=false; locked=true;
+  majBoutonChat(false);
+  try{
+    const fe=document.getElementById("finemoji"), ft=document.getElementById("fintitre");
+    fe.textContent="👋"; ft.style.color=""; ft.textContent="ADVERSAIRE PARTI";
+    document.getElementById("finpips").innerHTML="";
+    document.getElementById("findetail").innerHTML=`<div style="text-align:center;color:var(--muet)">L'adversaire a quitté le duel.</div>`;
+    document.getElementById("finbtns").innerHTML=`<button class="btn" style="flex:1" onclick="quitterDuel()">Retour au menu</button>`;
+    document.getElementById("fin").classList.add("on");
+  }catch(e){ try{ quitterDuel(); }catch(_){} }
+}
 
 /* — Déconnexion — */
 /* L'HÔTE N'ABANDONNE PAS.
@@ -5371,6 +5411,118 @@ function netPerdu(){
   document.getElementById("fin").classList.add("on");
 }
 function netFermer(){ netPoulsArrete(); try{ if(NET.conn) NET.conn.close(); }catch(e){} try{ if(NET.peer) NET.peer.destroy(); }catch(e){} NET.conn=null; NET.peer=null; NET.connected=false; NET.role=null; NET.sendRaw=null; }
+
+/* ══════════ CHAT DU DUEL ══════════ */
+function _escChat(s){ return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function majBoutonChat(on){ const b=document.getElementById('chatBtn'); if(b) b.classList.toggle('on', !!on); if(!on) fermerChatDuel(); }
+function ouvrirChatDuel(){
+  const o=document.getElementById('chatDuel'); if(!o) return;
+  o.classList.add('on');
+  const d=document.getElementById('chatDot'); if(d) d.classList.remove('on');
+  const m=document.getElementById('chatMsgs'); if(m) m.scrollTop=m.scrollHeight;
+  setTimeout(()=>{ try{ document.getElementById('chatText').focus(); }catch(e){} }, 60);
+}
+function fermerChatDuel(){ const o=document.getElementById('chatDuel'); if(o) o.classList.remove('on'); }
+function ajouterMsgChat(txt, mine){
+  const m=document.getElementById('chatMsgs'); if(!m) return;
+  const vide=m.querySelector('.chat-vide'); if(vide) vide.remove();
+  const div=document.createElement('div'); div.className='chat-msg '+(mine?'moi':'lui'); div.innerHTML=_escChat(txt);
+  m.appendChild(div); m.scrollTop=m.scrollHeight;
+  if(!mine){
+    const o=document.getElementById('chatDuel');
+    if(!o || !o.classList.contains('on')){ const d=document.getElementById('chatDot'); if(d) d.classList.add('on'); }
+    try{ beep(680,0.04,'sine',0.05); }catch(e){}
+  }
+}
+function envoyerChat(){
+  const i=document.getElementById('chatText'); if(!i) return;
+  let txt=(i.value||'').trim(); if(!txt) return; txt=txt.slice(0,200);
+  netSend({t:'chat', txt}); ajouterMsgChat(txt, true); i.value='';
+}
+function viderChat(){
+  const m=document.getElementById('chatMsgs'); if(m) m.innerHTML='<div class="chat-vide">Écrivez le premier message à votre adversaire.</div>';
+  const d=document.getElementById('chatDot'); if(d) d.classList.remove('on');
+  fermerChatDuel();
+}
+// Le chat se referme dès qu'on touche l'écran ailleurs que dans la fenêtre (on revient vite au jeu).
+document.addEventListener('pointerdown', function(e){
+  const o=document.getElementById('chatDuel');
+  if(!o || !o.classList.contains('on')) return;
+  if(e.target && e.target.closest && (e.target.closest('.chat-box') || e.target.closest('#chatBtn'))) return;   // fenêtre ou bouton 💬 : on ne ferme pas
+  fermerChatDuel();
+}, true);
+/* ══════════ DUEL PERSISTANT ══════════
+   Une fois liés, les deux téléphones restent connectés quoi qu'il arrive
+   (arrière-plan, fermeture de l'app, coupure réseau) — SANS jamais retaper de code —
+   jusqu'à « Se déconnecter » en fin de manche. On sauvegarde le duel dans le téléphone
+   et on le reprend tout seul au lancement. */
+const CLE_DUEL='eq_duel';
+function sauvegarderDuel(){
+  try{
+    if(JEU!=='net' || !NET.enPartie || !NET.code) return;
+    const d={ code:NET.code, role:NET.role, aQui:NET.aQui||null, ts:Date.now() };
+    if(NET.role==='host'){ d.gs={ mainJ, mainIA, T, tour, matchMe, matchIA, mancheNo, mode:MODE }; }
+    localStorage.setItem(CLE_DUEL, JSON.stringify(d));
+  }catch(e){}
+}
+function chargerDuel(){
+  try{
+    const raw=localStorage.getItem(CLE_DUEL); if(!raw) return null;
+    const d=JSON.parse(raw);
+    if(!d||!d.code||!d.role) return null;
+    if(Date.now()-(d.ts||0) > 2*3600*1000){ localStorage.removeItem(CLE_DUEL); return null; }   // 2h max
+    return d;
+  }catch(e){ return null; }
+}
+function effacerDuel(){ try{ localStorage.removeItem(CLE_DUEL); }catch(e){} }
+
+/* La SEULE vraie fin d'un duel : le joueur le décide. */
+function seDeconnecterDuel(){
+  effacerDuel();
+  try{ netSend({t:'bye'}); }catch(e){}
+  netFermer(); NET.enPartie=false; NET.code=null; JEU='solo';
+  viderChat(); majBoutonChat(false);
+  fermerOverlays(); ouvrirNiveau();
+}
+
+/* Reprise automatique au lancement : si un duel était en cours, on se rebranche seul
+   avec le code mémorisé. L'invité recompose ; l'hôte reprend son identité EQ4- et sa partie. */
+function reprendreDuelSauve(){
+  const d=chargerDuel(); if(!d) return false;
+  NET.code=d.code; NET.role=d.role; NET.enPartie=true; NET.aQui=d.aQui||null;
+  majBoutonChat(true);
+  JEU='net'; MODE=(d.gs&&d.gs.mode)||'classique';
+  try{ document.getElementById('splash').classList.remove('on'); }catch(e){}
+  if(d.role==='host' && d.gs){
+    mainJ=d.gs.mainJ||[]; mainIA=d.gs.mainIA||[]; T=d.gs.T||tableVide();
+    tour=d.gs.tour||0; matchMe=d.gs.matchMe||0; matchIA=d.gs.matchIA||0; mancheNo=d.gs.mancheNo||1;
+    sel=null; fini=false; locked=(NET.aQui!=='host'); histo=[]; prevOwners={};
+    try{ document.getElementById('niveauBadge').textContent='⚔️ Duel'; }catch(e){}
+    majMatch(); render();
+    chargePeerJS(ok=>{ if(!ok) return; try{
+      const peer=new Peer('EQ4-'+NET.code); NET.peer=peer;
+      peer.on('error', ()=>{});
+      peer.on('disconnected', ()=>{ if(!peer.destroyed){ try{ peer.reconnect(); }catch(e){} } });
+      peer.on('connection', c=>{                       // l'invité revient : on lui renvoie l'état
+        NET.conn=c;
+        c.on('open', ()=>{
+          NET.sendRaw=(o)=>{ try{c.send(o);}catch(e){} };
+          NET.connected=true; netPoulsDemarre();
+          document.getElementById('fin').classList.remove('on'); fermerDuel();
+          dire("<b>L'adversaire est revenu.</b>",1);
+          NET.dernier=null; netEnvoyerEtat(NET.aQui==='guest', null); render();
+        });
+        c.on('data', netRecv);
+        c.on('close', ()=>{ if(NET.conn===c) netPerdu(); });
+      });
+    }catch(e){} });
+    netAttendreRetour();                               // en attendant le retour de l'invité
+  } else {
+    NET.peer=null;
+    chargePeerJS(ok=>{ if(ok) duelReconnecter(); });    // l'invité se rebranche avec le code sauvé
+  }
+  return true;
+}
 
 /* — Lobby & transport PeerJS — */
 function genCode(){ const A="ACDEFGHJKLMNPQRTUVWXY3479"; let s=""; for(let i=0;i<5;i++) s+=A[Math.floor(Math.random()*A.length)]; return s; }
@@ -5485,7 +5637,8 @@ initMusBtn();
 initLite();      // décide seul si le téléphone rame
 nouveauMatch();
 let _premiere=false; try{ _premiere=!localStorage.getItem('eq_vu1'); if(_premiere) localStorage.setItem('eq_vu1','1'); }catch(e){}
-if(_premiere) ouvrirTuto("splash"); else ouvrirSplash();
+if(_premiere) ouvrirTuto("splash");
+else if(!reprendreDuelSauve()) ouvrirSplash();   // un duel était en cours ? on s'y rebranche seul, sinon accueil normal
 _initEnCours = false;      // à partir d'ici, tout coup joué est gravé
 </script>
 <script>
@@ -5529,6 +5682,17 @@ if('serviceWorker' in navigator){
 </div>
 <div id="corisOverlay" class="coris-ov">
   <iframe id="corisFrame" title="La Révélation des Coris" allow="autoplay"></iframe>
+</div>
+<button id="chatBtn" onclick="ouvrirChatDuel()" aria-label="Discussion">💬<span id="chatDot" class="chat-dot"></span></button>
+<div id="chatDuel" class="chat-ov" onclick="if(event.target===this)fermerChatDuel()">
+  <div class="chat-box">
+    <div class="chat-head"><span>💬 Discussion</span><button class="chat-x" onclick="fermerChatDuel()" aria-label="Fermer">✕</button></div>
+    <div id="chatMsgs" class="chat-msgs"><div class="chat-vide">Écrivez le premier message à votre adversaire.</div></div>
+    <div class="chat-input">
+      <input id="chatText" type="text" maxlength="200" placeholder="Écris un message…" autocomplete="off" onkeydown="if(event.key==='Enter'){event.preventDefault();envoyerChat();}">
+      <button class="chat-send" onclick="envoyerChat()">Envoyer</button>
+    </div>
+  </div>
 </div>
 </body>
 </html>
