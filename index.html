@@ -1077,10 +1077,10 @@ html.lite #liens .lien{animation:none;}
 #chatBtn.on{display:flex}
 .chat-dot{position:absolute;top:5px;right:5px;width:12px;height:12px;border-radius:50%;background:#e0506a;border:2px solid #140e20;display:none}
 .chat-dot.on{display:block}
-.chat-ov{position:fixed;inset:0;z-index:9999;display:none;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.5)}
+.chat-ov{position:fixed;inset:0;z-index:9999;display:none;align-items:flex-end;justify-content:center;background:transparent;pointer-events:auto}
 .chat-ov.on{display:flex}
-.chat-box{width:min(96vw,460px);height:min(72vh,580px);display:flex;flex-direction:column;background:linear-gradient(180deg,rgba(26,18,42,.99),rgba(15,10,24,.99));border:1px solid rgba(201,162,39,.4);border-radius:16px 16px 0 0;overflow:hidden}
-.chat-head{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid rgba(201,162,39,.25);font-family:'Cinzel',serif;color:#e6ce7a;font-size:14px;letter-spacing:.06em}
+.chat-box{width:min(96vw,430px);height:min(40vh,300px);display:flex;flex-direction:column;background:linear-gradient(180deg,rgba(26,18,42,.99),rgba(15,10,24,.995));border:1px solid rgba(201,162,39,.45);border-radius:16px 16px 0 0;overflow:hidden;box-shadow:0 -10px 34px rgba(0,0,0,.6)}
+.chat-head{display:flex;align-items:center;justify-content:space-between;padding:9px 13px;border-bottom:1px solid rgba(201,162,39,.25);font-family:'Cinzel',serif;color:#e6ce7a;font-size:13px;letter-spacing:.05em}
 .chat-x{background:none;border:none;color:#c9a227;font-size:18px;cursor:pointer;line-height:1}
 .chat-msgs{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px}
 .chat-vide{color:var(--muet,#8a7fa0);text-align:center;font-size:13px;margin:auto;opacity:.7}
@@ -3436,7 +3436,7 @@ addEventListener("resize", ()=>{ try{ _kActuel=0; _ajRangs=-1; ajusteMain(true);
    Sans marqueur visible, ni le joueur ni le testeur ne savent ce qu'ils jouent, et le
    développeur ne peut pas le lire sur une capture. On a perdu une journée à s'en douter.
    À bumper AVEC le CACHE de sw.js — les deux doivent toujours dire la même chose. */
-const BUILD_TAG = "v158";
+const BUILD_TAG = "v160";
 
 const CLE_LITE = "eq_lite";
 let liteOn = false;
@@ -5057,25 +5057,28 @@ document.addEventListener("click", e=>{
    Ce qui ne marchera PAS toujours : si c'est l'HÔTE qui s'endort, son identité (EQ4-code)
    disparaît du serveur d'annuaire, et elle peut rester réservée ~1 minute avant qu'il puisse
    la reprendre. Aucune app web ne contourne ça — le pair-à-pair meurt avec l'écran éteint. */
-function duelReconnecter(){
+function duelReconnecter(silencieux){
   if(!NET.code || NET.role!=='guest'){ quitterDuel(); return; }   // l'hôte ne peut que réémettre
   NET._reprisOK = false;                                          // on n'a pas encore récupéré l'état
-  document.getElementById("fin").classList.remove("on");
-  duelVue("Reconnexion…");
-  document.getElementById('duel').classList.add('on');
+  const vue = (t)=>{ if(!silencieux) duelVue(t); };               // silencieux : on garde l'écran d'attente affiché
+  if(!silencieux){
+    document.getElementById("fin").classList.remove("on");
+    duelVue("Reconnexion…");
+    document.getElementById('duel').classList.add('on');
+  }
 
   let essais = 0, tentative = 0;                 // tentative : seule la dernière a le droit d'aboutir
   const relier = ()=>{
     const moi = ++tentative;
     let c;
     try{ c = NET.peer.connect('EQ4-'+NET.code, {reliable:true}); }
-    catch(e){ duelVue("Reconnexion impossible. L'adversaire a peut-être quitté."); return; }
+    catch(e){ vue("Reconnexion impossible. L'adversaire a peut-être quitté."); return; }
     NET.conn=c;
     c.on('open', ()=>{
       if(moi!==tentative){ try{c.close();}catch(e){} return; }   // une tentative plus récente a pris le relais
       NET.sendRaw=(o)=>{ try{c.send(o);}catch(e){} };
       NET.connected=true; netPoulsDemarre();
-      duelVue("Reconnecté ! En attente de l'hôte…");
+      vue("Reconnecté ! En attente de l'hôte…");
       netSend({t:'salut'});                       // l'hôte répondra par l'état : appliquerVue rouvrira le plateau
       // auto-réparation : tant que l'état n'est pas revenu, on le redemande (l'hôte répond à chaque salut)
       let rd=0; const redemander=()=>{
@@ -5094,7 +5097,7 @@ function duelReconnecter(){
         if(NET.peer && NET.peer.disconnected){ try{ NET.peer.reconnect(); }catch(e){} }   // notre propre lien annuaire a pu tomber
         relier();
       } else {
-        duelVue("L'adversaire ne répond pas. Il a peut-être fermé le jeu.");
+        vue("L'adversaire ne répond pas. Il a peut-être fermé le jeu.");
       }
     }, 3500);
   };
@@ -5104,8 +5107,8 @@ function duelReconnecter(){
       const p = new Peer(); NET.peer=p;
       p.on('open', relier);
       p.on('disconnected', ()=>{ if(!p.destroyed){ try{ p.reconnect(); }catch(e){} } });
-      p.on('error', e=>duelVue("Reconnexion impossible : "+((e&&e.type)||e)));
-    }catch(e){ duelVue("Reconnexion impossible."); }
+      p.on("error", e=>vue("Reconnexion impossible : "+((e&&e.type)||e)));
+    }catch(e){ vue("Reconnexion impossible."); }
     return;
   }
   if(NET.peer.disconnected){                  // il vit encore mais a perdu l'annuaire
@@ -5167,8 +5170,7 @@ function netRecv(m){
   NET.vu = Date.now();          // il a parlé : il est vivant
   if(m.t==='ping') return;      // le battement seul ne fait rien d'autre
   if(m.t==='away'){             // l'adversaire vient de quitter l'app : écran d'attente IMMÉDIAT (plus besoin d'attendre les 14 s de silence)
-    netPoulsArrete(); NET.connected=false;
-    if(NET.role==='host') netAttendreRetour(); else netPerdu();
+    netPerdu();
     return;
   }
   if(m.t==='bye'){ duelTermineParAutre(); return; }   // l'adversaire a appuyé sur « Se déconnecter » : fin nette, pas de reprise
@@ -5280,6 +5282,7 @@ function appliquerVue(v){
 }
 function _poserVue(v){
   JEU='net'; NET.role='guest'; MODE='classique';
+  arreterCompteAbandon(); NET.attente=false;
   ac(); if(!muted && musOn) startAmbient();   // musique de manche (Duel, invité)
   NET.enPartie = true;   // l'invité est en partie : au retour de veille, la reconnexion doit REPRENDRE (pas rester bloquée)
   majBoutonChat(true);
@@ -5357,9 +5360,9 @@ function afficherFinDuel(d, hote){
 }
 function mancheSuivanteDuel(){ mancheNo++; netDealManche(); }
 function rejouerDuel(){ matchMe=0; matchIA=0; mancheNo=1; netDealManche(); }
-function quitterDuel(){ effacerDuel(); netSend({t:'bye'}); netFermer(); NET.enPartie=false; NET.code=null; JEU='solo'; viderChat(); majBoutonChat(false); fermerOverlays(); ouvrirNiveau(); }
+function quitterDuel(){ arreterCompteAbandon(); effacerDuel(); netSend({t:'bye'}); netFermer(); NET.enPartie=false; NET.code=null; JEU='solo'; viderChat(); majBoutonChat(false); fermerOverlays(); ouvrirNiveau(); }
 function duelTermineParAutre(){
-  effacerDuel(); netPoulsArrete(); NET.connected=false; NET.enPartie=false; locked=true;
+  effacerDuel(); netPoulsArrete(); NET.connected=false; NET.enPartie=false; locked=true; arreterCompteAbandon();
   majBoutonChat(false);
   try{
     const fe=document.getElementById("finemoji"), ft=document.getElementById("fintitre");
@@ -5380,34 +5383,49 @@ function duelTermineParAutre(){
    L'hôte garde donc son pair VIVANT et attend. Son peer.on('connection') est toujours en
    écoute : quand l'invité recompose, la branche « reprise » repart et le match continue. */
 function netAttendreRetour(){
+  NET.attente=true;
   const fe=document.getElementById("finemoji"), ft=document.getElementById("fintitre");
   fe.textContent="⏳"; ft.style.color=""; ft.textContent="ADVERSAIRE ABSENT";
   document.getElementById("finpips").innerHTML="";
   document.getElementById("findetail").innerHTML=
-    `<div style="text-align:center;color:var(--muet)">Son téléphone s'est mis en veille.<br><br>
-     <b style="color:var(--goldL)">Ne quitte pas : ta partie est gardée.</b><br>
-     <span style="font-size:13px;opacity:.75">Dès qu'il rouvre le jeu, la manche reprendra où vous l'avez laissée.
-     Le score est intact.</span></div>`;
+    `<div style="text-align:center;color:var(--muet)">L'adversaire s'est absenté.<br><br>
+     <b style="color:var(--goldL)">Ne quitte pas : la partie est gardée.</b><br>
+     <span style="font-size:13px;opacity:.75">Elle reprendra d'elle-même dès son retour, au même score.</span></div>`;
   document.getElementById("finbtns").innerHTML=
-    `<button class="btn ghost" style="flex:1" onclick="quitterDuel()">Abandonner le Duel</button>`;
+    `<button class="btn ghost" id="abandonDuelBtn" style="flex:1;opacity:.5" disabled onclick="quitterDuel()">Abandon possible dans <span id="abandonCompte">60</span> s</button>`;
   document.getElementById("fin").classList.add("on");
+  // Celui qui reste ne peut PAS abandonner tout de suite : 60 s pour laisser une chance au retour de l'autre.
+  arreterCompteAbandon();
+  let reste=60;
+  NET._abandonTick=setInterval(()=>{
+    reste--;
+    const cpt=document.getElementById("abandonCompte"); if(cpt) cpt.textContent=(reste>0?reste:0);
+    if(reste<=0){
+      arreterCompteAbandon();
+      const b=document.getElementById("abandonDuelBtn");
+      if(b){ b.disabled=false; b.style.opacity=""; b.textContent="Abandonner le Duel"; }
+    }
+  },1000);
 }
+function arreterCompteAbandon(){ try{ if(NET._abandonTick){ clearInterval(NET._abandonTick); NET._abandonTick=null; } }catch(e){} }
 function netPerdu(){
   if(JEU!=='net') return;
   netPoulsArrete();            // sinon il se rappellerait en boucle
   NET.connected=false;
   locked=true;
-  /* L'hôte en pleine partie garde la ligne ouverte : lui seul peut accueillir le revenant. */
-  if(NET.role==='host' && NET.enPartie && NET.peer && !NET.peer.destroyed) return netAttendreRetour();
+  if(NET.enPartie){
+    /* En pleine partie : celui qui est RESTÉ voit l'écran d'attente (aucun bouton Reprendre,
+       Abandon possible seulement après 60 s). L'invité se rebranche tout seul, en silence ;
+       l'hôte garde sa ligne ouverte et accueille le revenant. */
+    netAttendreRetour();
+    if(NET.role==='guest' && NET.code) duelReconnecter(true);   // reconnexion silencieuse en arrière-plan
+    return;
+  }
   const fe=document.getElementById("finemoji"), ft=document.getElementById("fintitre");
   fe.textContent="🔌"; ft.style.color=""; ft.textContent="CONNEXION PERDUE";
   document.getElementById("finpips").innerHTML="";
-  document.getElementById("findetail").innerHTML=`<div style="text-align:center;color:var(--muet)">La liaison avec l'adversaire a été interrompue.<br><br><span style="font-size:13px;opacity:.75">C'est fréquent quand un téléphone se met en veille : la connexion directe ne survit pas à l'écran éteint. Relancez un Duel pour rejouer.</span></div>`;
-  document.getElementById("finbtns").innerHTML =
-    (NET.enPartie && NET.role==='guest' && NET.code)
-      ? `<button class="btn" style="flex:1" onclick="duelReconnecter()">Reconnecter</button>
-         <button class="btn ghost" style="flex:1" onclick="quitterDuel()">Retour au menu</button>`
-      : `<button class="btn" style="flex:1" onclick="quitterDuel()">Retour au menu</button>`;
+  document.getElementById("findetail").innerHTML=`<div style="text-align:center;color:var(--muet)">La liaison avec l'adversaire a été interrompue.</div>`;
+  document.getElementById("finbtns").innerHTML=`<button class="btn" style="flex:1" onclick="quitterDuel()">Retour au menu</button>`;
   document.getElementById("fin").classList.add("on");
 }
 function netFermer(){ netPoulsArrete(); try{ if(NET.conn) NET.conn.close(); }catch(e){} try{ if(NET.peer) NET.peer.destroy(); }catch(e){} NET.conn=null; NET.peer=null; NET.connected=false; NET.role=null; NET.sendRaw=null; }
@@ -5478,7 +5496,7 @@ function effacerDuel(){ try{ localStorage.removeItem(CLE_DUEL); }catch(e){} }
 
 /* La SEULE vraie fin d'un duel : le joueur le décide. */
 function seDeconnecterDuel(){
-  effacerDuel();
+  effacerDuel(); arreterCompteAbandon();
   try{ netSend({t:'bye'}); }catch(e){}
   netFermer(); NET.enPartie=false; NET.code=null; JEU='solo';
   viderChat(); majBoutonChat(false);
@@ -5508,7 +5526,7 @@ function reprendreDuelSauve(){
         c.on('open', ()=>{
           NET.sendRaw=(o)=>{ try{c.send(o);}catch(e){} };
           NET.connected=true; netPoulsDemarre();
-          document.getElementById('fin').classList.remove('on'); fermerDuel();
+          arreterCompteAbandon(); document.getElementById('fin').classList.remove('on'); fermerDuel();
           dire("<b>L'adversaire est revenu.</b>",1);
           NET.dernier=null; netEnvoyerEtat(NET.aQui==='guest', null); render();
         });
@@ -5580,7 +5598,7 @@ function duelCreer(){
       NET.sendRaw=(o)=>{ try{c.send(o);}catch(e){} };
       NET.connected=true; netPoulsDemarre();
       if(reprise){
-        document.getElementById("fin").classList.remove("on");    // l'écran 🔌 s'efface
+        arreterCompteAbandon(); document.getElementById("fin").classList.remove("on");    // l'écran 🔌 s'efface
         fermerDuel();
         dire("<b>L'adversaire est revenu.</b>", 1);
         NET.dernier=null;                                   // rien à rejouer : on renvoie l'état nu
