@@ -50,13 +50,13 @@ button:active{transform:scale(.96);}
 #ambiance{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none;}
 #vignette{position:fixed;inset:0;z-index:2;pointer-events:none;
   background:radial-gradient(ellipse at 50% 40%, transparent 58%, rgba(9,5,22,.16) 84%, rgba(6,3,16,.3) 100%);}
-#ambiance .glow{position:absolute;border-radius:50%;filter:blur(55px);mix-blend-mode:screen;}
+#ambiance .glow{position:absolute;border-radius:50%;filter:blur(30px);mix-blend-mode:screen;}
 #ambiance .g1{width:72vmax;height:72vmax;left:-22vmax;top:-26vmax;opacity:.5;
   background:radial-gradient(circle,rgba(140,80,200,.55),transparent 62%);animation:drift1 28s ease-in-out infinite;}
 #ambiance .g2{width:62vmax;height:62vmax;right:-26vmax;top:8vmax;opacity:.42;
   background:radial-gradient(circle,rgba(201,162,39,.4),transparent 62%);animation:drift2 34s ease-in-out infinite;}
-@keyframes drift1{0%,100%{transform:translate(0,0) scale(1);}50%{transform:translate(8vmax,7vmax) scale(1.12);}}
-@keyframes drift2{0%,100%{transform:translate(0,0) scale(1);}50%{transform:translate(-7vmax,9vmax) scale(1.16);}}
+@keyframes drift1{0%,100%{transform:translate(0,0);}50%{transform:translate(8vmax,7vmax);}}
+@keyframes drift2{0%,100%{transform:translate(0,0);}50%{transform:translate(-7vmax,9vmax);}}
 .mote{position:absolute;bottom:-12px;border-radius:50%;background:radial-gradient(circle,#f4de92,rgba(240,208,96,0) 70%);
   box-shadow:0 0 7px rgba(240,208,96,.6);opacity:0;animation:moteUp linear infinite;}
 @keyframes moteUp{0%{transform:translateY(0) translateX(0);opacity:0;}12%{opacity:.85;}88%{opacity:.5;}
@@ -379,8 +379,9 @@ html.lite .phx-wing{display:none;}
   background:linear-gradient(150deg,var(--ivoire1),var(--ivoire2));
   border:1.2px solid var(--encre);box-shadow:0 3px 10px rgba(0,0,0,.35);
   display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:7px 4px 5px;
-  transition:transform .14s,box-shadow .14s;animation:cin .3s ease both;}
+  transition:transform .14s,box-shadow .14s;}
 @keyframes cin{0%{transform:translateY(10px);opacity:0;}100%{transform:translateY(0);opacity:1;}}
+.carte.neuve{animation:cin .3s ease both;}
 .carte:hover{transform:translateY(-3px);}
 .carte.sel{transform:translateY(-8px);box-shadow:0 0 0 1.4px var(--gold),0 0 18px rgba(201,162,39,.6),0 8px 20px rgba(0,0,0,.4);}
 .carte.dim{opacity:.4;filter:grayscale(.4);}
@@ -1857,7 +1858,7 @@ function startAmbient(){
       step++; if(step>=stepsBar){ step=0; bar++; }
       nextT+=spb;
     }
-  },50);
+  },100);
   ambiNodes={oscs:pad.concat(pad2),lfo:padLFO,sched,mg:MUSG};
 }
 function stopAmbient(){
@@ -3240,6 +3241,7 @@ function majMatch(){
 }
 
 /* ══════════ RENDU ══════════ */
+const _vuesCartes = new WeakSet();   // cartes déjà affichées : seules les nouvelles s'animent à l'entrée
 function render(){
   const [g1,g2]=bornesGagnees(T);
   const nuls = 4-g1-g2;
@@ -3317,8 +3319,9 @@ function render(){
     const eau = feux.length>0 && !c.cibleAdverse && feux.some(p=>cibles.includes(p));
     const el=document.createElement("div");
     el.id="carte-"+i;
+    const neuve = !_vuesCartes.has(c); if(neuve) _vuesCartes.add(c);   // animer l'entrée UNIQUEMENT si la carte est nouvelle
     if(estSpec(c)){
-      el.className="carte spec"+(sel===i?" sel":"")+(!jouable?" dim":"")+(eau?" eau":"");
+      el.className="carte spec"+(sel===i?" sel":"")+(!jouable?" dim":"")+(eau?" eau":"")+(neuve?" neuve":"");
       el.style.setProperty("--sc",c.col);
       el.innerHTML=`<div class="filet"></div><div class="stag">${c.tag}</div>
         <div class="semb">${c.emb}</div>
@@ -3328,7 +3331,7 @@ function render(){
       const [a,b]=piliersDe(c);
       const nom=nomCarte(c);
       const coin=(cls)=>`<div class="cnr ${cls}"><span class="cv">${c.pts}</span><span class="ce">${miniOrb(a)}${miniOrb(b)}</span></div>`;
-      el.className="carte norm"+(sel===i?" sel":"")+(!jouable?" dim":"")+(eau?" eau":"");
+      el.className="carte norm"+(sel===i?" sel":"")+(!jouable?" dim":"")+(eau?" eau":"")+(neuve?" neuve":"");
       el.innerHTML=`<div class="filet"></div>
         ${coin('tl')}${coin('br')}
         <div class="cnom top">${nom}</div>
@@ -3394,7 +3397,7 @@ addEventListener("resize", ()=>{ try{ _kActuel=0; _ajRangs=-1; ajusteMain(true);
    Sans marqueur visible, ni le joueur ni le testeur ne savent ce qu'ils jouent, et le
    développeur ne peut pas le lire sur une capture. On a perdu une journée à s'en douter.
    À bumper AVEC le CACHE de sw.js — les deux doivent toujours dire la même chose. */
-const BUILD_TAG = "v135";
+const BUILD_TAG = "v138";
 
 const CLE_LITE = "eq_lite";
 let liteOn = false;
@@ -3543,7 +3546,9 @@ function invoquerPhenix(){
   const p=pilierEnFeu(); if(!p) return;
   const g=phenixGain(); if(g<=0) return;
   phenixUse=true; sel=null; locked=true;
-  mainJ.pop();                              // une carte est transmutée
+  // une carte NORMALE est transmutée comme coût — on n'ampute jamais un joker si on peut l'éviter
+  let _ti=-1; for(let k=mainJ.length-1;k>=0;k--){ if(!estSpec(mainJ[k])){ _ti=k; break; } }
+  mainJ.splice(_ti>=0 ? _ti : mainJ.length-1, 1);   // dernier recours : main entièrement composée de jokers
   T[p][1]+=g;                               // sursaut plafonné à parité (hors compteur de cartes)
   histo.push(`✨ Le Phénix relève ${p} (+${g})`);
   render();
@@ -3656,6 +3661,13 @@ function reagitPilier(p, who, delta){
 /* Le moment le plus sûr : quand l'appli part en arrière-plan (appel, notification, changement d'appli). */
 window.addEventListener('pagehide', ()=>{ try{ sauverPartie(); }catch(e){} });
 document.addEventListener('visibilitychange', ()=>{ if(document.hidden){ try{ sauverPartie(); }catch(e){} } });
+// perf : suspendre le moteur audio quand l'app n'est pas à l'écran, reprendre au retour
+document.addEventListener('visibilitychange', ()=>{
+  try{
+    if(document.hidden){ if(AC && AC.state==='running') AC.suspend(); }
+    else { if(AC && AC.state==='suspended' && !muted) AC.resume(); }
+  }catch(e){}
+});
 function poser(p){
   if(fini||sel===null||locked) return;
   const c=mainJ[sel];
