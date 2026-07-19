@@ -3223,6 +3223,7 @@ function nouveauMatch(){ effacerPartie(); MODE='classique'; AGO.on=false; docume
 function demarrerSoin(){ effacerPartie(); ac(); MODE='soin'; AGO.on=false; document.body.classList.remove('mode-agonie','peril','enfeu'); stopHeart(); stopFeu(); matchMe=0; matchIA=0; mancheNo=1; mancheHisto=[]; resetBilan(); phenixUse=false; demarrer(); document.getElementById("niveauBadge").textContent="🍃 Voie du Soin"; }
 
 function demarrer(){
+  ac(); if(!muted && musOn) startAmbient();   // la musique n'accompagne QUE les manches
   const dn=melange(paquetNormal()), ds=melange(pileSpeciale());
   mainJ = tireNormales(dn).concat(ds.splice(0,SPEC_PAR_MAIN));
   mainIA= tireNormales(dn).concat(ds.splice(0,SPEC_PAR_MAIN));
@@ -3418,7 +3419,7 @@ addEventListener("resize", ()=>{ try{ _kActuel=0; _ajRangs=-1; ajusteMain(true);
    Sans marqueur visible, ni le joueur ni le testeur ne savent ce qu'ils jouent, et le
    développeur ne peut pas le lire sur une capture. On a perdu une journée à s'en douter.
    À bumper AVEC le CACHE de sw.js — les deux doivent toujours dire la même chose. */
-const BUILD_TAG = "v151";
+const BUILD_TAG = "v154";
 
 const CLE_LITE = "eq_lite";
 let liteOn = false;
@@ -4072,6 +4073,7 @@ function melangeSeed(deck, rng){ for(let i=deck.length-1;i>0;i--){ const j=Math.
 function flashMsg(t){ const d=document.createElement('div'); d.className='toast'; d.textContent=t; document.body.appendChild(d);
   requestAnimationFrame(()=>d.classList.add('on')); setTimeout(()=>d.classList.remove('on'),1800); setTimeout(()=>d.remove(),2300); }
 function demarrerDefi(){
+  ac(); if(!muted && musOn) startAmbient();   // musique de manche
   ac(); MODE='defi'; AGO.on=false; document.body.classList.remove('mode-agonie','peril','enfeu'); stopHeart(); stopFeu();
   matchMe=0; matchIA=0; mancheNo=1; mancheHisto=[]; resetBilan();
   const rng=mulberry32((defiKey()^0x9e3779b9)>>>0);
@@ -4166,6 +4168,7 @@ function partagerDefi(f1,t1){
   else flashMsg(txt);
 }
 function ouvrirNiveau(){
+  stopAmbient();          // on quitte le jeu : plus de musique au menu
   fermerOverlays();
   const g=document.getElementById("diffgrid");
   g.innerHTML =
@@ -4212,6 +4215,7 @@ function poserReprise(){
 }
 const MODE_NOM = { classique:'', soin:'Voie du Soin · ', defi:'Défi du jour · ', agonie:'Agonie · ' };
 function ouvrirSplash(){
+  stopAmbient();          // accueil : silence de musique (les clics restent)
   poserReprise();
   majInstall();          // l'invitation se décide ici : elle relit l'état, elle ne le recopie pas
   fermerOverlays();
@@ -5021,7 +5025,7 @@ function steamFX(p, maitrise){
 }
 
 /* Démarre l'audio (nappe) dès la 1re interaction ; clic sonore sur les boutons */
-document.addEventListener("pointerdown", ()=>{ ensureAudio(); }, {passive:true});
+document.addEventListener("pointerdown", ()=>{ ac(); }, {passive:true});   // débloque le son (clics) — la musique ne démarre PAS au menu, seulement en manche
 window.addEventListener("resize", ()=>{ if(MODE==='agonie') majLiens(); }, {passive:true});
 document.addEventListener("click", e=>{
   const b = e.target.closest && e.target.closest(".btn,.iconbtn,.linkbtn,.diffbtn");
@@ -5037,6 +5041,7 @@ document.addEventListener("click", e=>{
    la reprendre. Aucune app web ne contourne ça — le pair-à-pair meurt avec l'écran éteint. */
 function duelReconnecter(){
   if(!NET.code || NET.role!=='guest'){ quitterDuel(); return; }   // l'hôte ne peut que réémettre
+  NET._reprisOK = false;                                          // on n'a pas encore récupéré l'état
   document.getElementById("fin").classList.remove("on");
   duelVue("Reconnexion…");
   document.getElementById('duel').classList.add('on');
@@ -5054,6 +5059,12 @@ function duelReconnecter(){
       NET.connected=true; netPoulsDemarre();
       duelVue("Reconnecté ! En attente de l'hôte…");
       netSend({t:'salut'});                       // l'hôte répondra par l'état : appliquerVue rouvrira le plateau
+      // auto-réparation : tant que l'état n'est pas revenu, on le redemande (l'hôte répond à chaque salut)
+      let rd=0; const redemander=()=>{
+        if(NET._reprisOK || moi!==tentative || !NET.connected) return;
+        if(rd++<5){ netSend({t:'salut'}); setTimeout(redemander, 1000); }
+      };
+      setTimeout(redemander, 1000);
     });
     c.on('data', netRecv);
     c.on('close', ()=>{ if(NET.conn===c) netPerdu(); });   // une vieille tentative qui meurt ne doit pas tuer la reprise
@@ -5094,16 +5105,24 @@ function duelReconnecter(){
    toujours fausse et la reconnexion ne partait JAMAIS.
    On ne demande plus son avis au drapeau : on MESURE le silence. NET.vu est un fait,
    NET.connected n'est qu'une croyance. */
-document.addEventListener('visibilitychange', ()=>{
+function duelAuRetour(){
   if(document.hidden) return;
   if(JEU!=='net' || !NET.enPartie || !NET.code) return;
   const silence = Date.now() - (NET.vu||0);
-  if(NET.connected && silence <= SILENCE_MS) return;      // il est vraiment vivant : on ne touche à rien
+  if(NET.connected && silence <= SILENCE_MS){          // il semble vivant : on confirme juste par un salut (l'hôte répondra l'état)
+    if(NET.role==='guest') netSend({t:'salut'});
+    return;
+  }
   netPoulsArrete();
   NET.connected = false;
-  if(NET.role==='guest') duelReconnecter();               // l'invité peut recomposer le code
-  else netPerdu();                                        // l'hôte ne peut qu'annoncer la panne
-});
+  if(NET.role==='guest') duelReconnecter();               // l'invité recompose le code et redemande l'état
+  else netPerdu();                                        // l'hôte garde la ligne et attend le revenant
+}
+// iOS revient souvent SANS 'visibilitychange' (cache page-arrière) : on écoute aussi pageshow/focus/online.
+document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) duelAuRetour(); });
+window.addEventListener('pageshow', duelAuRetour);
+window.addEventListener('focus', duelAuRetour);
+window.addEventListener('online', duelAuRetour);
 
 /* ══════════ LE POULS DU DUEL ══════════
    Un seul téléphone détectait la coupure. L'autre attendait son adversaire pour toujours —
@@ -5131,6 +5150,7 @@ function netRecv(m){
   if(m.t==='ping') return;      // le battement seul ne fait rien d'autre
   if(NET.role==='host'){
     if(m.t==='coup') netHoteCoup(m.idx, m.p);
+    else if(m.t==='salut'){ if(NET.enPartie){ NET.dernier=null; netEnvoyerEtat(NET.aQui==='guest', null); } }   // l'invité (re)demande l'état → on renvoie l'instantané complet, autant de fois qu'il le faut
     else if(m.t==='bye') netPerdu();
   } else {
     if(m.t==='etat') appliquerVue(m.v);
@@ -5154,6 +5174,7 @@ function netEnvoyerEtat(guestAToi, msg){
 
 /* — Hôte : démarrage, distribution, enchaînement des tours — */
 function demarrerDuelHote(){
+  ac(); if(!muted && musOn) startAmbient();   // musique de manche (Duel)
   JEU='net'; NET.role='host'; MODE='classique';
   document.body.classList.remove('mode-agonie','peril','enfeu'); stopHeart(); stopFeu();
   matchMe=0; matchIA=0; mancheNo=1;
@@ -5234,7 +5255,9 @@ function appliquerVue(v){
 }
 function _poserVue(v){
   JEU='net'; NET.role='guest'; MODE='classique';
+  ac(); if(!muted && musOn) startAmbient();   // musique de manche (Duel, invité)
   NET.enPartie = true;   // l'invité est en partie : au retour de veille, la reconnexion doit REPRENDRE (pas rester bloquée)
+  NET._reprisOK = true;  // l'état est arrivé : on arrête de le redemander
   T={}; P.forEach(p=>{ const b=v.T[p]; T[p]={1:b[1],2:b[2],n1:b.n1,n2:b.n2}; });
   mainJ = v.maMain||[];                 // ordre conservé (les index correspondent chez l'hôte)
   matchMe=v.matchMoi; matchIA=v.matchAdv; mancheNo=v.mancheNo;
@@ -5417,7 +5440,7 @@ function duelCreer(){
       }
     });
     c.on('data', netRecv);
-    c.on('close', netPerdu);
+    c.on('close', ()=>{ if(NET.conn===c) netPerdu(); });   // une ancienne connexion qui meurt après le retour de l'invité ne doit pas relancer « ADVERSAIRE ABSENT »
   });
 }
 function duelRejoindre(){
@@ -5435,7 +5458,7 @@ function duelRejoindre(){
     const c=peer.connect('EQ4-'+code, {reliable:true}); NET.conn=c;
     c.on('open', ()=>{ NET.sendRaw=(o)=>{ try{c.send(o);}catch(e){} }; NET.connected=true; netPoulsDemarre(); duelVue("Connecté ! En attente de l'hôte…"); netSend({t:'salut'}); });
     c.on('data', netRecv);
-    c.on('close', netPerdu);
+    c.on('close', ()=>{ if(NET.conn===c) netPerdu(); });
   });
 }
 
