@@ -22,13 +22,15 @@
   --p-san:#27AE60;
   --p-arg:#D8A22E;
 }
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;-webkit-user-select:none;-moz-user-select:none;user-select:none}
+input,textarea,select,[contenteditable="true"]{-webkit-user-select:text;-moz-user-select:text;user-select:text;-webkit-touch-callout:default}
 html,body{height:100%}
 body{
   background:var(--noir);
   color:var(--ivoire);
   font-family:'Cormorant Garamond',Georgia,serif;
   overflow:hidden;
+  touch-action:manipulation;
   position:fixed;inset:0;
 }
 .app{position:absolute;inset:0;overflow:hidden}

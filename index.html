@@ -24,7 +24,9 @@
   /* échelle des cartes : calculée en JS pour que tout l'écran tienne (design natif préservé) */
   --k:1;
 }
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;-webkit-user-select:none;-moz-user-select:none;user-select:none;}
+/* les champs de saisie restent éditables et sélectionnables */
+input,textarea,select,[contenteditable="true"]{-webkit-user-select:text;-moz-user-select:text;user-select:text;-webkit-touch-callout:default;}
 /* LA BANDE BLANCHE EN BAS DE L'IPHONE.
    `background: radial-gradient(...)` est un RACCOURCI : il pose une background-IMAGE et remet
    background-COLOR à transparent. Le dégradé ne couvrait donc que la boîte de la page — et la
@@ -34,7 +36,7 @@
    sûres), le dégradé en `background-image` séparé pour qu'il ne l'efface plus, et `fixed` pour
    qu'il couvre l'écran quelle que soit la hauteur du contenu. */
 html{background-color:#100829;}
-html,body{margin:0;min-height:100dvh;
+html,body{margin:0;min-height:100dvh;touch-action:manipulation;
   background-color:#100829;
   background-image:radial-gradient(ellipse at 50% 0%,#2a1a5e,#170e3c 58%,#100829);
   background-repeat:no-repeat;
@@ -158,7 +160,7 @@ button.reg-l:active{background:rgba(255,255,255,.06);border-color:rgba(201,162,3
   padding:13px 14px;margin:2px 0 10px;text-align:left;position:relative;}
 /* bannière d'installation flottante, en bas de l'écran, uniquement sur l'accueil */
 .instbar{position:fixed;left:50%;transform:translateX(-50%) translateY(140%);
-  bottom:calc(env(safe-area-inset-bottom,0px) + 14px);z-index:70;
+  bottom:calc(env(safe-area-inset-bottom,0px) + 96px);z-index:70;
   width:min(92vw,420px);display:flex;align-items:center;gap:10px;
   background:linear-gradient(180deg,rgba(28,20,46,.96),rgba(16,11,26,.96));
   border:1px solid rgba(201,162,39,.45);border-radius:14px;padding:11px 12px 11px 14px;
@@ -173,7 +175,9 @@ button.reg-l:active{background:rgba(255,255,255,.06);border-color:rgba(201,162,3
 .instbar .ib-s b{color:#F7EFD2}
 .instbar .ib-b{flex-shrink:0;background:linear-gradient(180deg,#F7EFD2,#C9A227);color:#241634;border:none;
   border-radius:9px;padding:9px 14px;font-family:'Cinzel',serif;font-weight:700;font-size:11px;letter-spacing:.7px;
-  cursor:pointer;white-space:nowrap}
+  cursor:pointer;white-space:nowrap;animation:ibPulse 1.5s ease-in-out infinite}
+@keyframes ibPulse{0%,100%{box-shadow:0 0 0 0 rgba(240,208,96,0);transform:scale(1)}50%{box-shadow:0 0 16px 2px rgba(240,208,96,.7);transform:scale(1.04)}}
+@media (prefers-reduced-motion: reduce){.instbar .ib-b{animation:none}}
 .instbar .ib-x{flex-shrink:0;background:none;border:none;color:#8d84a8;font-size:18px;line-height:1;padding:4px 4px;cursor:pointer;font-family:inherit}
 .inst-t{font-family:'Cinzel',serif;font-weight:700;font-size:11.5px;letter-spacing:1.1px;
   text-transform:uppercase;color:var(--goldL);margin-bottom:6px;padding-right:22px;}
@@ -210,7 +214,7 @@ button.reg-l:active{background:rgba(255,255,255,.06);border-color:rgba(201,162,3
 /* ── Miroir ── */
 #miroir .card{max-height:92dvh;overflow:auto;}
 #miroirBody{margin-top:4px;}
-.mir-empty{text-align:center;font-style:italic;color:#c4bbd6;font-size:14px;line-height:1.6;padding:20px 6px;}
+.mir-empty{text-align:center;font-style:italic;color:#d6cee6;font-size:15.5px;line-height:1.6;padding:20px 6px;}
 .mir-empty b{color:var(--goldL);font-style:normal;}
 .mm-emb{font-size:34px;line-height:1;display:inline-block;margin-bottom:8px;opacity:.55;filter:grayscale(.4);}
 .mir-stat{text-align:center;font-family:'Cinzel',serif;font-weight:900;font-size:12px;color:var(--goldL);letter-spacing:1px;margin-bottom:12px;}
@@ -241,7 +245,7 @@ h1::after{content:"";position:absolute;top:0;left:-60%;width:38%;height:100%;poi
   background:linear-gradient(100deg,transparent,rgba(255,248,214,.6),transparent);transform:skewX(-18deg);animation:sheen 6s ease-in-out infinite;}
 @keyframes sheen{0%{left:-60%;}22%{left:150%;}100%{left:150%;}}
 html.lite h1::after{display:none;}
-.sub{text-align:center;font-size:9px;color:var(--muet);font-style:italic;margin-bottom:3px;letter-spacing:.5px;}
+.sub{text-align:center;font-size:11px;color:var(--goldL);font-style:italic;margin-bottom:3px;letter-spacing:.5px;}
 
 /* ── Barre de match ── */
 #matchbar{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:8px;
@@ -486,7 +490,7 @@ span.orb{width:24px;height:24px;border-radius:50%;border:1px solid var(--gold);b
 .segbtn:hover{color:var(--text);}
 .segbtn.on{background:linear-gradient(180deg,rgba(201,162,39,.24),rgba(201,162,39,.07));color:var(--goldL);
   box-shadow:inset 0 0 0 1px rgba(201,162,39,.55),0 2px 8px rgba(0,0,0,.25);}
-.diffdesc{font-size:11px;color:var(--muet);line-height:1.45;text-align:center;min-height:32px;margin-bottom:12px;padding:0 8px;
+.diffdesc{font-size:13px;color:#c2b9d6;line-height:1.45;text-align:center;min-height:36px;margin-bottom:12px;padding:0 8px;
   display:flex;align-items:center;justify-content:center;}
 .btn.reprise{width:100%;margin:0 0 8px;display:flex;flex-direction:column;gap:1px;padding:9px 12px;
   background:linear-gradient(180deg,rgba(201,162,39,.18),rgba(201,162,39,.07));
@@ -696,7 +700,7 @@ html.lite #qphenix .q-emb{animation:none;}
 #miroir .mir-clos{margin-top:8px !important;font-style:italic;color:var(--goldL);opacity:.92;}
 #miroir .mir-proche{font-size:12.5px;color:#bdb2d4;line-height:1.5;}
 .mir-proche b{color:var(--goldL);}
-.mir-compte{font-size:11px;color:#a99fc0;font-style:normal;letter-spacing:.2px;}
+.mir-compte{font-size:13px;color:#c4bad9;font-style:normal;letter-spacing:.2px;}
 .mir-attend .ma-t{color:var(--goldL);font-style:normal;font-weight:700;margin:0 0 2px;}
 .mir-attend .ma-s{margin:0 0 7px;opacity:.85;}
 .mir-attend .ma-l{list-style:none;margin:0;padding:0;text-align:left;max-width:250px;margin-inline:auto;}
@@ -1272,7 +1276,7 @@ html.lite #liens .lien{animation:none;}
     </div>
   </div>
   <h1>⚖️ LES QUATRE PILIERS</h1>
-  <div class="sub">match en 3 manches · cartes spéciales · l'adversaire cherche vraiment</div>
+  <div class="sub">2 manches gagnantes · cartes spéciales · l'adversaire cherche vraiment</div>
   <div id="matchbar"></div>
   <div id="balance">
     <div class="cap">Le plus faible</div>
@@ -3390,7 +3394,7 @@ addEventListener("resize", ()=>{ try{ _kActuel=0; _ajRangs=-1; ajusteMain(true);
    Sans marqueur visible, ni le joueur ni le testeur ne savent ce qu'ils jouent, et le
    développeur ne peut pas le lire sur une capture. On a perdu une journée à s'en douter.
    À bumper AVEC le CACHE de sw.js — les deux doivent toujours dire la même chose. */
-const BUILD_TAG = "v129";
+const BUILD_TAG = "v135";
 
 const CLE_LITE = "eq_lite";
 let liteOn = false;
