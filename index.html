@@ -103,6 +103,12 @@ html.lite .splash-emb{animation:none;filter:none;}   /* mobile lent : l'emblème
 .mem-card{background:rgba(201,162,39,.06);border:1px solid rgba(201,162,39,.25);border-radius:12px;padding:9px 12px;margin:6px 0;font-size:13px;line-height:1.45;color:#e7dcf0;}
 .mem-spec{display:flex;gap:9px;align-items:flex-start;font-size:13px;color:#e2d8ef;margin:6px 0;line-height:1.4;}
 .mem-spec .ic{font-size:18px;line-height:1.1;flex:0 0 auto;}
+.mem-steps{list-style:none;counter-reset:st;margin:8px 0 6px;padding:0;}
+.mem-steps li{counter-increment:st;position:relative;padding:7px 10px 7px 40px;margin:6px 0;font-size:13px;line-height:1.45;color:#e7dcf0;
+  background:rgba(201,162,39,.05);border:1px solid rgba(201,162,39,.18);border-radius:10px;}
+.mem-steps li::before{content:counter(st);position:absolute;left:9px;top:50%;transform:translateY(-50%);
+  width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-family:'Cinzel',serif;font-weight:900;font-size:12px;color:#241634;background:linear-gradient(180deg,var(--goldL),var(--gold));}
 .mem-spec .ic.ic2{position:relative;width:20px;height:20px;display:inline-block;}
 .mem-spec .ic.ic2 i{font-style:normal;line-height:1;position:absolute;left:50%;top:50%;}
 .mem-spec .ic.ic2 .e-bg{transform:translate(-50%,-50%);font-size:18px;opacity:.55;filter:saturate(.6);}
@@ -1064,7 +1070,8 @@ html.lite #liens .lien{animation:none;}
 .coris-ov{position:fixed;inset:0;z-index:9999;background:#000;display:none}
 .coris-ov.on{display:block}
 .coris-ov iframe{width:100%;height:100%;border:0;display:block}
-.coris-close{position:fixed;bottom:calc(env(safe-area-inset-bottom) + 16px);right:16px;z-index:10000;display:flex;align-items:center;gap:6px;padding:9px 14px;border-radius:22px;cursor:pointer;font-family:'Cinzel',serif;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:#e6ce7a;background:rgba(0,0,0,.55);border:1px solid rgba(201,162,39,.6);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.coris-close{position:fixed;bottom:calc(env(safe-area-inset-bottom) + 16px);right:16px;z-index:10000;display:flex;align-items:center;gap:6px;padding:9px 14px;border-radius:22px;cursor:pointer;font-family:'Cinzel',serif;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:#e6ce7a;background:rgba(0,0,0,.55);border:1px solid rgba(201,162,39,.6);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);opacity:0;visibility:hidden;pointer-events:none;transition:opacity .3s ease}
+.coris-close.show{opacity:1;visibility:visible;pointer-events:auto}
 .coris-close:hover{box-shadow:0 0 18px -4px rgba(201,162,39,.8)}
 </style>
 </head>
@@ -1219,10 +1226,26 @@ html.lite #liens .lien{animation:none;}
 
     <div class="mem-sec">
       <div class="mem-h">📲 Installer le jeu</div>
-      <p>ÉQUILIBRE peut vivre sur ton écran d'accueil comme une vraie application : il s'ouvre en <b>plein écran</b> et fonctionne <b>même sans connexion</b>.</p>
-      <div class="mem-spec"><span class="ic">🤖</span><span><b>Android</b> — touche la bannière <b>« Installer le jeu ÉQUILIBRE »</b> en bas de l'accueil, puis confirme.</span></div>
-      <div class="mem-spec"><span class="ic">🍎</span><span><b>iPhone</b> — ouvre le jeu dans <b>Safari</b>, touche <b>Partager</b> ⬆︎ en bas, puis <b>« Sur l'écran d'accueil »</b>.</span></div>
-      <div class="mem-card">Une fois installé, lance-le depuis son icône : plus rapide, plein écran, et hors-ligne.</div>
+      <p>ÉQUILIBRE peut vivre sur ton écran d'accueil comme une vraie application : il s'ouvre en <b>plein écran</b>, démarre <b>plus vite</b> et fonctionne <b>même sans connexion</b>. C'est <b>gratuit</b> et ça ne prend que quelques secondes.</p>
+
+      <div class="mem-spec"><span class="ic">🍎</span><span><b>Sur iPhone / iPad</b> (avec <b>Safari</b>)</span></div>
+      <ol class="mem-steps">
+        <li>Ouvre le jeu dans <b>Safari</b>. Sur iPhone, l'installation ne marche <b>que</b> depuis Safari — pas depuis Chrome. Adresse&nbsp;: <b>equilibre.khalam.app</b></li>
+        <li>Touche l'icône <b>Partager</b> — un carré avec une flèche vers le haut <b>⬆︎</b> — située en bas de l'écran (en haut sur iPad).</li>
+        <li>Fais défiler la liste, puis touche <b>« Sur l'écran d'accueil »</b>.</li>
+        <li>Touche <b>« Ajouter »</b> en haut à droite.</li>
+        <li>L'icône <b>ÉQUILIBRE</b> apparaît sur ton écran d'accueil. Ouvre le jeu <b>toujours depuis cette icône</b> pour profiter du plein écran et du hors-ligne.</li>
+      </ol>
+
+      <div class="mem-spec"><span class="ic">🤖</span><span><b>Sur Android</b> (avec <b>Chrome</b>)</span></div>
+      <ol class="mem-steps">
+        <li>Ouvre le jeu dans <b>Chrome</b>. Adresse&nbsp;: <b>equilibre.khalam.app</b></li>
+        <li>Touche la bannière <b>« Installer le jeu ÉQUILIBRE »</b> qui apparaît en bas de l'accueil.<br>Si tu ne la vois pas&nbsp;: touche le menu <b>⋮</b> (trois points, en haut à droite), puis <b>« Installer l'application »</b> ou <b>« Ajouter à l'écran d'accueil »</b>.</li>
+        <li>Confirme avec <b>« Installer »</b>.</li>
+        <li>L'icône <b>ÉQUILIBRE</b> apparaît sur ton écran d'accueil. Lance le jeu depuis cette icône.</li>
+      </ol>
+
+      <div class="mem-card">Une fois installé, ÉQUILIBRE se comporte comme n'importe quelle app&nbsp;: plein écran, plus rapide, et jouable <b>hors connexion</b>. Pour le désinstaller, appuie longuement sur son icône, comme une app normale.</div>
     </div>
 
     <div class="mem-div"></div>
@@ -1231,9 +1254,7 @@ html.lite #liens .lien{animation:none;}
       <div class="emo">👩‍❤️‍👨</div>
       <div class="kt">LE COUPLE KHALAM</div>
       <div class="mem-kbody">
-        <p>Le nom <b>Khalam</b> est né de l'union de leurs deux prénoms :</p>
-        <p class="kli">• <b>Kha</b>, inspiré de Khadi ;</p>
-        <p class="kli">• <b>Lam</b>, inspiré de Lamine.</p>
+        <p>Le nom <b>Khalam</b> est né de l'<b>union des deux prénoms du couple</b> — une fusion intime, gardée discrète.</p>
         <p>Au-delà de cette fusion symbolique, Khalam évoque également le <i>xalam</i>, un instrument traditionnel d'Afrique de l'Ouest, symbole de sagesse, d'harmonie, de transmission et de richesse culturelle.</p>
         <p>À travers ce nom, le couple a souhaité incarner les valeurs qui fondent le jeu Équilibre : l'amour, l'unité, le dialogue, la réflexion et la recherche d'un équilibre durable entre les dimensions essentielles de la vie.</p>
       </div>
@@ -3128,6 +3149,11 @@ function ouvrirCoris(){
   fr.src='./la-revelation-des-coris.html';
   ov.classList.add('on');
 }
+// La Révélation (dans le cadre) a son propre bouton « Retour au jeu » : quand il est touché, on ferme le cadre.
+window.addEventListener('message', function(e){
+  if(!e || !e.data || typeof e.data.coris === 'undefined') return;
+  if(e.data.coris === 'retour'){ try{ fermerCoris(); }catch(e2){} }
+});
 function fermerCoris(){
   var ov=document.getElementById('corisOverlay'), fr=document.getElementById('corisFrame');
   if(ov) ov.classList.remove('on');
@@ -3392,7 +3418,7 @@ addEventListener("resize", ()=>{ try{ _kActuel=0; _ajRangs=-1; ajusteMain(true);
    Sans marqueur visible, ni le joueur ni le testeur ne savent ce qu'ils jouent, et le
    développeur ne peut pas le lire sur une capture. On a perdu une journée à s'en douter.
    À bumper AVEC le CACHE de sw.js — les deux doivent toujours dire la même chose. */
-const BUILD_TAG = "v142";
+const BUILD_TAG = "v149";
 
 const CLE_LITE = "eq_lite";
 let liteOn = false;
@@ -4130,7 +4156,7 @@ function partagerVictoire(){
   } else flashMsg(LIEN_JEU);
 }
 /* Le lien du jeu : sans lui, celui qui reçoit un défi ne peut pas le relever */
-const LIEN_JEU = "https://lamicisse33-dotcom.github.io/les-4-plies/";
+const LIEN_JEU = "https://equilibre.khalam.app";
 function partagerDefi(f1,t1){
   const rep=P.map(p=>`${EMB[p]}${T[p][1]}`).join(' ');
   const txt=`⚖️ ÉQUILIBRE — Défi du ${defiLabel()}\nMon pilier le plus faible : ${f1}\n${rep} · Total ${t1}\nSauras-tu mieux équilibrer tes 4 piliers ?`;
@@ -5464,7 +5490,6 @@ if('serviceWorker' in navigator){
 </div>
 <div id="corisOverlay" class="coris-ov">
   <iframe id="corisFrame" title="La Révélation des Coris" allow="autoplay"></iframe>
-  <button class="coris-close" onclick="fermerCoris()" aria-label="Fermer">✕ Fermer</button>
 </div>
 </body>
 </html>

@@ -1138,7 +1138,14 @@ function doReveal(){
   data.nom = nom;
   buildReveal(data);
   show("reveal");
+  _vus.clear();   // nouvelle révélation : le bouton « Retour au jeu » (interne) repart masqué, jusqu'à 1 pilier + synthèse
   document.getElementById("reveal").scrollTop = 0;
+  // lecture automatique de tout l'écran (on arrive ici via le tap « Révéler » : le geste autorise la voix, même sur iOS)
+  var _pilNoms = data.piliers.map(function(p){ return p.nom; }).join(", ");
+  _speakText = "La Révélation des Coris, " + dateFr() + ". " + data.signe + ". Pour " + data.nom +
+    ". Ta carte du jour. " + data.intro +
+    " Touche un pilier — " + _pilNoms + " — pour révéler sa lecture, ou Synthèse du jour pour un résumé complet.";
+  if(_ttsOK){ try{ ttsSpeak(_speakText, "lire"); }catch(e){} }
 }
 
 function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
@@ -1253,8 +1260,15 @@ function openOverlay(colorVar, emHTML, title, bodyHTML, speakText){
   _pilPushed = false;
   try{ history.pushState({pilOv:1}, ""); _pilPushed = true; }catch(e){}
 }
+var _vus = new Set();   // ce que le joueur a consulté sur l'écran final : les 4 piliers + la synthèse
+function verifComplet(){
+  var np=0; _vus.forEach(function(k){ if(k.indexOf('pil:')===0) np++; });
+  var b=document.getElementById('revRetourJeu');
+  if(b) b.style.display = (np>=1 && _vus.has('synth')) ? '' : 'none';   // « Retour au jeu » : dès qu'au moins 1 pilier ET la synthèse sont consultés
+}
 function ouvrirPilier(p){
   soundTouch(NOTE_PIL[p.key] || 600);
+  _vus.add('pil:'+p.key); verifComplet();
   var say = p.nom + ". Aujourd'hui, " + p.intro + " État : " + p.etat + " Conseil : " + p.conseil +
             " Attitude : " + p.attitude + " " + p.message;
   openOverlay(p.couleur, '<img src="'+EMBLEME_URI[p.key]+'" alt="">', p.nom, linesHTML(p), say);
@@ -1281,6 +1295,7 @@ function synthHTML(d){
 }
 function ouvrirSynthese(d){
   soundTouch(392);
+  _vus.add('synth'); verifComplet();
   var say = "Synthèse du jour. Signe : " + d.signe + ". Pilier dominant : " + d.dominant +
             ". Pilier à renforcer : " + d.renforcer + ". Nombre du jour : " + d.nombre +
             ". Couleur du jour : " + d.couleur.nom + ". Mot-clé : " + d.mot +
@@ -1326,6 +1341,7 @@ function buildReveal(d){
     '<div class="synth-btn rev-open" id="synthBtn" style="animation-delay:.3s"><img class="cauri" src="'+CAURIS_URI[0]+'" alt=""> Synthèse du jour</div>'+
     '<div class="rev-foot rev-open" style="animation-delay:.42s">'+
       '<button class="btn ghost" id="revAgain">Revoir demain</button>'+
+      '<button class="btn" id="revRetourJeu" style="display:none">↩ Retour au jeu</button>'+
     '</div>';
 
   var _rc = document.getElementById("revCauri"); if(_rc){ _rc.src = CAURIS_URI[0]; }
@@ -1347,6 +1363,9 @@ function buildReveal(d){
     show("titre");
     msgEl.className = "cine-msg"; msgEl.dataset.stage="";
   });
+
+  var retour = document.getElementById("revRetourJeu");
+  if(retour) retour.addEventListener("click", function(){ try{ parent.postMessage({coris:'retour'}, '*'); }catch(e){} });   // revenir au jeu
 }
 function cell(k,v){ return '<div class="cell"><div class="k">'+k+'</div><div class="v">'+v+'</div></div>'; }
 
