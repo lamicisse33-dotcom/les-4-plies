@@ -159,16 +159,16 @@ button.reg-l:active{background:rgba(255,255,255,.06);border-color:rgba(201,162,3
 .inst{background:rgba(155,89,182,.1);border:1px solid rgba(201,162,39,.3);border-radius:14px;
   padding:13px 14px;margin:2px 0 10px;text-align:left;position:relative;}
 /* bannière d'installation flottante, en bas de l'écran, uniquement sur l'accueil */
-.instbar{position:fixed;left:50%;transform:translateX(-50%) translateY(140%);
+.instbar{position:fixed;left:50%;transform:translateX(-50%) translateY(24px);opacity:0;
   bottom:calc(env(safe-area-inset-bottom,0px) + 96px);z-index:70;
   width:min(92vw,420px);display:flex;align-items:center;gap:10px;
   background:linear-gradient(180deg,rgba(28,20,46,.96),rgba(16,11,26,.96));
   border:1px solid rgba(201,162,39,.45);border-radius:14px;padding:11px 12px 11px 14px;
   box-shadow:0 10px 30px rgba(0,0,0,.55), 0 0 18px rgba(201,162,39,.14);
   -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
-  transition:transform .5s cubic-bezier(.2,.9,.3,1.2);}
-.instbar.on{transform:translateX(-50%) translateY(0);}
-.instbar:not(.on){pointer-events:none;}   /* masquée : ne bloque jamais le jeu dessous */
+  transition:transform .5s cubic-bezier(.2,.9,.3,1.2),opacity .4s ease;}
+.instbar.on{transform:translateX(-50%) translateY(0);opacity:1;}
+.instbar:not(.on){pointer-events:none;visibility:hidden;}   /* masquée : invisible ET ne bloque jamais le jeu dessous */
 .instbar .ib-em{font-size:20px;line-height:1;filter:drop-shadow(0 0 6px rgba(240,208,96,.4))}
 .instbar .ib-txt{flex:1;min-width:0}
 .instbar .ib-t{font-family:'Cinzel',serif;font-weight:700;font-size:12.5px;letter-spacing:.4px;color:var(--goldL);line-height:1.25}
@@ -3392,7 +3392,7 @@ addEventListener("resize", ()=>{ try{ _kActuel=0; _ajRangs=-1; ajusteMain(true);
    Sans marqueur visible, ni le joueur ni le testeur ne savent ce qu'ils jouent, et le
    développeur ne peut pas le lire sur une capture. On a perdu une journée à s'en douter.
    À bumper AVEC le CACHE de sw.js — les deux doivent toujours dire la même chose. */
-const BUILD_TAG = "v141";
+const BUILD_TAG = "v142";
 
 const CLE_LITE = "eq_lite";
 let liteOn = false;
