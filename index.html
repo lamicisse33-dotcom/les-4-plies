@@ -156,6 +156,25 @@ button.reg-l:active{background:rgba(255,255,255,.06);border-color:rgba(201,162,3
 @keyframes majPulse{0%,100%{box-shadow:0 0 0 rgba(240,208,96,0)}50%{box-shadow:0 0 16px 2px rgba(240,208,96,.65)}}
 .inst{background:rgba(155,89,182,.1);border:1px solid rgba(201,162,39,.3);border-radius:14px;
   padding:13px 14px;margin:2px 0 10px;text-align:left;position:relative;}
+/* bannière d'installation flottante, en bas de l'écran, uniquement sur l'accueil */
+.instbar{position:fixed;left:50%;transform:translateX(-50%) translateY(140%);
+  bottom:calc(env(safe-area-inset-bottom,0px) + 14px);z-index:70;
+  width:min(92vw,420px);display:flex;align-items:center;gap:10px;
+  background:linear-gradient(180deg,rgba(28,20,46,.96),rgba(16,11,26,.96));
+  border:1px solid rgba(201,162,39,.45);border-radius:14px;padding:11px 12px 11px 14px;
+  box-shadow:0 10px 30px rgba(0,0,0,.55), 0 0 18px rgba(201,162,39,.14);
+  -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
+  transition:transform .5s cubic-bezier(.2,.9,.3,1.2);}
+.instbar.on{transform:translateX(-50%) translateY(0);}
+.instbar .ib-em{font-size:20px;line-height:1;filter:drop-shadow(0 0 6px rgba(240,208,96,.4))}
+.instbar .ib-txt{flex:1;min-width:0}
+.instbar .ib-t{font-family:'Cinzel',serif;font-weight:700;font-size:12.5px;letter-spacing:.4px;color:var(--goldL);line-height:1.25}
+.instbar .ib-s{font-size:12px;color:#c9c0dd;line-height:1.35;margin-top:2px}
+.instbar .ib-s b{color:#F7EFD2}
+.instbar .ib-b{flex-shrink:0;background:linear-gradient(180deg,#F7EFD2,#C9A227);color:#241634;border:none;
+  border-radius:9px;padding:9px 14px;font-family:'Cinzel',serif;font-weight:700;font-size:11px;letter-spacing:.7px;
+  cursor:pointer;white-space:nowrap}
+.instbar .ib-x{flex-shrink:0;background:none;border:none;color:#8d84a8;font-size:18px;line-height:1;padding:4px 4px;cursor:pointer;font-family:inherit}
 .inst-t{font-family:'Cinzel',serif;font-weight:700;font-size:11.5px;letter-spacing:1.1px;
   text-transform:uppercase;color:var(--goldL);margin-bottom:6px;padding-right:22px;}
 .inst-p{font-size:13.5px;line-height:1.5;color:#d8d0e6;margin:0;}
@@ -1192,6 +1211,14 @@ html.lite #liens .lien{animation:none;}
       <div class="mem-card">Elle t'attend à <b>ta première victoire du jour</b>, puis revient <b>toutes les 3 victoires</b> — uniquement sur l'écran de résultats, sans jamais gêner ta partie.</div>
     </div>
 
+    <div class="mem-sec">
+      <div class="mem-h">📲 Installer le jeu</div>
+      <p>ÉQUILIBRE peut vivre sur ton écran d'accueil comme une vraie application : il s'ouvre en <b>plein écran</b> et fonctionne <b>même sans connexion</b>.</p>
+      <div class="mem-spec"><span class="ic">🤖</span><span><b>Android</b> — touche la bannière <b>« Installer le jeu ÉQUILIBRE »</b> en bas de l'accueil, puis confirme.</span></div>
+      <div class="mem-spec"><span class="ic">🍎</span><span><b>iPhone</b> — ouvre le jeu dans <b>Safari</b>, touche <b>Partager</b> ⬆︎ en bas, puis <b>« Sur l'écran d'accueil »</b>.</span></div>
+      <div class="mem-card">Une fois installé, lance-le depuis son icône : plus rapide, plein écran, et hors-ligne.</div>
+    </div>
+
     <div class="mem-div"></div>
 
     <div class="mem-khalam">
@@ -1916,36 +1943,35 @@ function installerAndroid(){
   _promptAndroid.userChoice.finally(()=>{ _promptAndroid=null; majInstall(); });
 }
 function majInstall(){
-  const z=document.getElementById('installSlot'); if(!z) return;
-  z.innerHTML='';
-  if(dejaInstalle()) return;                                   // il l'a déjà : on se tait
-  try{ if(localStorage.getItem(CLE_INST)==='1') return; }catch(e){}   // il a dit non : on se tait
-  if((PROFIL.parties||0) < 1) return;                          // il vient d'arriver : on se tait
+  const bar=document.getElementById('instBar'); if(!bar) return;
+  const hide=()=>bar.classList.remove('on');
+  if(dejaInstalle()){ hide(); return; }                                 // déjà installé : on se tait
+  try{ if(localStorage.getItem(CLE_INST)==='1'){ hide(); return; } }catch(e){}   // il a dit non
+  if((PROFIL.parties||0) < 1){ hide(); return; }                        // il vient d'arriver
+  const sp=document.getElementById('splash');
+  if(!sp || !sp.classList.contains('on')){ hide(); return; }            // uniquement sur l'écran d'accueil
 
+  const sub=document.getElementById('ibSub');
+  const act=document.getElementById('ibAction');
   if(_promptAndroid){
-    z.innerHTML = `<div class="inst">
-      <button class="inst-x" onclick="ecarterInstall()" aria-label="Fermer">×</button>
-      <div class="inst-t">✦ Garde-le sur ton écran ✦</div>
-      <p class="inst-p">Installe ÉQUILIBRE : il s'ouvrira en plein écran, <b>même sans connexion</b>.</p>
-      <button class="btn inst-b" onclick="installerAndroid()">Installer</button></div>`;
-    return;
-  }
-  if(_safariIOS()){
-    z.innerHTML = `<div class="inst">
-      <button class="inst-x" onclick="ecarterInstall()" aria-label="Fermer">×</button>
-      <div class="inst-t">✦ Garde-le sur ton écran ✦</div>
-      <p class="inst-p">Touche <b>Partager</b> <span style="opacity:.8">⬆︎</span> en bas, puis <b>« Sur l'écran d'accueil »</b>.<br>
-      Il s'ouvrira en plein écran, <b>même sans connexion</b>.</p></div>`;
-    return;
-  }
-  if(_iOS()){                                                  // Chrome sur iPhone : ça ne marche pas
-    z.innerHTML = `<div class="inst">
-      <button class="inst-x" onclick="ecarterInstall()" aria-label="Fermer">×</button>
-      <div class="inst-t">✦ Garde-le sur ton écran ✦</div>
-      <p class="inst-p">Ouvre ce lien dans <b>Safari</b>, puis <b>Partager</b> → <b>« Sur l'écran d'accueil »</b>.
-      Sur iPhone, seul Safari sait installer une app.</p></div>`;
-  }
+    sub.innerHTML='Plein écran, <b>même sans connexion</b>.';
+    act.style.display=''; act.textContent='Installer'; act.onclick=installerAndroid;
+  } else if(_safariIOS()){
+    sub.innerHTML="Touche <b>Partager</b> \u2B06\uFE0E puis <b>« Sur l'écran d'accueil »</b>.";
+    act.style.display='none'; act.onclick=null;
+  } else if(_iOS()){
+    sub.innerHTML="Ouvre ce lien dans <b>Safari</b>, puis Partager \u2192 écran d'accueil.";
+    act.style.display='none'; act.onclick=null;
+  } else { hide(); return; }                                            // desktop sans invite : on n'insiste pas
+  bar.classList.add('on');
 }
+// la bannière suit l'écran d'accueil : elle apparaît sur le splash, disparaît dès qu'on le quitte
+(function(){
+  const sp=document.getElementById('splash');
+  if(sp && 'MutationObserver' in window){
+    new MutationObserver(()=>{ try{ majInstall(); }catch(e){} }).observe(sp,{attributes:true,attributeFilter:['class']});
+  }
+})();
 function ouvrirReglages(){
   try{ ac(); }catch(e){}
   reglagesRetour = document.getElementById('niveau').classList.contains('on') ? 'niveau'
@@ -3364,7 +3390,7 @@ addEventListener("resize", ()=>{ try{ _kActuel=0; _ajRangs=-1; ajusteMain(true);
    Sans marqueur visible, ni le joueur ni le testeur ne savent ce qu'ils jouent, et le
    développeur ne peut pas le lire sur une capture. On a perdu une journée à s'en douter.
    À bumper AVEC le CACHE de sw.js — les deux doivent toujours dire la même chose. */
-const BUILD_TAG = "v124";
+const BUILD_TAG = "v129";
 
 const CLE_LITE = "eq_lite";
 let liteOn = false;
@@ -5419,6 +5445,12 @@ if('serviceWorker' in navigator){
   });
 }
 </script>
+<div id="instBar" class="instbar">
+  <span class="ib-em">✦</span>
+  <div class="ib-txt"><div class="ib-t">Installer le jeu ÉQUILIBRE</div><div class="ib-s" id="ibSub"></div></div>
+  <button class="ib-b" id="ibAction">Installer</button>
+  <button class="ib-x" onclick="ecarterInstall()" aria-label="Plus tard">×</button>
+</div>
 <div id="corisOverlay" class="coris-ov">
   <iframe id="corisFrame" title="La Révélation des Coris" allow="autoplay"></iframe>
   <button class="coris-close" onclick="fermerCoris()" aria-label="Fermer">✕ Fermer</button>
