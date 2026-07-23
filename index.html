@@ -154,17 +154,25 @@ button.reg-l:active{background:rgba(255,255,255,.06);border-color:rgba(201,162,3
   background:#F7EFD2;border:none;box-shadow:0 0 8px rgba(240,208,96,.55);cursor:pointer;}
 #regVol::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:#F7EFD2;border:none;cursor:pointer;}
 .reg-pc{font-family:'Cinzel',serif;font-weight:700;font-size:11px;color:var(--goldL);}
-.maj{position:fixed;left:50%;transform:translateX(-50%) translateY(-120%);
-  top:calc(env(safe-area-inset-top,0px) + 8px);z-index:10001;
-  display:flex;align-items:center;gap:11px;max-width:min(94vw,440px);
+/* La bannière était collée en haut : selon l'appareil, elle passait sous l'encoche, sous la
+   barre du navigateur, ou hors de la zone sûre — et devenait invisible ou intouchable.
+   Au centre, elle s'affiche pareil partout, quelle que soit la forme de l'écran.
+   pointer-events:none tant qu'elle est masquée : centrée et transparente, elle
+   intercepterait sinon toutes les touches au milieu du plateau. */
+.maj{position:fixed;left:50%;top:50%;
+  transform:translate(-50%,-50%) scale(.9);opacity:0;pointer-events:none;
+  z-index:10001;
+  display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;
+  width:min(86vw,360px);
   background:linear-gradient(180deg,var(--pan1,#2A1B4A),var(--pan2,#1A1030));border:1px solid var(--gold);
-  border-radius:13px;padding:12px 14px;box-shadow:0 8px 28px rgba(0,0,0,.6), 0 0 22px rgba(240,208,96,.28);
-  transition:transform .45s cubic-bezier(.2,.9,.3,1.2);}
-.maj.on{transform:translateX(-50%) translateY(0);}
-.maj-t{flex:1;font-size:13.5px;line-height:1.4;color:#EFE9DA;}
+  border-radius:16px;padding:18px 18px 16px;
+  box-shadow:0 14px 40px rgba(0,0,0,.7), 0 0 26px rgba(240,208,96,.3);
+  transition:transform .4s cubic-bezier(.2,.9,.3,1.25), opacity .3s ease;}
+.maj.on{transform:translate(-50%,-50%) scale(1);opacity:1;pointer-events:auto;}
+.maj-t{font-size:13.5px;line-height:1.45;color:#EFE9DA;}
 .maj-t b{color:var(--goldL);font-size:14.5px;}
-.maj-b{background:linear-gradient(180deg,#F7EFD2,#C9A227);color:#241634;border:none;border-radius:9px;
-  padding:10px 15px;font-family:'Cinzel',serif;font-weight:800;font-size:12px;letter-spacing:.8px;
+.maj-b{background:linear-gradient(180deg,#F7EFD2,#C9A227);color:#241634;border:none;border-radius:10px;
+  width:100%;padding:12px 15px;font-family:'Cinzel',serif;font-weight:800;font-size:12px;letter-spacing:.8px;
   cursor:pointer;white-space:nowrap;animation:majPulse 1.6s ease-in-out infinite;}
 @keyframes majPulse{0%,100%{box-shadow:0 0 0 rgba(240,208,96,0)}50%{box-shadow:0 0 16px 2px rgba(240,208,96,.65)}}
 .inst{background:rgba(155,89,182,.1);border:1px solid rgba(201,162,39,.3);border-radius:14px;
@@ -319,11 +327,24 @@ html.lite h1::after{display:none;}
    ::before et ::after de .emb sont déjà pris (relief et reflet) : on passe donc par
    box-shadow, qui était libre. Le décalage par pilier fait courir une VAGUE de gauche
    à droite au lieu de faire clignoter les quatre ensemble. */
-.borne .emb{box-shadow:0 0 0 1px var(--pc,rgba(201,162,39,.4)), 0 0 8px -1px var(--pc,rgba(201,162,39,.4));
+/* Le halo empruntait --pc, la couleur d'aura du pilier : des teintes moyennes, qui se
+   noient sur un fond clair comme le ciel de Plastique. On lui donne sa propre couleur,
+   une version très éclaircie du pilier, et un blanc au cœur pour que le contour brille
+   vraiment au lieu d'être seulement coloré. */
+.borne[data-p="Spiritualité"] .emb{--pcL:rgba(222,190,255,.95);}
+.borne[data-p="Amour"]        .emb{--pcL:rgba(255,190,200,.95);}
+.borne[data-p="Santé"]        .emb{--pcL:rgba(178,255,212,.95);}
+.borne[data-p="Argent"]       .emb{--pcL:rgba(255,236,168,.95);}
+.borne .emb{box-shadow:0 0 0 1.2px var(--pcL,rgba(255,232,170,.9)),
+            0 0 10px -1px var(--pcL,rgba(255,232,170,.9));
   animation:embRespire 3.6s ease-in-out infinite;}
 @keyframes embRespire{
-  0%,100%{box-shadow:0 0 0 .8px var(--pc,rgba(201,162,39,.4)), 0 0 5px -1px var(--pc,rgba(201,162,39,.4));}
-  50%    {box-shadow:0 0 0 2.2px var(--pc,rgba(201,162,39,.4)), 0 0 17px 2px var(--pc,rgba(201,162,39,.4));}}
+  0%,100%{box-shadow:0 0 0 1px rgba(255,255,255,.55),
+                     0 0 0 2px var(--pcL,rgba(255,232,170,.9)),
+                     0 0 8px 1px var(--pcL,rgba(255,232,170,.9));}
+  50%    {box-shadow:0 0 0 1.6px rgba(255,255,255,.92),
+                     0 0 0 3.4px var(--pcL,rgba(255,232,170,.9)),
+                     0 0 22px 4px var(--pcL,rgba(255,232,170,.9));}}
 .borne[data-p="Spiritualité"] .emb{animation-delay:0s;}
 .borne[data-p="Amour"]        .emb{animation-delay:.45s;}
 .borne[data-p="Santé"]        .emb{animation-delay:.9s;}
@@ -331,9 +352,10 @@ html.lite h1::after{display:none;}
 /* la pulsation de pose doit s'ajouter à la respiration, pas la remplacer */
 .borne .emb.pop{animation:embPop .5s ease, embRespire 3.6s ease-in-out infinite;}
 @keyframes embPop{0%{transform:scale(1);}35%{transform:scale(1.2);}60%{transform:scale(.96);}100%{transform:scale(1);}}
-html.lite .borne .emb{animation:none;box-shadow:0 0 0 1px var(--pc,rgba(201,162,39,.4));}
+html.lite .borne .emb{animation:none;box-shadow:0 0 0 1.4px var(--pcL,rgba(255,232,170,.9));}
 @media (prefers-reduced-motion: reduce){
-  .borne .emb,.borne .emb.pop{animation:none;box-shadow:0 0 0 1.2px var(--pc,rgba(201,162,39,.4)),0 0 9px -1px var(--pc,rgba(201,162,39,.4));}}
+  .borne .emb,.borne .emb.pop{animation:none;
+    box-shadow:0 0 0 1.2px rgba(255,255,255,.7),0 0 0 2.6px var(--pcL,rgba(255,232,170,.9)),0 0 14px 2px var(--pcL,rgba(255,232,170,.9));}}
 .ptfloat{position:absolute;left:50%;transform:translateX(-50%);font-family:'Cinzel',serif;font-weight:900;font-size:15px;
   pointer-events:none;z-index:8;text-shadow:0 1px 3px rgba(0,0,0,.75);}
 .ptfloat.pos{color:#f0d98a;} .ptfloat.neg{color:#e0708a;}
@@ -394,15 +416,32 @@ html.lite .borne .halofeu{animation:none;display:none;}
 html.lite .flamme{animation:none;} html.lite .borne.enfeu .emb{animation:none;}
 
 #mainzone{margin-top:4px;}
-#phenixBtn{width:100%;margin:8px 0 2px;padding:13px;border-radius:14px;cursor:pointer;
-  font-family:'Cinzel',serif;font-weight:900;font-size:14px;letter-spacing:1px;color:#2a1402;
-  background:linear-gradient(180deg,#ffcf6a,#ff8a1e 45%,#e0530f 100%);
-  border:1px solid rgba(255,220,150,.7);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.5), 0 0 18px rgba(255,110,20,.5), 0 6px 18px rgba(0,0,0,.4);
+/* Le sous-texte était en ligne avec le titre : il s'enroulait au milieu d'une phrase.
+   Les deux sont maintenant empilés et centrés. La braise gagne un creux sombre en bas
+   (inset) qui donne l'épaisseur, et un reflet qui balaye — animé par background-position,
+   pour ne pas déborder et ne pas rogner le halo pulsant. */
+#phenixBtn{width:100%;margin:8px 0 2px;padding:10px 14px 11px;border-radius:16px;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;gap:1px;
+  font-family:'Cinzel',serif;font-weight:900;font-size:14px;letter-spacing:1.2px;color:#2A1402;
+  background:linear-gradient(180deg,#FFE7AE 0%,#FFC658 26%,#FB9A2E 56%,#EE7418 82%,#DC5E12 100%);
+  border:1px solid rgba(255,232,178,.85);
+  text-shadow:0 1px 0 rgba(255,238,196,.55);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.8), inset 0 -9px 16px rgba(140,44,0,.3),
+             0 0 20px rgba(255,110,20,.5), 0 6px 18px rgba(0,0,0,.42);
   position:relative;}
+#phenixBtn b{font-weight:900;line-height:1.15;white-space:nowrap;}
+#phenixBtn::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  background:linear-gradient(114deg,transparent 40%,rgba(255,255,255,.5) 48%,transparent 58%);
+  background-size:250% 100%;animation:argentSheen 4.8s ease-in-out infinite;}
+html.lite #phenixBtn::before{animation:none;background:none;}
+@media (prefers-reduced-motion: reduce){ #phenixBtn::before{animation:none;} }
 #phenixBtn::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
   box-shadow:0 0 34px rgba(255,130,30,.9);animation:phenixPulse 1.1s ease-in-out infinite;}
-#phenixBtn span{font-family:'Crimson Text',serif;font-weight:400;font-size:11px;letter-spacing:0;opacity:.85;}
+/* Le sous-texte tombe sur le bas du dégradé, le plus sombre. À 0.84 d'opacité il passait
+   sous le seuil du lisible : opacité pleine, encre plus foncée, et un liseré clair dessous. */
+#phenixBtn span{display:block;text-align:center;font-family:'Crimson Text',serif;font-weight:600;
+  font-size:10.5px;letter-spacing:.2px;line-height:1.3;color:#2A1000;opacity:1;
+  text-shadow:0 1px 0 rgba(255,236,196,.5);}
 #phenixBtn:active{transform:translateY(1px);}
 @keyframes phenixPulse{0%,100%{opacity:0;}50%{opacity:1;}}
 html.lite #phenixBtn::after{animation:none;display:none;}
@@ -2187,7 +2226,7 @@ html[data-skin="coris"] #score .lbl{color:#7C5B36;}
     <div id="main"></div>
   </div>
 
-  <button id="phenixBtn" onclick="invoquerPhenix()" style="display:none">🔥 Invoquer Le Phénix <span>— relève ton pilier en feu, une fois par partie</span></button>
+  <button id="phenixBtn" onclick="invoquerPhenix()" style="display:none"><b>🔥 Invoquer Le Phénix</b><span>relève ton pilier en feu · une fois par partie</span></button>
 
 
   <div class="aide">
@@ -3334,7 +3373,7 @@ chargerProfil(); chargerReponses();
 const SKINS = [
   {id:'defaut',    nom:'Classique',           emoji:'⚖️', prix:0,     desc:"Thème par défaut — l'or et la nuit."},
   {id:'bronze',    nom:'Bronze',              emoji:'🟤', prix:100,   desc:"Chaleur ancestrale — métal patiné, lumière orangée."},
-  {id:'plastique', nom:'Plastique',           emoji:'🔵', prix:250,   desc:"Moderne et coloré — bleu éclatant, design épuré."},
+  {id:'plastique', nom:'Plastique',           emoji:'🔵', prix:0,     desc:"Ciel de laque — bleu éclatant, nuages clairs. Habillage de départ."},
   {id:'verre',     nom:'Verre',               emoji:'🔷', prix:500,   desc:"Élégance cristalline — translucide, reflets glacés."},
   {id:'argent',    nom:'Argent',              emoji:'🥈', prix:1000,  desc:"Raffinement métallique — argent poli, halo blanc."},
   {id:'or',        nom:'Or',                  emoji:'🥇', prix:2000,  desc:"Majesté royale — cadres dorés, lumière chaude."},
@@ -3343,7 +3382,7 @@ const SKINS = [
   {id:'phenix',    nom:'Phénix',              emoji:'🔥', prix:12000, desc:"Feu de renaissance — flammes vivantes, braises."},
   {id:'elements',  nom:'Les Quatre Éléments', emoji:'🌍', prix:18000, desc:"Les piliers prennent vie — chaque pilier s'anime."}
 ];
-const CADEAU_SKINS = ['bronze','plastique','verre'];
+const CADEAU_SKINS = ['bronze','verre','argent'];   // Plastique en est sorti : il est acquis dès le départ
 const PTS_VICTOIRE = 40, PTS_DEFAITE = 12, PTS_MANCHE = 10;
 /* ══════════ MODE TEST ══════════
    true  : les 10 habillages sont ouverts pour tout le monde, le temps de la phase de test.
@@ -3358,7 +3397,11 @@ const PTS_VICTOIRE = 40, PTS_DEFAITE = 12, PTS_MANCHE = 10;
 const MODE_TEST = true;
 
 const CLE_BOUT = 'eq_boutique_v1';
-let BOUT = {pts:0, owned:['defaut'], equipe:'defaut', cadeau:false, jouees:0};
+/* Plastique est l'habillage de DÉPART : c'est lui que voit un joueur qui ouvre le jeu pour
+   la première fois. Classique reste disponible gratuitement dans la boutique, pour qui
+   préfère l'or et la nuit. */
+const SKIN_DEPART = 'plastique';
+let BOUT = {pts:0, owned:['defaut',SKIN_DEPART], equipe:SKIN_DEPART, cadeau:false, jouees:0};
 /* Déblocage d'ESSAI : ouvrir le jeu avec ?skins=plastique (ou ?skins=tous) débloque
    l'habillage le temps de l'essayer. Rien n'est enregistré : sauverBoutique() retire ces
    habillages avant d'écrire. Recharger sans le paramètre remet tout comme avant.
@@ -3378,6 +3421,9 @@ function chargerBoutique(){
   try{ const s=JSON.parse(localStorage.getItem(CLE_BOUT)); if(s&&typeof s==='object') BOUT=Object.assign(BOUT,s); }catch(e){}
   if(!Array.isArray(BOUT.owned)) BOUT.owned=['defaut'];
   if(BOUT.owned.indexOf('defaut')<0) BOUT.owned.unshift('defaut');
+  /* Joueur déjà installé : il reçoit Plastique sans rien perdre, et SON habillage équipé
+     n'est pas touché — on ne lui impose pas le nouveau départ au milieu de sa partie. */
+  if(BOUT.owned.indexOf(SKIN_DEPART)<0) BOUT.owned.push(SKIN_DEPART);
   if(MODE_TEST){                                  // phase de test : tout est ouvert, rien n'est acquis
     SKINS.forEach(function(s){
       if(BOUT.owned.indexOf(s.id)<0){ BOUT.owned.push(s.id); SKINS_ESSAI.push(s.id); }
@@ -4506,7 +4552,7 @@ addEventListener("resize", ()=>{ try{ _kActuel=0; _ajRangs=-1; ajusteMain(true);
    Sans marqueur visible, ni le joueur ni le testeur ne savent ce qu'ils jouent, et le
    développeur ne peut pas le lire sur une capture. On a perdu une journée à s'en douter.
    À bumper AVEC le CACHE de sw.js — les deux doivent toujours dire la même chose. */
-const BUILD_TAG = "v224";
+const BUILD_TAG = "v228";
 
 const CLE_LITE = "eq_lite";
 let liteOn = false;
