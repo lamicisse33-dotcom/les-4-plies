@@ -1,5 +1,5 @@
 /* ÉQUILIBRE — service worker. Bumpe CACHE à chaque déploiement pour forcer la mise à jour. */
-const CACHE = 'equilibre-v207';
+const CACHE = 'equilibre-v209';
 // Ce qui est mis en cache DES L'INSTALLATION : le strict nécessaire pour que le jeu
 // démarre et fonctionne hors ligne. Les illustrations d'habillage n'y sont PAS :
 // elles se mettent en cache toutes seules à la première utilisation (voir plus bas),
