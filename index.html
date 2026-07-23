@@ -2241,14 +2241,18 @@ html[data-skin="coris"] #score .lbl{color:#7C5B36;}
   <div class="ttl">Duel en ligne</div>
   <div id="duelHome">
     <button class="btn" style="width:100%;margin-bottom:8px" onclick="duelCreer()">Créer une partie</button>
-    <div style="display:flex;gap:6px;margin-bottom:6px">
+    <!-- Le bouton débordait du cadre : un élément flex ne rétrécit jamais sous la largeur de
+         son contenu tant qu'on ne lui donne pas min-width:0. Le champ, avec son padding de
+         12 px et son texte en 16 px, poussait donc « Rejoindre » hors de la carte. -->
+    <div style="display:flex;gap:6px;margin-bottom:6px;align-items:stretch">
       <input id="duelCode" placeholder="CODE" maxlength="8" autocomplete="off"
-        style="flex:1;text-transform:uppercase;text-align:center;letter-spacing:3px;font-family:'Cinzel',serif;font-weight:900;
-        background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.18);border-radius:12px;color:#fff;padding:12px;font-size:16px">
-      <button class="btn ghost" onclick="duelRejoindre()">Rejoindre</button>
+        style="flex:1 1 auto;min-width:0;text-transform:uppercase;text-align:center;letter-spacing:2px;font-family:'Cinzel',serif;font-weight:900;
+        background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.18);border-radius:12px;color:#fff;padding:12px 8px;font-size:15px">
+      <button class="btn ghost" onclick="duelRejoindre()"
+        style="flex:0 0 auto;white-space:nowrap;padding:10px 13px;letter-spacing:.5px">Rejoindre</button>
     </div>
     <div style="font-size:10px;color:var(--muet);line-height:1.6;margin-top:4px">
-      Un joueur <b>crée</b> la partie et partage le code ; l'autre le saisit pour <b>rejoindre</b>. Le mode classique (3 manches) se joue à deux.
+      Un joueur <b>crée</b> la partie et partage le code ; l'autre le saisit pour <b>rejoindre</b>. Le duel se joue en <b>2 manches gagnantes</b>.
     </div>
   </div>
   <div id="duelWait" style="display:none;text-align:center">
@@ -4236,8 +4240,13 @@ function majFinMatch(win, histo){
   const apres = niveauInfo(STATS.xp);
   const levelUp = apres.lvl > avant.lvl;
   sauverStats();
-  majProfil(win);
-  let corisNow=false; try{ corisNow = !!(win && corisShouldTrigger()); }catch(e){ corisNow=false; }
+  if(!enLigne()) majProfil(win);   // le Miroir se nourrit du SOLO uniquement
+  /* EN DUEL, RIEN DE TOUT CELA NE VIENT. majFinMatch() est partagée avec le solo
+     (afficherFinDuel l'appelle aussi) : sans ces gardes, la Révélation, la question du
+     Phénix et le Miroir s'ouvraient au nez des deux joueurs en pleine partie en ligne.
+     Ces trois écrans sont des moments intimes — ils n'ont pas leur place à deux. */
+  const _solo = !enLigne();
+  let corisNow=false; try{ corisNow = !!(win && _solo && corisShouldTrigger()); }catch(e){ corisNow=false; }
   if(corisNow){ var _cfb=document.getElementById('finbtns'); if(_cfb){ _cfb.insertAdjacentHTML('afterbegin', '<button class="btn coris-btn" style="flex:1 0 100%;margin-bottom:8px" onclick="ouvrirCoris()">\u2728 La R\u00e9v\u00e9lation des Coris</button>'); } }
   const finEl=document.getElementById('fin');
   finEl.classList.remove('epicwin','epicloss'); finEl.classList.add(win?'epicwin':'epicloss');
@@ -4247,7 +4256,7 @@ function majFinMatch(win, histo){
   if(win){ confetti(120); flash('#f2d98a'); buzz([20,40,20,60]); setTimeout(()=>confetti(70),480); setTimeout(()=>confetti(50),980); }
   else { lightning(); buzz(60); }
   if(levelUp){ setTimeout(()=>{ confetti(90); flash('#e6ce7a'); try{sWin();}catch(e){} }, 1200); }
-  const qp = corisNow ? null : pilierDeLaQuestion(win);   // à son heure, la Révélation prime : le Phénix attend ce tour
+  const qp = (corisNow || !_solo) ? null : pilierDeLaQuestion(win);   // à son heure, la Révélation prime : le Phénix attend ce tour
   setTimeout(()=>{
     if(!ecranOuvert('fin')) return;                 // l'écran a été fermé entre-temps : on se tait
     if(corisNow){ ouvrirCoris(); return; }          // la Révélation des Coris vient — définitivement, sans que le Phénix la remplace
@@ -4259,7 +4268,7 @@ function majFinMatch(win, histo){
        C'est tout. Il n'interroge pas, il ne double pas la question : il ouvre le miroir. */
     if(qp){ ouvrirQuestion(qp.p, qp.i); return; }
 
-    if(!win && miroirMur()){          // le Phénix du Miroir ne vient JAMAIS après une victoire — seulement sur une défaite
+    if(!win && _solo && miroirMur()){   // le Phénix du Miroir ne vient JAMAIS après une victoire — seulement sur une défaite, et jamais en duel
       /* _animOff() et NON _reduit() : le mode léger allège le Phœnix (simple résolution)
          mais ne le supprime pas. Il sert à tenir 40 min de jeu, pas à sacrifier les 20 s
          qui comptent le plus. Seul le joueur peut y renoncer, via son réglage système. */
@@ -4497,7 +4506,7 @@ addEventListener("resize", ()=>{ try{ _kActuel=0; _ajRangs=-1; ajusteMain(true);
    Sans marqueur visible, ni le joueur ni le testeur ne savent ce qu'ils jouent, et le
    développeur ne peut pas le lire sur une capture. On a perdu une journée à s'en douter.
    À bumper AVEC le CACHE de sw.js — les deux doivent toujours dire la même chose. */
-const BUILD_TAG = "v218";
+const BUILD_TAG = "v224";
 
 const CLE_LITE = "eq_lite";
 let liteOn = false;
@@ -6272,12 +6281,15 @@ function netEnvoyerEtat(guestAToi, msg){
 function demarrerDuelHote(){
   ac(); if(!muted && musOn) startAmbient();   // musique de manche (Duel)
   JEU='net'; NET.role='host'; MODE='classique';
+  resetBilan();   // le Miroir ne se nourrit qu'en solo : on n'emporte pas le bilan d'avant
   document.body.classList.remove('mode-agonie','peril','enfeu'); stopHeart(); stopFeu();
   matchMe=0; matchIA=0; mancheNo=1;
   netDealManche();
 }
 function netDealManche(){
   NET.enPartie = true;
+  NET.finCourante = null;        // nouvelle manche : l'écran de fin mémorisé ne vaut plus
+  NET.abandonne = false;
   _matchPointsDonnes=false;      // à partir d'ici, une reconnexion doit REPRENDRE, pas redistribuer
   const dn=melange(paquetNormal()), ds=melange(pileSpeciale());
   mainJ = tireNormales(dn).concat(ds.splice(0,SPEC_PAR_MAIN));   // hôte = joueur 1
@@ -6352,6 +6364,8 @@ function appliquerVue(v){
 }
 function _poserVue(v){
   JEU='net'; NET.role='guest'; MODE='classique';
+  NET.abandonne = false;
+  resetBilan();   // le Miroir ne se nourrit qu'en solo : on n'emporte pas le bilan d'avant
   arreterCompteAbandon(); NET.attente=false;
   ac(); if(!muted && musOn) startAmbient();   // musique de manche (Duel, invité)
   NET.enPartie = true;   // l'invité est en partie : au retour de veille, la reconnexion doit REPRENDRE (pas rester bloquée)
@@ -6369,6 +6383,38 @@ function _poserVue(v){
 }
 
 /* — Fin de manche/match (hôte calcule, envoie la vue à l'invité) — */
+/* ── Retour de l'adversaire, côté hôte ──
+   Cette séquence forçait « fini=false » sans regarder si la manche était terminée. Quand
+   les deux mains étaient vides, elle ressuscitait une manche sans cartes : plateau figé,
+   aucune carte à jouer, et plus d'écran de fin — celui-ci ayant été écrasé par l'écran
+   « ADVERSAIRE ABSENT », qui partage le même élément #fin. */
+function netRepriseHote(){
+  if(NET.abandonne){                      // on a abandonné : on ne reprend pas, on annonce
+    try{ netSend({t:'bye'}); }catch(e){}
+    setTimeout(function(){ try{ netFermer(); }catch(e){} NET.abandonne=false; }, 1500);
+    return;
+  }
+  arreterCompteAbandon();
+  document.getElementById("fin").classList.remove("on");   // efface l'écran d'attente
+  fermerDuel();
+  dire("<b>L'adversaire est revenu.</b>", 1);
+  NET.dernier=null; sel=null;
+  const _vide = (mainJ.length===0 && mainIA.length===0);
+  if(!_vide){                                  // la manche continue vraiment
+    fini=false; locked=(NET.aQui!=='host');    // l'hôte redevient jouable si c'est son tour
+    netEnvoyerEtat(NET.aQui==='guest', null);
+    render();
+    return;
+  }
+  fini=true; locked=true; render();
+  if(NET.finCourante && NET.finCourante.mancheNo===mancheNo){
+    netEnvoyerEtat(false, "Manche terminée.");             // déjà comptée : on rejoue l'affichage
+    afficherFinDuel(NET.finCourante.dHote, true);
+    netSend({t:'fin', d:NET.finCourante.dInvite});
+  } else {
+    terminerDuel();                                        // la coupure est tombée avant la conclusion
+  }
+}
 function terminerDuel(){
   fini=true; locked=true; sel=null; render();
   const v=verdict(T);
@@ -6376,8 +6422,12 @@ function terminerDuel(){
   majMatch();
   const matchFini = matchMe>=MATCH_CIBLE || matchIA>=MATCH_CIBLE;
   netEnvoyerEtat(false, "Manche terminée.");         // synchronise plateau + scores chez l'invité
-  afficherFinDuel(finData(v,1,matchFini), true);
-  netSend({t:'fin', d:finData(v,2,matchFini)});
+  /* On garde de quoi REJOUER cet écran à l'identique. Si l'adversaire se déconnecte puis
+     revient après la fin de manche, il faut le réafficher — mais surtout pas rappeler
+     terminerDuel(), qui recompterait la manche une seconde fois. */
+  NET.finCourante = { mancheNo: mancheNo, dHote: finData(v,1,matchFini), dInvite: finData(v,2,matchFini) };
+  afficherFinDuel(NET.finCourante.dHote, true);
+  netSend({t:'fin', d:NET.finCourante.dInvite});
 }
 function finData(v, moi, matchFini){
   const adv = moi===1?2:1;
@@ -6429,6 +6479,35 @@ function afficherFinDuel(d, hote){
 }
 function mancheSuivanteDuel(){ mancheNo++; netDealManche(); }
 function rejouerDuel(){ matchMe=0; matchIA=0; mancheNo=1; netDealManche(); }
+/* ── Abandon depuis l'écran d'attente ──
+   quitterDuel() appelle netFermer(), qui détruit l'identité EQ4-code. L'adversaire, en
+   revenant, composait alors un code sans réponse : il ne pouvait ni reprendre, ni même
+   apprendre que la partie était finie. Il restait suspendu.
+   Ici on garde le pair EN VIE deux minutes, uniquement pour dire adieu à celui qui revient.
+   Le joueur reste libre : il attend, ou il abandonne — mais l'abandon se voit des deux côtés. */
+function abandonnerDuel(){
+  arreterCompteAbandon();
+  NET.abandonne = true;
+  try{ netSend({t:'bye'}); }catch(e){}          // au cas où la connexion serait revenue entre-temps
+  effacerDuel();
+  NET.enPartie=false; locked=true; fini=true;
+  try{ netPoulsArrete(); }catch(e){}
+  const fe=document.getElementById("finemoji"), ft=document.getElementById("fintitre");
+  fe.textContent="🏳️"; ft.style.color=""; ft.textContent="DUEL ABANDONNÉ";
+  document.getElementById("finpips").innerHTML="";
+  document.getElementById("findetail").innerHTML=
+    `<div style="text-align:center;color:var(--muet)">Tu as mis fin au duel.<br><br>
+     <span style="font-size:13px;opacity:.8">S'il revient dans les deux minutes, il en sera averti.</span></div>`;
+  document.getElementById("finbtns").innerHTML=
+    `<button class="btn" style="flex:1" onclick="menuApresAbandon()">Retour au menu</button>`;
+  document.getElementById("fin").classList.add("on");
+  try{ clearTimeout(NET._finAbandon); }catch(e){}
+  NET._finAbandon = setTimeout(function(){ try{ netFermer(); }catch(e){} NET.abandonne=false; }, 120000);
+}
+/* Retour au menu SANS tuer le pair : il doit pouvoir répondre encore un moment. */
+function menuApresAbandon(){
+  NET.code=null; JEU='solo'; fermerOverlays(); ouvrirNiveau();
+}
 function quitterDuel(){ arreterCompteAbandon(); effacerDuel(); netSend({t:'bye'}); netFermer(); NET.enPartie=false; NET.code=null; JEU='solo'; fermerOverlays(); ouvrirNiveau(); }
 function duelTermineParAutre(){
   effacerDuel(); netPoulsArrete(); NET.connected=false; NET.enPartie=false; locked=true; arreterCompteAbandon();
@@ -6460,7 +6539,7 @@ function netAttendreRetour(){
      <b style="color:var(--goldL)">Ne quitte pas : la partie est gardée.</b><br>
      <span style="font-size:13px;opacity:.75">Elle reprendra d'elle-même dès son retour, au même score.</span></div>`;
   document.getElementById("finbtns").innerHTML=
-    `<button class="btn ghost" id="abandonDuelBtn" style="flex:1;opacity:.5" disabled onclick="quitterDuel()">Abandon possible dans <span id="abandonCompte">30</span> s</button>`;
+    `<button class="btn ghost" id="abandonDuelBtn" style="flex:1;opacity:.5" disabled onclick="abandonnerDuel()">Abandon possible dans <span id="abandonCompte">30</span> s</button>`;
   document.getElementById("fin").classList.add("on");
   // Celui qui reste ne peut PAS abandonner tout de suite : 60 s pour laisser une chance au retour de l'autre.
   arreterCompteAbandon();
@@ -6537,6 +6616,7 @@ function reprendreDuelSauve(){
   const d=chargerDuel(); if(!d) return false;
   NET.code=d.code; NET.role=d.role; NET.enPartie=true; NET.aQui=d.aQui||null;
   JEU='net'; MODE=(d.gs&&d.gs.mode)||'classique';
+  resetBilan();   // idem à la reprise d'un duel sauvegardé
   try{ document.getElementById('splash').classList.remove('on'); }catch(e){}
   if(d.role==='host' && d.gs){
     mainJ=d.gs.mainJ||[]; mainIA=d.gs.mainIA||[]; T=d.gs.T||tableVide();
@@ -6553,9 +6633,7 @@ function reprendreDuelSauve(){
         c.on('open', ()=>{
           NET.sendRaw=(o)=>{ try{c.send(o);}catch(e){} };
           NET.connected=true; netPoulsDemarre();
-          arreterCompteAbandon(); document.getElementById('fin').classList.remove('on'); fermerDuel();
-          dire("<b>L'adversaire est revenu.</b>",1);
-          NET.dernier=null; sel=null; fini=false; locked=(NET.aQui!=='host'); netEnvoyerEtat(NET.aQui==='guest', null); render();
+          netRepriseHote();
         });
         c.on('data', netRecv);
         c.on('close', ()=>{ if(NET.conn===c) netPerdu(); });
@@ -6591,6 +6669,15 @@ function duelVue(txt, codeVal){
    hors ligne, et qui n'ont jamais demandé à parler à personne.
    Il ne se charge plus qu'au moment où l'on ouvre un Duel. */
 let _peerFile=null;
+/* Le duel repose sur WebRTC, qui exige un contexte sécurisé (https ou localhost). Ouvert
+   comme un fichier — file:// — il ne peut PAS fonctionner, quelle que soit la connexion.
+   Le message « Vérifie ta connexion internet » envoyait donc chercher au mauvais endroit. */
+function duelContexteOk(){
+  try{ return location.protocol!=='file:' && window.isSecureContext!==false; }catch(e){ return true; }
+}
+function duelHorsLigneVue(){
+  duelVue("Le duel a besoin du site en ligne — ouvre equilibre.khalam.app. Il ne peut pas fonctionner depuis un fichier ouvert sur l'appareil.");
+}
 function chargePeerJS(cb){
   if(typeof Peer!=='undefined') return cb(true);
   if(_peerFile){ _peerFile.push(cb); return; }              // déjà en route : on fait la queue
@@ -6607,6 +6694,7 @@ function chargePeerJS(cb){
 function duelCreer(){
   if(typeof Peer==='undefined'){
     duelVue("Connexion en cours…");
+    if(!duelContexteOk()) return duelHorsLigneVue();
     chargePeerJS(ok=>{ if(!ok){ duelVue("Connexion impossible. Vérifie ta connexion internet."); return; } duelCreer(); });
     return;
   }
@@ -6625,13 +6713,7 @@ function duelCreer(){
       NET.sendRaw=(o)=>{ try{c.send(o);}catch(e){} };
       NET.connected=true; netPoulsDemarre();
       if(reprise){
-        arreterCompteAbandon(); document.getElementById("fin").classList.remove("on");    // l'écran 🔌 s'efface
-        fermerDuel();
-        dire("<b>L'adversaire est revenu.</b>", 1);
-        NET.dernier=null;                                   // rien à rejouer : on renvoie l'état nu
-        sel=null; fini=false; locked=(NET.aQui!=='host');   // l'hôte redevient jouable si c'est SON tour (corrige le blocage des deux côtés)
-        netEnvoyerEtat(NET.aQui==='guest', null);
-        render();
+        netRepriseHote();
       } else {
         duelVue("Adversaire connecté !");
         setTimeout(demarrerDuelHote,300);
@@ -6644,6 +6726,7 @@ function duelCreer(){
 function duelRejoindre(){
   if(typeof Peer==='undefined'){
     duelVue("Connexion en cours…");
+    if(!duelContexteOk()) return duelHorsLigneVue();
     chargePeerJS(ok=>{ if(!ok){ duelVue("Connexion impossible. Vérifie ta connexion internet."); return; } duelRejoindre(); });
     return;
   }
