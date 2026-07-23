@@ -3432,15 +3432,22 @@ function chargerBoutique(){
     });
   }
   skinsDEssai();
-  appliquerSkin(BOUT.equipe||'defaut');
+  /* Garde-fou : l'habillage équipé doit toujours faire partie des possédés. Cas typique —
+     la phase de test se termine et un joueur avait équipé un habillage non acheté. */
+  if(BOUT.owned.indexOf(BOUT.equipe)<0) BOUT.equipe = SKIN_DEPART;
+  appliquerSkin(BOUT.equipe||SKIN_DEPART);
 }
 function sauverBoutique(){
   try{
     let c=BOUT;
-    if(SKINS_ESSAI.length){                                    // un essai ne s'achète pas
+    if(SKINS_ESSAI.length){                                    // un essai ne s'ACHÈTE pas...
       c=Object.assign({},BOUT);
       c.owned=BOUT.owned.filter(id=>SKINS_ESSAI.indexOf(id)<0);
-      if(SKINS_ESSAI.indexOf(c.equipe)>=0) c.equipe='defaut';  // sinon il resterait équipé sans être possédé
+      /* ...mais le CHOIX du joueur, lui, se garde. Un habillage équipé le reste jusqu'à ce
+         qu'il en change — même en phase de test, même après avoir fermé le jeu.
+         On effaçait ici « equipe », ce qui renvoyait le testeur à l'habillage de départ à
+         chaque relancement. Si un jour il ne possède plus cet habillage (fin du mode test),
+         c'est chargerBoutique() qui le ramènera proprement, au moment voulu. */
     }
     localStorage.setItem(CLE_BOUT, JSON.stringify(c));
   }catch(e){}
@@ -4554,7 +4561,7 @@ addEventListener("resize", ()=>{ try{ _kActuel=0; _ajRangs=-1; ajusteMain(true);
    Sans marqueur visible, ni le joueur ni le testeur ne savent ce qu'ils jouent, et le
    développeur ne peut pas le lire sur une capture. On a perdu une journée à s'en douter.
    À bumper AVEC le CACHE de sw.js — les deux doivent toujours dire la même chose. */
-const BUILD_TAG = "v229";
+const BUILD_TAG = "v231";
 
 const CLE_LITE = "eq_lite";
 let liteOn = false;
@@ -6304,6 +6311,11 @@ function netRecv(m){
   if(m.t==='bye'){ duelTermineParAutre(); return; }   // l'adversaire a appuyé sur « Se déconnecter » : fin nette, pas de reprise
   if(NET.role==='host'){
     if(m.t==='coup') netHoteCoup(m.idx, m.p);
+    else if(m.t==='relance'){
+      /* fini vaut false dès qu'une distribution a eu lieu : si les deux joueurs appuient
+         en même temps, la seconde demande arrive dans le vide et ne redistribue pas. */
+      if(fini){ if(m.match) rejouerDuel(); else mancheSuivanteDuel(); }
+    }
     else if(m.t==='salut'){ if(NET.enPartie){ NET.dernier=null; netEnvoyerEtat(NET.aQui==='guest', null); } }   // l'invité (re)demande l'état → on renvoie l'instantané complet, autant de fois qu'il le faut
   } else {
     if(m.t==='etat') appliquerVue(m.v);
@@ -6516,16 +6528,27 @@ function afficherFinDuel(d, hote){
   if(d.matchFini) majFinMatch(d.jGagneMatch, null);
   if(d.matchFini) effacerDuel();   // match terminé : plus de reprise auto (Rejouer relance une partie neuve qui se resauvegardera)
   const fb=document.getElementById("finbtns");
-  if(hote){
-    fb.innerHTML = d.matchFini
-      ? `<button class="btn" style="flex:1" onclick="rejouerDuel()">Rejouer</button><button class="btn ghost" onclick="seDeconnecterDuel()">Se déconnecter</button>`
-      : `<button class="btn" style="flex:1" onclick="mancheSuivanteDuel()">Manche suivante →</button><button class="btn ghost" onclick="seDeconnecterDuel()">Se déconnecter</button>`;
-  } else {
-    fb.innerHTML = `<div style="flex:1;text-align:center;color:var(--muet);font-size:12px" class="dots">En attente de l'hôte</div><button class="btn ghost" onclick="seDeconnecterDuel()">Se déconnecter</button>`;
-  }
+  /* Les deux joueurs ont le MÊME bouton. L'invité ne distribue pas les cartes — seul l'hôte
+     le peut — alors il le lui demande. Le premier qui appuie relance, quel qu'il soit. */
+  const _lbl = d.matchFini ? "Rejouer" : "Manche suivante →";
+  const _act = hote
+    ? (d.matchFini ? "rejouerDuel()" : "mancheSuivanteDuel()")
+    : `demanderRelanceDuel(${d.matchFini?'true':'false'})`;
+  fb.innerHTML = `<button class="btn" id="btnRelanceDuel" style="flex:1" onclick="${_act}">${_lbl}</button>`
+               + `<button class="btn ghost" onclick="seDeconnecterDuel()">Se déconnecter</button>`;
   document.getElementById("fin").classList.add("on");
 }
 function mancheSuivanteDuel(){ mancheNo++; netDealManche(); }
+/* Demande de relance envoyée par l'invité. Le bouton se met en attente pour qu'on ne le
+   presse pas dix fois — mais si rien ne vient (message perdu), il redevient actif. */
+function demanderRelanceDuel(matchFini){
+  try{ ac(); }catch(e){}
+  netSend({t:'relance', match:!!matchFini});
+  const b=document.getElementById('btnRelanceDuel');
+  if(b){ b.disabled=true; b.style.opacity='.55'; b.textContent='Demandé…';
+    setTimeout(function(){ if(b && b.isConnected && b.disabled){
+      b.disabled=false; b.style.opacity=''; b.textContent = matchFini ? 'Rejouer' : 'Manche suivante →'; } }, 4000); }
+}
 function rejouerDuel(){ matchMe=0; matchIA=0; mancheNo=1; netDealManche(); }
 /* ── Abandon depuis l'écran d'attente ──
    quitterDuel() appelle netFermer(), qui détruit l'identité EQ4-code. L'adversaire, en
