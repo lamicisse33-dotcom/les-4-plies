@@ -163,7 +163,9 @@ button.reg-l:active{background:rgba(255,255,255,.06);border-color:rgba(201,162,3
   transform:translate(-50%,-50%) scale(.9);opacity:0;pointer-events:none;
   z-index:10001;
   display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;
-  width:min(86vw,360px);
+  width:min(86vw,360px);max-height:86dvh;overflow-y:auto;
+  /* zones sûres : sur un iPhone récent, même centrée, une bannière haute pouvait dépasser */
+  margin:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px);
   background:linear-gradient(180deg,var(--pan1,#2A1B4A),var(--pan2,#1A1030));border:1px solid var(--gold);
   border-radius:16px;padding:18px 18px 16px;
   box-shadow:0 14px 40px rgba(0,0,0,.7), 0 0 26px rgba(240,208,96,.3);
@@ -172,7 +174,7 @@ button.reg-l:active{background:rgba(255,255,255,.06);border-color:rgba(201,162,3
 .maj-t{font-size:13.5px;line-height:1.45;color:#EFE9DA;}
 .maj-t b{color:var(--goldL);font-size:14.5px;}
 .maj-b{background:linear-gradient(180deg,#F7EFD2,#C9A227);color:#241634;border:none;border-radius:10px;
-  width:100%;padding:12px 15px;font-family:'Cinzel',serif;font-weight:800;font-size:12px;letter-spacing:.8px;
+  width:100%;padding:15px 15px;min-height:48px;font-family:'Cinzel',serif;font-weight:800;font-size:12px;letter-spacing:.8px;
   cursor:pointer;white-space:nowrap;animation:majPulse 1.6s ease-in-out infinite;}
 @keyframes majPulse{0%,100%{box-shadow:0 0 0 rgba(240,208,96,0)}50%{box-shadow:0 0 16px 2px rgba(240,208,96,.65)}}
 .inst{background:rgba(155,89,182,.1);border:1px solid rgba(201,162,39,.3);border-radius:14px;
@@ -4552,7 +4554,7 @@ addEventListener("resize", ()=>{ try{ _kActuel=0; _ajRangs=-1; ajusteMain(true);
    Sans marqueur visible, ni le joueur ni le testeur ne savent ce qu'ils jouent, et le
    développeur ne peut pas le lire sur une capture. On a perdu une journée à s'en douter.
    À bumper AVEC le CACHE de sw.js — les deux doivent toujours dire la même chose. */
-const BUILD_TAG = "v228";
+const BUILD_TAG = "v229";
 
 const CLE_LITE = "eq_lite";
 let liteOn = false;
