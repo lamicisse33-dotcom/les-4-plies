@@ -238,7 +238,13 @@ button.reg-l:active{background:rgba(255,255,255,.06);border-color:rgba(201,162,3
 .mir-bar{flex:1;height:9px;border-radius:5px;background:rgba(0,0,0,.35);overflow:hidden;border:1px solid rgba(255,255,255,.08);}
 .mir-bar i{display:block;height:100%;border-radius:5px;transform-origin:left;animation:xpgrow .8s cubic-bezier(.2,1,.3,1) both;}
 
-#topbar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:2px;}
+/* Le badge était placé par space-between : à gauche deux boutons (66 px), à droite un seul
+   (30 px). L'espace restant se partageant en deux, le badge se retrouvait 18 px trop à
+   droite du vrai centre. Une grille à colonnes latérales ÉGALES (1fr) le recentre pour de
+   bon, quel que soit le nombre de boutons de chaque côté. */
+#topbar{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;margin-bottom:2px;}
+.tb-left{justify-self:start;}
+.tb-right{justify-self:end;}
 .tb-left{display:flex;align-items:center;gap:6px;}
 .tb-right{display:flex;align-items:center;gap:6px;}
 .iconbtn.off{opacity:.5;position:relative;}
@@ -269,9 +275,21 @@ html.lite h1::after{display:none;}
 .pip.on.moi{background:var(--goldL);border-color:var(--goldL);box-shadow:0 0 6px var(--goldL);}
 .pip.on.ia{background:#e0708a;border-color:#e0708a;box-shadow:0 0 6px #e0708a;}
 
-#score{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:4px;
+/* Trois colonnes : [VOUS] [objectif] [Adv]. Les deux colonnes latérales sont de largeur
+   égale (1fr) et leur contenu est centré, donc la ligne reste symétrique quelle que soit
+   la longueur des textes — « 1 pilier » ou « 3 piliers ». Le compte des égalités est passé
+   SOUS l'objectif : en 4e bloc, il décalait toute la ligne chaque fois qu'il apparaissait. */
+#score{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;justify-items:center;
+  gap:10px;margin-bottom:4px;
   font-family:'Cinzel',serif;font-size:11px;font-weight:900;letter-spacing:.5px;}
-#score .c{padding:4px 10px;border-radius:14px;border:1px solid rgba(255,255,255,.12);}
+#score .c{padding:4px 10px;border-radius:14px;border:1px solid rgba(255,255,255,.12);
+  min-width:88px;text-align:center;}
+.sc-mid{font-size:9px;color:var(--muet);text-align:center;line-height:1.2;}
+.sc-mid b{display:block;color:var(--goldL);font-size:13px;line-height:1.15;}
+.sc-mid b.sc-av{color:var(--goldL);}          /* tu mènes sur le critère qui décide */
+.sc-mid b.sc-re{color:#e0708a;}               /* tu es derrière */
+.sc-mid b.sc-eg{color:var(--muet);font-size:10px;letter-spacing:.5px;}
+.sc-nuls{display:block;font-size:7.5px;letter-spacing:.6px;opacity:.85;margin-top:1px;}
 #score .moi{color:var(--goldL);background:rgba(201,162,39,.1);border-color:rgba(201,162,39,.4);}
 #score .ia{color:#e0708a;background:rgba(224,85,85,.08);border-color:rgba(224,85,85,.3);}
 #score .lbl{font-family:'Crimson Text',serif;font-size:8px;color:var(--muet);letter-spacing:1.6px;font-weight:400;}
@@ -297,8 +315,25 @@ html.lite h1::after{display:none;}
   white-space:nowrap;overflow:hidden;text-overflow:clip;text-shadow:0 1px 4px rgba(0,0,0,.6);}
 .borne .emb{position:relative;display:flex;align-items:center;justify-content:center;width:38px;height:38px;margin:1px auto 2px;border-radius:50%;
   background:radial-gradient(circle at 50% 42%, var(--pc,rgba(201,162,39,.4)), transparent 70%);}
-.borne .emb.pop{animation:embPop .5s ease;}
+/* Halo respirant autour de l'emblème, à la couleur du pilier (--pc, posé par le JS).
+   ::before et ::after de .emb sont déjà pris (relief et reflet) : on passe donc par
+   box-shadow, qui était libre. Le décalage par pilier fait courir une VAGUE de gauche
+   à droite au lieu de faire clignoter les quatre ensemble. */
+.borne .emb{box-shadow:0 0 0 1px var(--pc,rgba(201,162,39,.4)), 0 0 8px -1px var(--pc,rgba(201,162,39,.4));
+  animation:embRespire 3.6s ease-in-out infinite;}
+@keyframes embRespire{
+  0%,100%{box-shadow:0 0 0 .8px var(--pc,rgba(201,162,39,.4)), 0 0 5px -1px var(--pc,rgba(201,162,39,.4));}
+  50%    {box-shadow:0 0 0 2.2px var(--pc,rgba(201,162,39,.4)), 0 0 17px 2px var(--pc,rgba(201,162,39,.4));}}
+.borne[data-p="Spiritualité"] .emb{animation-delay:0s;}
+.borne[data-p="Amour"]        .emb{animation-delay:.45s;}
+.borne[data-p="Santé"]        .emb{animation-delay:.9s;}
+.borne[data-p="Argent"]       .emb{animation-delay:1.35s;}
+/* la pulsation de pose doit s'ajouter à la respiration, pas la remplacer */
+.borne .emb.pop{animation:embPop .5s ease, embRespire 3.6s ease-in-out infinite;}
 @keyframes embPop{0%{transform:scale(1);}35%{transform:scale(1.2);}60%{transform:scale(.96);}100%{transform:scale(1);}}
+html.lite .borne .emb{animation:none;box-shadow:0 0 0 1px var(--pc,rgba(201,162,39,.4));}
+@media (prefers-reduced-motion: reduce){
+  .borne .emb,.borne .emb.pop{animation:none;box-shadow:0 0 0 1.2px var(--pc,rgba(201,162,39,.4)),0 0 9px -1px var(--pc,rgba(201,162,39,.4));}}
 .ptfloat{position:absolute;left:50%;transform:translateX(-50%);font-family:'Cinzel',serif;font-weight:900;font-size:15px;
   pointer-events:none;z-index:8;text-shadow:0 1px 3px rgba(0,0,0,.75);}
 .ptfloat.pos{color:#f0d98a;} .ptfloat.neg{color:#e0708a;}
@@ -386,7 +421,7 @@ html.lite #phenixBtn::after{animation:none;display:none;}
   22%{opacity:.95;}60%{opacity:.85;}100%{opacity:0;transform:translate(-50%,-145%) scale(1.5);}}
 html.lite .phx-wing{display:none;}
 .titremain{display:none;}
-#main{display:grid;grid-template-columns:repeat(6,auto);gap:4px;justify-content:center;align-items:start;}
+#main{display:grid;grid-template-columns:repeat(4,auto);gap:4px;justify-content:center;align-items:start;}
 .carte{width:91px;height:132px;zoom:var(--k,1);border-radius:10px;position:relative;overflow:hidden;cursor:pointer;
   background:linear-gradient(150deg,var(--cface1,var(--ivoire1)),var(--cface2,var(--ivoire2)));
   border:1.2px solid var(--cardfr,var(--encre));box-shadow:0 3px 10px rgba(0,0,0,.35);
@@ -921,7 +956,8 @@ html.lite #qphenix .q-emb{animation:none;}
 
 /* ── Balance de l'âme (SVG) : tension méta en temps réel ── */
 #balance{position:relative;margin:0 auto 2px;max-width:118px;text-align:center;}
-#balance .cap{font-size:7.5px;letter-spacing:3px;color:#a99fc0;font-family:'Cinzel',serif;font-weight:900;text-transform:uppercase;margin-bottom:1px;}
+#balance .cap{font-size:7.5px;letter-spacing:3px;color:#a99fc0;font-family:'Cinzel',serif;font-weight:900;text-transform:uppercase;margin-bottom:1px;
+  white-space:nowrap;}   /* la balance est etroite : sans ca, « LE PLUS FAIBLE » se coupait en deux */
 #scale{width:100%;height:auto;display:block;filter:drop-shadow(0 3px 7px rgba(0,0,0,.45));overflow:visible;}
 #scale #pivKnob{filter:drop-shadow(0 0 6px rgba(240,208,96,.55));}
 
@@ -1762,6 +1798,37 @@ html.lite[data-skin="elements"] body::after{box-shadow:none;}
 html.lite[data-skin="verre"] #ambiance .glow,
 html.lite[data-skin="plastique"] #ambiance .glow{display:none;}
 
+/* ══════════ COMPACTAGE POUR 3 RANGÉES DE 4 ══════════
+   La main réclame maintenant 3 rangées au lieu de 2. Sans rendre de la hauteur, ajusteMain
+   rétrécirait les cartes en dessous de leur taille actuelle : on gagne donc de la place
+   partout où elle ne sert qu'à respirer. Rien n'est supprimé, tout est resserré. */
+.sub{margin-bottom:1px;font-size:10.5px;}
+#matchbar{margin-bottom:4px;}
+#balance{max-width:86px;margin:0 auto 0;}          /* la balance reste, plus petite */
+#balance .cap{letter-spacing:2px;margin-bottom:0;}
+#score{margin-bottom:2px;}
+#score .c{padding:3px 9px;}
+#bornes{gap:5px;margin-bottom:4px;}
+.borne .emb{width:32px;height:32px;margin:0 auto 1px;}
+.borne .emb .embimg{width:26px;height:26px;}
+.jtrack{height:30px;}                               /* 42 -> 30 : douze pixels par tuile */
+/* Le sous-titre et le bandeau du but répètent ce que dit déjà la ligne d'étape juste en
+   dessous. Ce sont les deux seuls postes qu'on peut rendre sans perdre d'information —
+   ils valent ~40 px, qui repartent directement dans la taille des cartes. */
+.sub{display:none;}
+#but{display:none;}
+/* on resserre encore ce qui reste */
+.jtrack{height:24px;}
+.borne .emb{width:30px;height:30px;}
+.borne .emb .embimg{width:24px;height:24px;}
+#bornes{gap:4px;margin-bottom:3px;}
+#balance{max-width:74px;}
+#etape{padding:4px 10px;margin:2px 0 1px;}
+#msg{min-height:20px;}
+#etape{padding:5px 11px;margin:3px 0 1px;}
+#msg{min-height:24px;line-height:1.4;}
+#mainzone{margin-top:2px;}
+
 /* Boutique */
 #boutique .card{max-width:96vw;width:450px;max-height:90dvh;overflow:auto;}
 .bt-solde{display:flex;align-items:center;justify-content:center;gap:7px;font-family:'Cinzel',serif;color:var(--goldL);font-size:14px;margin:2px 0 14px;
@@ -1915,6 +1982,8 @@ html[data-skin="coris"] #score .lbl{color:#7C5B36;}
       <span class="reg-n"><span class="reg-e">📳</span>Vibrations</span><span class="reg-v" id="regVib"></span></button>
     <button class="reg-l" onclick="regToggle('lite')">
       <span class="reg-n"><span class="reg-e">✨</span>Effets visuels</span><span class="reg-v" id="regLite"></span></button>
+    <button class="reg-l" id="regRangLigne" style="display:none" onclick="cyclerRangees()">
+      <span class="reg-n"><span class="reg-e">🃏</span>Cartes par rangée</span><span class="reg-v" id="regRang"></span></button>
     <div class="reg-l reg-vol">
       <span class="reg-n">Volume général</span>
       <input id="regVol" type="range" min="0" max="100" step="5" oninput="regVolume(this.value)"/>
@@ -2118,7 +2187,7 @@ html[data-skin="coris"] #score .lbl{color:#7C5B36;}
     <div id="main"></div>
   </div>
 
-  <button id="phenixBtn" onclick="invoquerPhenix()" style="display:none">🔥 Invoquer Le Phénix <span>— relève ton pilier en feu</span></button>
+  <button id="phenixBtn" onclick="invoquerPhenix()" style="display:none">🔥 Invoquer Le Phénix <span>— relève ton pilier en feu, une fois par partie</span></button>
 
 
   <div class="aide">
@@ -2691,6 +2760,13 @@ function majReglages(){
   mk('regVoix', voixOn,  'Activée',  'Coupée');
   mk('regVib',  vibOn,   'Activées', 'Coupées');
   mk('regLite', !liteOn, 'Complets', 'Allégés');
+  const lr=document.getElementById('regRangLigne');
+  if(lr) lr.style.display = MODE_TEST ? '' : 'none';        // essai reserve a la phase de test
+  const rr=document.getElementById('regRang');
+  if(rr){
+    var _k=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--k'))||1;
+    rr.textContent = PARRANG+' — '+Math.ceil(12/PARRANG)+' rangées · '+Math.round(CW*_k)+' px';
+  }
   const sl=document.getElementById('regVol'); if(sl) sl.value = Math.round(volume*100);
   const pc=document.getElementById('regVolPc'); if(pc) pc.textContent = Math.round(volume*100)+' %';
 }
@@ -3412,6 +3488,22 @@ function eligibleCadeau(){
      reste vraie, le return s'exécute quoi qu'il arrive et la boutique ne s'ouvre plus. */
   if(MODE_TEST) return false;
   return !BOUT.cadeau && ((BOUT.jouees||0)>=1 || (BOUT.manches||0)>=2 || (typeof PROFIL==='object' && PROFIL && (PROFIL.parties||0)>=1));
+}
+/* Essai de mise en page, MODE TEST uniquement. Aucune valeur n'est enregistree :
+   au rechargement on repart a 6. Sert a JUGER sur un ecran reel plutot que sur des
+   chiffres — la largeur d'une carte vaut (place dispo - ecarts) / nombre par rangee. */
+function cyclerRangees(){
+  try{ ac(); }catch(e){}
+  PARRANG = (PARRANG===6) ? 4 : (PARRANG===4 ? 5 : 6);
+  appliquerRangees();
+  const n=Math.ceil(12/PARRANG);
+  try{ toastTexte(PARRANG+' par rangee  ·  '+n+' rangees'); }catch(e){}
+  majReglages();
+}
+function appliquerRangees(){
+  const m=document.getElementById('main');
+  if(m) m.style.gridTemplateColumns='repeat('+PARRANG+',auto)';
+  try{ _kActuel=0; _ajRangs=-1; ajusteMain(true); }catch(e){}
 }
 function ouvrirBoutique(){
   try{ ac(); }catch(e){}
@@ -4238,11 +4330,20 @@ const _vuesCartes = new WeakSet();   // cartes déjà affichées : seules les no
 function render(){
   const [g1,g2]=bornesGagnees(T);
   const nuls = 4-g1-g2;
+  /* Le centre annonçait « il en faut 3 ». Ce seuil n'existe nulle part : verdict() tranche
+     sur le pilier le plus BAS, et le nombre de piliers menés n'est calculé que pour
+     l'affichage. L'interface enseignait donc l'inverse de la règle. On y met ce qui décide
+     réellement : l'écart entre ton plus bas pilier et le sien. */
+  const _f1=pilierFaible(T,1), _f2=pilierFaible(T,2), _e=_f1-_f2;
+  const _scCap = 'le plus bas décide';
+  const _scVal = _e===0 ? 'à égalité' : (_e>0 ? '+'+_e : String(_e));
+  const _scCls = _e>0 ? 'sc-av' : (_e<0 ? 'sc-re' : 'sc-eg');
   document.getElementById("score").innerHTML =
       `<div class="c moi"><div class="lbl">VOUS</div>${g1} pilier${g1>1?"s":""}</div>`
-    + `<div style="font-size:9px;color:var(--muet);text-align:center">il en faut<br><b style="color:var(--goldL);font-size:13px">3</b></div>`
-    + `<div class="c ia"><div class="lbl">${advLabel()}</div>${g2} pilier${g2>1?"s":""}</div>`
-    + (nuls? `<div style="font-size:8px;color:var(--muet)">${nuls} à<br>égalité</div>` : "");
+    + `<div class="sc-mid">${_scCap}<b class="${_scCls}">${_scVal}</b>`
+    +   (nuls? `<span class="sc-nuls">${nuls} à égalité</span>` : "")
+    + `</div>`
+    + `<div class="c ia"><div class="lbl">${advLabel()}</div>${g2} pilier${g2>1?"s":""}</div>`;
 
   const carteSel = sel!==null ? mainJ[sel] : null;
   const ciblesSel = carteSel ? ciblesDe(carteSel,T,1) : [];
@@ -4355,7 +4456,8 @@ function render(){
   sauverPartie();          // l'état vient de changer : on le grave
 }
 /* La main se met à l'échelle pour que TOUT l'écran de jeu tienne sans défilement */
-const CW=91, CH=132, GAP=4, PARRANG=6;
+const CW=91, CH=132, GAP=4;
+let PARRANG=4;   // 3 rangees de 4, toutes pleines. Modifiable en MODE TEST pour comparer.
 /* 6 cartes par rangee sur TOUS les habillages : deux rangees pleines, jamais une troisieme
    a moitie vide. Un essai a 5 par rangee rendait 24 % de taille aux cartes mais cassait la
    composition — abandonne. La place se regagne sur les marges, pas sur le nombre. */
@@ -4395,7 +4497,7 @@ addEventListener("resize", ()=>{ try{ _kActuel=0; _ajRangs=-1; ajusteMain(true);
    Sans marqueur visible, ni le joueur ni le testeur ne savent ce qu'ils jouent, et le
    développeur ne peut pas le lire sur une capture. On a perdu une journée à s'en douter.
    À bumper AVEC le CACHE de sw.js — les deux doivent toujours dire la même chose. */
-const BUILD_TAG = "v209";
+const BUILD_TAG = "v218";
 
 const CLE_LITE = "eq_lite";
 let liteOn = false;
@@ -4544,14 +4646,17 @@ function invoquerPhenix(){
   const p=pilierEnFeu(); if(!p) return;
   const g=phenixGain(); if(g<=0) return;
   phenixUse=true; sel=null; locked=true;
-  // une carte NORMALE est transmutée comme coût — on n'ampute jamais un joker si on peut l'éviter
-  let _ti=-1; for(let k=mainJ.length-1;k>=0;k--){ if(!estSpec(mainJ[k])){ _ti=k; break; } }
-  mainJ.splice(_ti>=0 ? _ti : mainJ.length-1, 1);   // dernier recours : main entièrement composée de jokers
+  /* Le Phénix ne coûte PLUS de carte. Il consumait auparavant la dernière carte normale
+     de la main (un joker en dernier recours) : le coût n'était annoncé nulle part et se
+     lisait comme un effacement inexpliqué. Il reste limité par ce qui compte vraiment —
+     une seule invocation par partie (phenixUse), et il consomme le tour. */
   T[p][1]+=g;                               // sursaut plafonné à parité (hors compteur de cartes)
   histo.push(`✨ Le Phénix relève ${p} (+${g})`);
   render();
   try{ reagitPilier(p,'moi',g); ailePhenix(p); braisesPhenix(p); }catch(e){}
   try{ flash('#ff7a1a'); confetti(80); buzz([20,50,20,60]); sSpecial&&sSpecial('vol'); }catch(e){}
+  /* Le coût était invisible : une carte disparaissait sans que rien ne l'explique.
+     On nomme celle qui est consumée — la surprise devient une transaction comprise. */
   dire(`<b>🔥 Le Phénix te relève !</b> Ton pilier en feu remonte à hauteur de l'adversaire (+${g}) — à toi de finir le travail.`,1);
   try{ parle("Le Phénix te relève."); }catch(e){}
   tour++;
