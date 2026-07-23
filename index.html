@@ -4561,7 +4561,7 @@ addEventListener("resize", ()=>{ try{ _kActuel=0; _ajRangs=-1; ajusteMain(true);
    Sans marqueur visible, ni le joueur ni le testeur ne savent ce qu'ils jouent, et le
    développeur ne peut pas le lire sur une capture. On a perdu une journée à s'en douter.
    À bumper AVEC le CACHE de sw.js — les deux doivent toujours dire la même chose. */
-const BUILD_TAG = "v231";
+const BUILD_TAG = "v232";
 
 const CLE_LITE = "eq_lite";
 let liteOn = false;
@@ -6556,7 +6556,7 @@ function rejouerDuel(){ matchMe=0; matchIA=0; mancheNo=1; netDealManche(); }
    apprendre que la partie était finie. Il restait suspendu.
    Ici on garde le pair EN VIE deux minutes, uniquement pour dire adieu à celui qui revient.
    Le joueur reste libre : il attend, ou il abandonne — mais l'abandon se voit des deux côtés. */
-function abandonnerDuel(){
+function abandonnerDuel(auto){
   arreterCompteAbandon();
   NET.abandonne = true;
   try{ netSend({t:'bye'}); }catch(e){}          // au cas où la connexion serait revenue entre-temps
@@ -6564,10 +6564,13 @@ function abandonnerDuel(){
   NET.enPartie=false; locked=true; fini=true;
   try{ netPoulsArrete(); }catch(e){}
   const fe=document.getElementById("finemoji"), ft=document.getElementById("fintitre");
-  fe.textContent="🏳️"; ft.style.color=""; ft.textContent="DUEL ABANDONNÉ";
+  fe.textContent = auto ? "🔌" : "🏳️"; ft.style.color="";
+  ft.textContent = auto ? "DUEL INTERROMPU" : "DUEL ABANDONNÉ";
   document.getElementById("finpips").innerHTML="";
   document.getElementById("findetail").innerHTML=
-    `<div style="text-align:center;color:var(--muet)">Tu as mis fin au duel.<br><br>
+    `<div style="text-align:center;color:var(--muet)">${auto
+       ? "L'adversaire n'est pas revenu au bout de deux minutes."
+       : "Tu as mis fin au duel."}<br><br>
      <span style="font-size:13px;opacity:.8">S'il revient dans les deux minutes, il en sera averti.</span></div>`;
   document.getElementById("finbtns").innerHTML=
     `<button class="btn" style="flex:1" onclick="menuApresAbandon()">Retour au menu</button>`;
@@ -6608,21 +6611,27 @@ function netAttendreRetour(){
   document.getElementById("findetail").innerHTML=
     `<div style="text-align:center;color:var(--muet)">L'adversaire s'est absenté.<br><br>
      <b style="color:var(--goldL)">Ne quitte pas : la partie est gardée.</b><br>
-     <span style="font-size:13px;opacity:.75">Elle reprendra d'elle-même dès son retour, au même score.</span></div>`;
+     <span style="font-size:13px;opacity:.75">Elle reprendra d'elle-même dès son retour, au même score.</span><br><br>
+     <span style="font-size:12px;opacity:.6">Déconnexion automatique dans <b id="autoCompte">2:00</b></span></div>`;
   document.getElementById("finbtns").innerHTML=
     `<button class="btn ghost" id="abandonDuelBtn" style="flex:1;opacity:.5" disabled onclick="abandonnerDuel()">Abandon possible dans <span id="abandonCompte">30</span> s</button>`;
   document.getElementById("fin").classList.add("on");
-  // Celui qui reste ne peut PAS abandonner tout de suite : 60 s pour laisser une chance au retour de l'autre.
+  /* Deux échéances, un seul compteur :
+     — 30 s : le bouton d'abandon s'active. Avant, on laisse sa chance au retour.
+     — 120 s : déconnexion automatique. Sans elle, un joueur pouvait rester indéfiniment
+       devant un écran d'attente sans jamais rien décider. */
   arreterCompteAbandon();
-  let reste=30;
+  let reste=30, total=0;
   NET._abandonTick=setInterval(()=>{
-    reste--;
+    total++; reste--;
     const cpt=document.getElementById("abandonCompte"); if(cpt) cpt.textContent=(reste>0?reste:0);
-    if(reste<=0){
-      arreterCompteAbandon();
+    if(reste===0){
       const b=document.getElementById("abandonDuelBtn");
       if(b){ b.disabled=false; b.style.opacity=""; b.textContent="Abandonner le Duel"; }
     }
+    const au=document.getElementById("autoCompte");
+    if(au){ const r=Math.max(0,120-total); au.textContent=Math.floor(r/60)+":"+String(r%60).padStart(2,"0"); }
+    if(total>=120){ arreterCompteAbandon(); abandonnerDuel(true); }
   },1000);
 }
 function arreterCompteAbandon(){ try{ if(NET._abandonTick){ clearInterval(NET._abandonTick); NET._abandonTick=null; } }catch(e){} }
@@ -6633,7 +6642,7 @@ function netPerdu(){
   locked=true;
   if(NET.enPartie){
     /* En pleine partie : celui qui est RESTÉ voit l'écran d'attente (aucun bouton Reprendre,
-       Abandon possible seulement après 60 s). L'invité se rebranche tout seul, en silence ;
+       Abandon possible après 30 s, coupure automatique à 2 min). L'invité se rebranche tout seul, en silence ;
        l'hôte garde sa ligne ouverte et accueille le revenant. */
     netAttendreRetour();
     if(NET.role==='guest' && NET.code) duelReconnecter(true);   // reconnexion silencieuse en arrière-plan
