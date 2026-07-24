@@ -370,8 +370,13 @@ html.lite .ptfloat{display:none;} html.lite .borne .emb.pop{animation:none;}
   box-shadow:inset 0 0 0 1px rgba(201,162,39,.6), inset 0 2px 5px rgba(0,0,0,.45), 0 1px 3px rgba(0,0,0,.5);}
 .borne .emb::after{content:"";position:absolute;inset:5px;border-radius:50%;pointer-events:none;
   background:linear-gradient(150deg, rgba(255,255,255,.28), transparent 42%);opacity:.7;}
-.tot{font-family:'Cinzel',serif;font-weight:900;font-size:13px;line-height:1.05;transition:transform .18s;}
-.tot.moi{color:var(--goldL);} .tot.ia{color:#e0708a;}
+/* Le score adverse était figé à #e0708a, un rose moyen. Mesuré sur la bande des chiffres :
+   1,05 sur l'or (invisible), 1,27 sur le diamant, 1,70 sur la braise du Phénix. Le rose et
+   ces métaux ont presque la même clarté. Un rose bien plus clair, posé sur un liseré sombre,
+   passe partout — c'est le liseré qui fait l'essentiel du travail, pas la teinte. */
+.tot{font-family:'Cinzel',serif;font-weight:900;font-size:13px;line-height:1.05;transition:transform .18s;
+  text-shadow:0 0 3px var(--totOmbre,rgba(6,3,10,.9)), 0 1px 2px var(--totOmbre,rgba(6,3,10,.8));}
+.tot.moi{color:var(--goldL);} .tot.ia{color:var(--iaTot,#FFC8D4);}
 .tot.bump{transform:scale(1.5);}
 .tot.hit{animation:hit .4s ease;}
 @keyframes hit{0%{color:#fff;transform:scale(1.4);}100%{}}
@@ -1416,7 +1421,7 @@ html[data-skin="verre"] .borne .nom{
   text-shadow:0 0 2px rgba(8,16,26,.95),0 0 4px rgba(8,16,26,.7),0 1px 1px rgba(8,16,26,.6);}
 html[data-skin="verre"] .borne .mini{color:#3E4A58;}
 html[data-skin="verre"] .borne .tot.moi{color:#101A26;}
-html[data-skin="verre"] .borne .tot.ia{color:#7A2436;}
+html[data-skin="verre"] .borne{--iaTot:#7A2436;--totOmbre:rgba(255,255,255,.75);}   /* tuiles claires : on inverse le liseré */
 html[data-skin="verre"] .borne .jtrack{background:rgba(30,42,58,.42);border-color:rgba(60,76,94,.45);}
 html[data-skin="verre"] .borne .emb{background:radial-gradient(circle at 50% 42%, var(--pc,rgba(120,140,170,.5)), transparent 72%);}
 /* cartes : givre clair, filet froid, reflet en haut */
@@ -1898,11 +1903,22 @@ html.lite[data-skin="plastique"] #ambiance .glow{display:none;}
 .cad-opt .bt-emo{font-size:28px}
 
 /* Gain de points (toast) */
-#ptsToast{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 64px);transform:translateX(-50%) translateY(-14px);z-index:9998;
-  padding:9px 18px;border-radius:22px;font-family:'Cinzel',serif;font-weight:700;font-size:14px;color:#241634;
-  background:linear-gradient(180deg,var(--goldL),var(--gold));box-shadow:0 6px 22px rgba(201,162,39,.4);
-  opacity:0;pointer-events:none;transition:opacity .4s,transform .4s;}
-#ptsToast.on{opacity:1;transform:translateX(-50%) translateY(0);}
+/* Le gain de points s'affichait à 64 px du haut : pile sur le trophée de l'écran de fin,
+   qu'il masquait au moment précis où on veut le voir. Il descend en bas de l'écran, où
+   rien ne l'attend, et monte depuis le bord au lieu de tomber du plafond.
+   white-space:nowrap : « +10 ✦ Points d'Équilibre » se coupait en deux lignes. */
+#ptsToast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 22px);
+  transform:translateX(-50%) translateY(16px) scale(.96);z-index:9998;
+  max-width:88vw;white-space:nowrap;
+  padding:10px 20px;border-radius:24px;
+  font-family:'Cinzel',serif;font-weight:900;font-size:13.5px;letter-spacing:.6px;color:#241634;
+  background:linear-gradient(180deg,#FFF4D6 0%,var(--goldL) 34%,var(--gold) 78%,var(--goldD) 100%);
+  border:1px solid rgba(255,246,214,.9);
+  text-shadow:0 1px 0 rgba(255,250,232,.55);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.85), inset 0 -6px 12px rgba(120,84,10,.22),
+             0 0 20px rgba(240,208,96,.45), 0 8px 24px rgba(0,0,0,.45);
+  opacity:0;pointer-events:none;transition:opacity .35s, transform .45s cubic-bezier(.2,.9,.3,1.3);}
+#ptsToast.on{opacity:1;transform:translateX(-50%) translateY(0) scale(1);}
 /* 8. Coris Ancestraux — âme africaine (parchemin + cadre cauris, assets embarqués) */
 html[data-skin="coris"]{ --gold:#C9A46A;--goldL:#ECD6A2;--goldD:#8A6A3A;--pan1:#4c3a20;--pan2:#2c2012;--cface1:#fbf3df;--cface2:#efdfbc;--cardfr:#8A6A3A;
   --bg-top:#d8bd91;--bg-mid:#cdae7e;--bg-base:#c2a271;}
@@ -4561,7 +4577,7 @@ addEventListener("resize", ()=>{ try{ _kActuel=0; _ajRangs=-1; ajusteMain(true);
    Sans marqueur visible, ni le joueur ni le testeur ne savent ce qu'ils jouent, et le
    développeur ne peut pas le lire sur une capture. On a perdu une journée à s'en douter.
    À bumper AVEC le CACHE de sw.js — les deux doivent toujours dire la même chose. */
-const BUILD_TAG = "v232";
+const BUILD_TAG = "v234";
 
 const CLE_LITE = "eq_lite";
 let liteOn = false;
