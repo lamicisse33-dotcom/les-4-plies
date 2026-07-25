@@ -2135,7 +2135,7 @@ html[data-skin="coris"] #score .lbl{color:#7C5B36;}
 
       <div class="mem-spec"><span class="ic">🍎</span><span><b>Sur iPhone / iPad</b> (avec <b>Safari</b>)</span></div>
       <ol class="mem-steps">
-        <li>Ouvre le jeu dans <b>Safari</b>. Sur iPhone, l'installation ne marche <b>que</b> depuis Safari — pas depuis Chrome. Adresse&nbsp;: <b>4piliers.khalam.app</b></li>
+        <li>Ouvre le jeu dans <b>Safari</b>. Sur iPhone, l'installation ne marche <b>que</b> depuis Safari — pas depuis Chrome. Adresse&nbsp;: <b>piliers.khalam.app</b></li>
         <li>Touche l'icône <b>Partager</b> — un carré avec une flèche vers le haut <b>⬆︎</b> — située en bas de l'écran (en haut sur iPad).</li>
         <li>Fais défiler la liste, puis touche <b>« Sur l'écran d'accueil »</b>.</li>
         <li>Touche <b>« Ajouter »</b> en haut à droite.</li>
@@ -2144,7 +2144,7 @@ html[data-skin="coris"] #score .lbl{color:#7C5B36;}
 
       <div class="mem-spec"><span class="ic">🤖</span><span><b>Sur Android</b> (avec <b>Chrome</b>)</span></div>
       <ol class="mem-steps">
-        <li>Ouvre le jeu dans <b>Chrome</b>. Adresse&nbsp;: <b>4piliers.khalam.app</b></li>
+        <li>Ouvre le jeu dans <b>Chrome</b>. Adresse&nbsp;: <b>piliers.khalam.app</b></li>
         <li>Touche la bannière <b>« Installer le jeu »</b> qui apparaît en bas de l'accueil.<br>Si tu ne la vois pas&nbsp;: touche le menu <b>⋮</b> (trois points, en haut à droite), puis <b>« Installer l'application »</b> ou <b>« Ajouter à l'écran d'accueil »</b>.</li>
         <li>Confirme avec <b>« Installer »</b>.</li>
         <li>L'icône <b>4 Piliers</b> apparaît sur ton écran d'accueil. Lance le jeu depuis cette icône.</li>
@@ -4577,7 +4577,7 @@ addEventListener("resize", ()=>{ try{ _kActuel=0; _ajRangs=-1; ajusteMain(true);
    Sans marqueur visible, ni le joueur ni le testeur ne savent ce qu'ils jouent, et le
    développeur ne peut pas le lire sur une capture. On a perdu une journée à s'en douter.
    À bumper AVEC le CACHE de sw.js — les deux doivent toujours dire la même chose. */
-const BUILD_TAG = "v235";
+const BUILD_TAG = "v236";
 
 const CLE_LITE = "eq_lite";
 let liteOn = false;
@@ -5327,7 +5327,7 @@ function partagerVictoire(){
   } else flashMsg(LIEN_JEU);
 }
 /* Le lien du jeu : sans lui, celui qui reçoit un défi ne peut pas le relever */
-const LIEN_JEU = "https://4piliers.khalam.app";
+const LIEN_JEU = "https://piliers.khalam.app";
 function partagerDefi(f1,t1){
   const rep=P.map(p=>`${EMB[p]}${T[p][1]}`).join(' ');
   const txt=`⚖️ LES QUATRE PILIERS — Défi du ${defiLabel()}\nMon pilier le plus faible : ${f1}\n${rep} · Total ${t1}\nSauras-tu mieux équilibrer tes 4 piliers ?`;
@@ -6772,7 +6772,7 @@ function duelContexteOk(){
   try{ return location.protocol!=='file:' && window.isSecureContext!==false; }catch(e){ return true; }
 }
 function duelHorsLigneVue(){
-  duelVue("Le duel a besoin du site en ligne — ouvre 4piliers.khalam.app. Il ne peut pas fonctionner depuis un fichier ouvert sur l'appareil.");
+  duelVue("Le duel a besoin du site en ligne — ouvre piliers.khalam.app. Il ne peut pas fonctionner depuis un fichier ouvert sur l'appareil.");
 }
 function chargePeerJS(cb){
   if(typeof Peer!=='undefined') return cb(true);
