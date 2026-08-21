@@ -84,6 +84,45 @@ a.splash-brand:active{opacity:1;border-color:rgba(201,162,39,.45);}
 a.reg-site{text-decoration:none;}
 a.reg-site .reg-v{opacity:.75;}
 @media (display-mode:standalone){ a.reg-site{display:none;} }
+/* Ecran du nom de joueur. Il precede tout : sans nom, aucune ligne ne part vers
+   le tableau de bord, et une ligne anonyme ne servirait a rien. */
+#psEcran{position:fixed;inset:0;z-index:9600;display:none;align-items:center;justify-content:center;padding:20px;
+  background:radial-gradient(120% 90% at 50% 0%,#1c1436 0%,#0b0718 60%,#07040f 100%);}
+#psEcran.on{display:flex;}
+.ps-carte{max-width:340px;width:100%;text-align:center;padding:30px 22px 22px;border-radius:22px;
+  background:linear-gradient(180deg,rgba(30,20,52,.96),rgba(15,9,28,.98));
+  border:1px solid rgba(201,162,39,.4);box-shadow:0 0 60px rgba(201,162,39,.2),0 20px 60px rgba(0,0,0,.6);}
+.ps-t{font-family:'Cinzel',serif;font-weight:900;font-size:23px;letter-spacing:1px;color:var(--goldL);margin:10px 0 8px;}
+.ps-p{font-size:13.5px;line-height:1.5;color:#c8bfe0;margin-bottom:16px;}
+.ps-i{width:100%;box-sizing:border-box;padding:13px 14px;border-radius:12px;text-align:center;
+  font-family:'Cinzel',serif;font-size:17px;letter-spacing:1px;color:#f4ecd8;
+  background:rgba(0,0,0,.35);border:1px solid rgba(201,162,39,.35);outline:none;}
+.ps-i:focus{border-color:rgba(201,162,39,.75);}
+.ps-e{min-height:18px;font-size:12.5px;color:#e0708a;margin:8px 0 4px;}
+.ps-note{font-size:11.5px;color:#8d85a6;margin-top:12px;line-height:1.45;}
+/* Tableau de bord : reserve a Lamine. Cinq appuis sur le titre des Reglages,
+   puis un mot de passe verifie par la base — il n'est ecrit nulle part dans la page. */
+#tdbEcran{position:fixed;inset:0;z-index:9700;display:none;align-items:center;justify-content:center;padding:18px;
+  background:rgba(4,2,10,.92);}
+#tdbEcran.on{display:flex;}
+.tdb-carte{max-width:400px;width:100%;max-height:86vh;overflow:auto;padding:22px 18px;border-radius:20px;
+  background:linear-gradient(180deg,rgba(30,20,52,.98),rgba(12,7,24,.99));
+  border:1px solid rgba(201,162,39,.45);box-shadow:0 20px 60px rgba(0,0,0,.7);}
+.tdb-h{font-family:'Cinzel',serif;font-weight:900;font-size:16px;letter-spacing:2px;color:var(--goldL);
+  text-align:center;margin-bottom:14px;}
+.tdb-chif{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;}
+.tdb-c{background:rgba(0,0,0,.32);border:1px solid rgba(201,162,39,.2);border-radius:12px;padding:10px 8px;text-align:center;}
+.tdb-c b{display:block;font-family:'Cinzel',serif;font-size:21px;color:var(--goldL);line-height:1.2;}
+.tdb-c span{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:#9a92b5;}
+.tdb-t{width:100%;border-collapse:collapse;font-size:12.5px;}
+.tdb-t th{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#8d85a6;
+  text-align:left;padding:6px 5px;border-bottom:1px solid rgba(201,162,39,.25);}
+.tdb-t td{padding:7px 5px;border-bottom:1px solid rgba(255,255,255,.06);color:#ded6f0;}
+.tdb-t td.n{color:var(--goldL);font-weight:700;}
+.tdb-vide{font-size:13px;color:#9a92b5;text-align:center;padding:18px 0;}
+/* La porte. Aucune bordure, aucun fond, aucun curseur : rien ne la signale.
+   touch-action:none empeche le glissement de la page d'annuler l'appui long. */
+.reg-porte{height:24px;width:100%;margin-top:2px;background:none;border:0;touch-action:none;}
 .splash-emb{line-height:0;display:flex;justify-content:center;filter:drop-shadow(0 0 18px rgba(240,208,96,.6));animation:crownfloat 3.4s ease-in-out infinite;}
 .splash-emb svg{display:block;}
 html.lite .splash-emb{animation:none;filter:none;}   /* mobile lent : l'emblème ne flotte pas */
@@ -2056,6 +2095,7 @@ html[data-skin="coris"] #score .lbl{color:#7C5B36;}
       <span class="reg-n">Volume général</span>
       <input id="regVol" type="range" min="0" max="100" step="5" oninput="regVolume(this.value)"/>
       <span class="reg-pc" id="regVolPc"></span>
+      <div id="regPorte" class="reg-porte" aria-hidden="true"></div>
     </div>
     <a class="reg-l reg-site" href="https://khalam.app">
       <span class="reg-n"><span class="reg-e">↩︎</span>Retour au site KHALAM</span><span class="reg-v">khalam.app</span></a>
@@ -2248,6 +2288,33 @@ html[data-skin="coris"] #score .lbl{color:#7C5B36;}
 
   <div id="score"></div>
   <div id="bornes"><svg id="liens" xmlns="http://www.w3.org/2000/svg"></svg></div>
+
+<div id="tdbEcran" role="dialog" aria-modal="true">
+  <div class="tdb-carte">
+    <div class="tdb-h">&#9878; TABLEAU DE BORD</div>
+    <div id="tdbCorps">
+      <p class="ps-p">Entre le mot de passe du tableau de bord.</p>
+      <input id="tdbMdp" class="ps-i" type="password" autocomplete="off" placeholder="mot de passe"/>
+      <div class="ps-e" id="tdbErr"></div>
+      <button class="btn" style="width:100%" onclick="TDB.ouvrirBord()">VOIR</button>
+    </div>
+    <button class="btn" style="width:100%;margin-top:10px;opacity:.7" onclick="TDB.fermerBord()">Fermer</button>
+  </div>
+</div>
+
+<div id="psEcran" role="dialog" aria-modal="true" aria-labelledby="psT">
+  <div class="ps-carte">
+    <div class="splash-brand" style="pointer-events:none">&#10022; KHALAM &#10022;</div>
+    <h2 class="ps-t" id="psT">TON NOM DE JOUEUR</h2>
+    <p class="ps-p">Il te suivra dans le classement des Quatre Piliers.</p>
+    <input id="psInput" class="ps-i" type="text" maxlength="14" autocomplete="off"
+           autocapitalize="words" spellcheck="false" placeholder="Lion du Nord"/>
+    <div class="ps-e" id="psErr"></div>
+    <button class="btn" style="width:100%" onclick="TDB.valider()">ENTRER</button>
+    <p class="ps-note">Choisis un surnom, pas ton vrai nom : il peut appara&#238;tre dans le classement.
+      De 2 &#224; 14 caract&#232;res.</p>
+  </div>
+</div>
   <div id="but">🎯 <b>But :</b> garde tes 4 piliers hauts — ton <b>plus faible décide</b></div>
 
   <div id="etape"><div id="etapenum">1</div><div id="msg"></div><div id="think"></div></div>
@@ -4325,6 +4392,9 @@ function majFinMatch(win, histo){
   const levelUp = apres.lvl > avant.lvl;
   sauverStats();
   if(!enLigne()) majProfil(win);   // le Miroir se nourrit du SOLO uniquement
+  TDB.envoyer({ mode: enLigne() ? 'duel' : MODE, score: pilierFaible(T,1),
+                total: P.reduce((s,p)=>s+T[p][1],0), gagne: win,
+                duree: Math.round((Date.now()-_tDebut)/1000), jour: defiKey() });
   /* EN DUEL, RIEN DE TOUT CELA NE VIENT. majFinMatch() est partagée avec le solo
      (afficherFinDuel l'appelle aussi) : sans ces gardes, la Révélation, la question du
      Phénix et le Miroir s'ouvraient au nez des deux joueurs en pleine partie en ligne.
@@ -4384,7 +4454,7 @@ function demarrer(){
   mainJ = tireNormales(dn).concat(ds.splice(0,SPEC_PAR_MAIN));
   mainIA= tireNormales(dn).concat(ds.splice(0,SPEC_PAR_MAIN));
   trier(mainJ);
-  T=tableVide(); tour=0; sel=null; fini=false; locked=false; histo=[]; prevOwners={};
+  _tDebut=Date.now(); T=tableVide(); tour=0; sel=null; fini=false; locked=false; histo=[]; prevOwners={};
   fermerOverlays();
   document.getElementById("niveauBadge").textContent = NIVEAU.emb+" "+NIVEAU.label;
   majMatch();
@@ -4590,7 +4660,7 @@ addEventListener("resize", ()=>{ try{ _kActuel=0; _ajRangs=-1; ajusteMain(true);
    Sans marqueur visible, ni le joueur ni le testeur ne savent ce qu'ils jouent, et le
    développeur ne peut pas le lire sur une capture. On a perdu une journée à s'en douter.
    À bumper AVEC le CACHE de sw.js — les deux doivent toujours dire la même chose. */
-const BUILD_TAG = "v239";
+const BUILD_TAG = "v242";
 
 const CLE_LITE = "eq_lite";
 let liteOn = false;
@@ -5263,7 +5333,7 @@ function demarrerDefi(){
   mainJ = tireNormales(dn).concat(ds.splice(0,SPEC_PAR_MAIN));
   mainIA= tireNormales(dn).concat(ds.splice(0,SPEC_PAR_MAIN));
   trier(mainJ);
-  T=tableVide(); tour=0; sel=null; fini=false; locked=false; histo=[]; prevOwners={};
+  _tDebut=Date.now(); T=tableVide(); tour=0; sel=null; fini=false; locked=false; histo=[]; prevOwners={};
   fermerOverlays();
   document.getElementById("niveauBadge").textContent = "🌙 Défi du jour";
   majMatch(); render(); initCardTilt();
@@ -5307,6 +5377,8 @@ function terminerDefi(){
                   <button class="btn" style="flex:1" onclick="demarrerDefi()">Rejouer</button>`;
   fb.insertAdjacentHTML('afterend','');
   fin.classList.add('on');
+  TDB.envoyer({ mode:'defi', score:f1, total:t1, gagne:gagne,
+                duree: Math.round((Date.now()-_tDebut)/1000), jour:key });
   if(gagne){ sWin(); if(record){ confetti(90); flash('#f2d98a'); buzz([20,40,20]); } } else sLose();
 }
 /* Partager le jeu. Il a remplacé la porte 🪞 : le miroir ne s'ouvre plus que par le Phœnix,
@@ -5821,7 +5893,7 @@ function nouvelleRondeAgonie(){
   mainJ = tireNormales(dn).concat(ds.splice(0,SPEC_PAR_MAIN));
   mainIA= tireNormales(dn).concat(ds.splice(0,SPEC_PAR_MAIN));
   trier(mainJ);
-  T=tableVide(); tour=0; sel=null; fini=false; locked=false; histo=[]; prevOwners={}; AGO.sauveManche={};
+  _tDebut=Date.now(); T=tableVide(); tour=0; sel=null; fini=false; locked=false; histo=[]; prevOwners={}; AGO.sauveManche={};
   fermerOverlays();
   document.getElementById("niveauBadge").textContent = NIVEAU.emb+" "+NIVEAU.label;
   majAgonieHeader();
@@ -6384,7 +6456,7 @@ function netDealManche(){
   mainJ = tireNormales(dn).concat(ds.splice(0,SPEC_PAR_MAIN));   // hôte = joueur 1
   mainIA= tireNormales(dn).concat(ds.splice(0,SPEC_PAR_MAIN));   // invité = joueur 2
   trier(mainJ);
-  T=tableVide(); tour=0; sel=null; fini=false; locked=false; histo=[]; prevOwners={};
+  _tDebut=Date.now(); T=tableVide(); tour=0; sel=null; fini=false; locked=false; histo=[]; prevOwners={};
   const hoteOuvre = (mancheNo % 2 === 1);          // alternance : hôte ouvre les manches impaires
   NET.aQui = hoteOuvre ? 'host' : 'guest';
   fermerOverlays(); fermerDuel();
@@ -6869,14 +6941,160 @@ function initAmbiance(){
     }
   }catch(e){}
 }
+/* ═══════════ TABLEAU DE BORD ═══════════
+   Chaque partie terminee part vers Supabase : nom, score, duree, date.
+   La base est en ECRITURE SEULE — le jeu peut ajouter, jamais lire. Le classement
+   se consulte depuis le tableau de bord Supabase, protege par le compte de Lamine.
+   Rien ne bloque jamais le jeu : si le reseau tombe, la partie se termine pareil. */
+const TDB = (function(){
+  const BASE = "https://mguiuamwggokbirxbyqc.supabase.co/rest/v1";
+  const URL = BASE + "/piliers_parties";
+  const KEY = "sb_publishable_OLw3XAyqiw_cur1ATMUWqA_9H9O3BVX";
+  let _suite = null;
+
+  function pseudo(){ try{ return localStorage.getItem('eq_pseudo')||''; }catch(e){ return ''; } }
+  function uid(){
+    try{
+      let u = localStorage.getItem('eq_uid');
+      if(!u){ u = 'u'+Date.now().toString(36)+Math.random().toString(36).slice(2,8); localStorage.setItem('eq_uid',u); }
+      return u;
+    }catch(e){ return 'u0'; }
+  }
+  /* Un nom tape par un joueur ne doit jamais devenir du HTML ni du SQL : on ne
+     garde que des lettres, chiffres, espaces et tirets, longueur bornee. */
+  function nettoyer(v){
+    return String(v||'').replace(/[^\p{L}\p{N} .'\-]/gu,'').replace(/\s+/g,' ').slice(0,14).trim();
+  }
+  function exiger(suite){
+    _suite = suite;
+    if(pseudo()){ suite(); return; }
+    const e = document.getElementById('psEcran');
+    if(!e){ suite(); return; }                  // l'ecran manque : on ne bloque pas le jeu
+    e.classList.add('on');
+    const i = document.getElementById('psInput');
+    if(i){
+      i.value = '';
+      i.addEventListener('keydown', ev => { if(ev.key === 'Enter') valider(); });
+      setTimeout(()=>{ try{ i.focus(); }catch(err){} }, 350);
+    }
+  }
+  function valider(){
+    const i = document.getElementById('psInput'), err = document.getElementById('psErr');
+    const v = nettoyer(i ? i.value : '');
+    if(v.length < 2){ if(err) err.textContent = "Deux caracteres au minimum."; return; }
+    try{ localStorage.setItem('eq_pseudo', v); }catch(e){}
+    uid();
+    const e = document.getElementById('psEcran'); if(e) e.classList.remove('on');
+    try{ ac(); }catch(err){}
+    if(_suite){ const f = _suite; _suite = null; f(); }
+  }
+  function envoyer(o){
+    if(!pseudo()) return;
+    const ligne = {
+      pseudo: pseudo(), uid: uid(),
+      mode: String(o.mode||'').slice(0,16),
+      score: o.score|0, total: o.total|0, gagne: !!o.gagne,
+      duree: o.duree|0, jour: o.jour|0, version: BUILD_TAG
+    };
+    try{
+      fetch(URL, { method:'POST', keepalive:true,
+        headers:{ 'apikey':KEY, 'Authorization':'Bearer '+KEY,
+                  'Content-Type':'application/json', 'Prefer':'return=minimal' },
+        body: JSON.stringify(ligne) }).catch(()=>{});
+    }catch(e){}
+  }
+
+  /* ── Tableau de bord, cote Lamine ──
+     Le mot de passe n'est PAS dans cette page : il est verifie par une fonction
+     de la base. Un curieux qui trouverait les cinq appuis n'obtient rien sans lui. */
+  let _taps = 0, _tapT = 0;
+  function tap(){
+    const t = Date.now();
+    _taps = (t - _tapT > 2500) ? 1 : _taps + 1;
+    _tapT = t;
+    if(_taps >= 5){ _taps = 0; bord(); }
+  }
+  function bord(){
+    const e = document.getElementById('tdbEcran'); if(!e) return;
+    e.classList.add('on');
+    let m = ''; try{ m = localStorage.getItem('eq_tdb')||''; }catch(err){}
+    const i = document.getElementById('tdbMdp'); if(i) i.value = m;
+    if(m) ouvrirBord();
+  }
+  function fermerBord(){
+    const e = document.getElementById('tdbEcran'); if(e) e.classList.remove('on');
+    const c = document.getElementById('tdbCorps');
+    if(c) c.innerHTML = '<p class="ps-p">Entre le mot de passe du tableau de bord.</p>'
+      + '<input id="tdbMdp" class="ps-i" type="password" autocomplete="off" placeholder="mot de passe"/>'
+      + '<div class="ps-e" id="tdbErr"></div>'
+      + '<button class="btn" style="width:100%" onclick="TDB.ouvrirBord()">VOIR</button>';
+  }
+  function _txt(v){ const d = document.createElement('div'); d.textContent = String(v==null?'':v); return d.innerHTML; }
+  function _date(v){ try{ return new Date(v).toLocaleDateString('fr-FR',{day:'numeric',month:'short'}); }catch(e){ return ''; } }
+  function ouvrirBord(){
+    const i = document.getElementById('tdbMdp'), err = document.getElementById('tdbErr');
+    const mdp = i ? i.value : '';
+    if(!mdp){ if(err) err.textContent = "Mot de passe requis."; return; }
+    if(err) err.textContent = "Lecture…";
+    fetch(BASE + '/rpc/piliers_tdb', { method:'POST',
+      headers:{ 'apikey':KEY, 'Authorization':'Bearer '+KEY, 'Content-Type':'application/json' },
+      body: JSON.stringify({ mdp: mdp }) })
+      .then(r => r.ok ? r.json() : Promise.reject(r.status))
+      .then(d => { try{ localStorage.setItem('eq_tdb', mdp); }catch(e){} rendre(d); })
+      .catch(() => { if(err) err.textContent = "Refuse. Verifie le mot de passe."; });
+  }
+  function rendre(d){
+    const c = document.getElementById('tdbCorps'); if(!c) return;
+    const top = (d && d.top) || [];
+    const lignes = top.length ? top.map((r,k) => '<tr><td class="n">'+(k+1)+'</td><td>'+_txt(r.pseudo)
+        + '</td><td class="n">'+(r.meilleur|0)+'</td><td>'+(r.parties|0)+'</td><td>'+_date(r.derniere)+'</td></tr>').join('')
+      : '<tr><td colspan="5" class="tdb-vide">Aucune partie pour l\'instant.</td></tr>';
+    c.innerHTML =
+      '<div class="tdb-chif">'
+      + '<div class="tdb-c"><b>'+(d.joueurs|0)+'</b><span>joueurs</span></div>'
+      + '<div class="tdb-c"><b>'+(d.parties|0)+'</b><span>parties</span></div>'
+      + '<div class="tdb-c"><b>'+(d.aujourdhui|0)+'</b><span>aujourd\'hui</span></div>'
+      + '<div class="tdb-c"><b>'+Math.round((d.duree_moy|0)/60*10)/10+' min</b><span>duree moyenne</span></div>'
+      + '</div>'
+      + '<table class="tdb-t"><thead><tr><th></th><th>Joueur</th><th>Score</th><th>Parties</th><th>Vu le</th></tr></thead>'
+      + '<tbody>'+lignes+'</tbody></table>';
+  }
+
+  /* Dix secondes d'appui, sans le moindre signe. Un doigt qui glisse annule :
+     personne ne tombe dessus en reglant le volume. */
+  function porte(){
+    const z = document.getElementById('regPorte'); if(!z) return;
+    let t = null, x0 = 0, y0 = 0;
+    const stop = () => { if(t){ clearTimeout(t); t = null; } };
+    z.addEventListener('pointerdown', e => {
+      x0 = e.clientX; y0 = e.clientY;
+      stop(); t = setTimeout(() => { t = null; try{ buzz(30); }catch(err){} bord(); }, 10000);
+    });
+    z.addEventListener('pointermove', e => {
+      if(t && (Math.abs(e.clientX-x0) > 12 || Math.abs(e.clientY-y0) > 12)) stop();
+    });
+    ['pointerup','pointerleave','pointercancel'].forEach(ev => z.addEventListener(ev, stop));
+  }
+  document.addEventListener('DOMContentLoaded', porte);
+  if(document.readyState !== 'loading') porte();
+
+  return { exiger:exiger, valider:valider, envoyer:envoyer, pseudo:pseudo,
+           ouvrirBord:ouvrirBord, fermerBord:fermerBord };
+})();
+/* Depart de la partie : sert a mesurer la duree reelle, en secondes. */
+let _tDebut = Date.now();
+
 initAmbiance();
 initVoixBtn();
 initMusBtn();
 initLite();      // décide seul si le téléphone rame
 nouveauMatch();
-let _premiere=false; try{ _premiere=!localStorage.getItem('eq_vu1'); if(_premiere) localStorage.setItem('eq_vu1','1'); }catch(e){}
-if(_premiere) ouvrirTuto("splash");
-else if(!reprendreDuelSauve()) ouvrirSplash();   // un duel était en cours ? on s'y rebranche seul, sinon accueil normal
+/* Le nom d'abord : l'accueil, le tuto et la reprise de duel attendent derriere. */
+TDB.exiger(function(){
+  let _premiere=false; try{ _premiere=!localStorage.getItem('eq_vu1'); if(_premiere) localStorage.setItem('eq_vu1','1'); }catch(e){}
+  if(_premiere) ouvrirTuto("splash");
+  else if(!reprendreDuelSauve()) ouvrirSplash();   // un duel était en cours ? on s'y rebranche seul, sinon accueil normal
+});
 _initEnCours = false;      // à partir d'ici, tout coup joué est gravé
 </script>
 <script>
