@@ -4660,7 +4660,7 @@ addEventListener("resize", ()=>{ try{ _kActuel=0; _ajRangs=-1; ajusteMain(true);
    Sans marqueur visible, ni le joueur ni le testeur ne savent ce qu'ils jouent, et le
    développeur ne peut pas le lire sur une capture. On a perdu une journée à s'en douter.
    À bumper AVEC le CACHE de sw.js — les deux doivent toujours dire la même chose. */
-const BUILD_TAG = "v247";
+const BUILD_TAG = "v248";
 
 const CLE_LITE = "eq_lite";
 let liteOn = false;
@@ -7036,12 +7036,20 @@ const TDB = (function(){
     const mdp = i ? i.value : '';
     if(!mdp){ if(err) err.textContent = "Mot de passe requis."; return; }
     if(err) err.textContent = "Lecture…";
+    /* Trois echecs tres differents donnaient le meme message, donc aucune piste :
+       fonction absente, mot de passe faux, ou reseau injoignable. On les separe. */
     fetch(BASE + '/rpc/piliers_tdb', { method:'POST',
       headers:{ 'apikey':KEY, 'Authorization':'Bearer '+KEY, 'Content-Type':'application/json' },
       body: JSON.stringify({ mdp: mdp }) })
-      .then(r => r.ok ? r.json() : Promise.reject(r.status))
+      .then(r => r.ok ? r.json() : r.text().then(t => Promise.reject({ code:r.status, txt:t })))
       .then(d => { try{ localStorage.setItem('eq_tdb', mdp); }catch(e){} rendre(d); })
-      .catch(() => { if(err) err.textContent = "Refuse. Verifie le mot de passe."; });
+      .catch(e => {
+        if(!err) return;
+        if(!e || e.code == null){ err.textContent = "Pas de réseau. Ouvre le jeu depuis le site en ligne."; return; }
+        if(e.code === 404){ err.textContent = "La fonction piliers_tdb n'existe pas encore dans la base — lance le SQL « 1 bis »."; return; }
+        if(/refus/i.test(e.txt||'')){ err.textContent = "Mot de passe refusé."; return; }
+        err.textContent = "Erreur " + e.code + " : " + String(e.txt||'').slice(0,90);
+      });
   }
   function rendre(d){
     const c = document.getElementById('tdbCorps'); if(!c) return;
