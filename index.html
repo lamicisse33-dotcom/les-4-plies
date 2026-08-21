@@ -124,7 +124,8 @@ a.reg-site .reg-v{opacity:.75;}
    touch-action:none empeche le glissement de la page d'annuler l'appui long. */
 .reg-porte{height:36px;width:100%;margin-top:2px;background:none;border:0;touch-action:none;
   user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;}
-/* Repère temporaire, retiré par REPERE_PORTE = false. */
+/* Repère de secours. Ne s'applique que si REPERE_PORTE repasse à true — le jour
+   où tu auras oublié où se trouve la porte. Sinon, ces règles ne servent jamais. */
 .reg-porte.repere{display:flex;align-items:center;justify-content:center;border-radius:10px;
   border:1px dashed rgba(201,162,39,.65);background:rgba(201,162,39,.08);}
 .reg-porte.repere::after{content:"↓ maintiens 10 s ↓";font-family:'Cinzel',serif;font-size:10px;
@@ -3473,10 +3474,11 @@ const PTS_VICTOIRE = 40, PTS_DEFAITE = 12, PTS_MANCHE = 10;
 const MODE_TEST = true;
 
 /* ══════════ REPÈRE DE LA PORTE ══════════
-   true  : la porte du tableau de bord est encadrée en pointillés et annoncée.
-   false : elle redevient totalement invisible — c'est l'état normal.
-   ⚠️ REPASSER À false UNE FOIS QUE TU SAIS OÙ ELLE EST. */
-const REPERE_PORTE = true;
+   La porte du tableau de bord vit sous le bouton « Enregistrer et fermer »,
+   dans les Réglages : une bande de 36 px, maintenue 10 secondes.
+   true  : elle est encadrée en pointillés et annoncée — pour la retrouver.
+   false : totalement invisible. C'est l'état de livraison. */
+const REPERE_PORTE = false;
 
 const CLE_BOUT = 'eq_boutique_v1';
 /* Le PHÉNIX est l'habillage de DÉPART : c'est lui que voit un joueur qui ouvre le jeu
@@ -4660,7 +4662,7 @@ addEventListener("resize", ()=>{ try{ _kActuel=0; _ajRangs=-1; ajusteMain(true);
    Sans marqueur visible, ni le joueur ni le testeur ne savent ce qu'ils jouent, et le
    développeur ne peut pas le lire sur une capture. On a perdu une journée à s'en douter.
    À bumper AVEC le CACHE de sw.js — les deux doivent toujours dire la même chose. */
-const BUILD_TAG = "v248";
+const BUILD_TAG = "v249";
 
 const CLE_LITE = "eq_lite";
 let liteOn = false;
