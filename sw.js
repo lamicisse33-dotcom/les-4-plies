@@ -1,12 +1,12 @@
 /* ÉQUILIBRE — service worker. Bumpe CACHE à chaque déploiement pour forcer la mise à jour. */
-const CACHE = 'piliers-v242';
+const CACHE = 'piliers-v247';
 // Ce qui est mis en cache DES L'INSTALLATION : le strict nécessaire pour que le jeu
 // démarre et fonctionne hors ligne. Les illustrations d'habillage n'y sont PAS :
 // elles se mettent en cache toutes seules à la première utilisation (voir plus bas),
 // donc un joueur qui reste en Classique ne les télécharge jamais. C'est tout l'intérêt
 // de les avoir sorties d'index.html.
 const ASSETS = ['./','./index.html','./manifest.json','./icon-192.png','./icon-512.png',
-  './icon-180.png','./confidentialite.html','./la-revelation-des-coris.html'];
+  './icon-180.png','./confidentialite.html','./la-revelation-des-coris.html','./phenix.webp'];
 
 self.addEventListener('install', e => {
   self.skipWaiting();

@@ -122,7 +122,14 @@ a.reg-site .reg-v{opacity:.75;}
 .tdb-vide{font-size:13px;color:#9a92b5;text-align:center;padding:18px 0;}
 /* La porte. Aucune bordure, aucun fond, aucun curseur : rien ne la signale.
    touch-action:none empeche le glissement de la page d'annuler l'appui long. */
-.reg-porte{height:24px;width:100%;margin-top:2px;background:none;border:0;touch-action:none;}
+.reg-porte{height:36px;width:100%;margin-top:2px;background:none;border:0;touch-action:none;
+  user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;}
+/* Repère temporaire, retiré par REPERE_PORTE = false. */
+.reg-porte.repere{display:flex;align-items:center;justify-content:center;border-radius:10px;
+  border:1px dashed rgba(201,162,39,.65);background:rgba(201,162,39,.08);}
+.reg-porte.repere::after{content:"↓ maintiens 10 s ↓";font-family:'Cinzel',serif;font-size:10px;
+  letter-spacing:.14em;color:var(--goldL);opacity:.9;}
+.reg-porte.repere.tient{border-style:solid;background:rgba(201,162,39,.22);}
 .splash-emb{line-height:0;display:flex;justify-content:center;filter:drop-shadow(0 0 18px rgba(240,208,96,.6));animation:crownfloat 3.4s ease-in-out infinite;}
 .splash-emb svg{display:block;}
 html.lite .splash-emb{animation:none;filter:none;}   /* mobile lent : l'emblème ne flotte pas */
@@ -2095,12 +2102,12 @@ html[data-skin="coris"] #score .lbl{color:#7C5B36;}
       <span class="reg-n">Volume général</span>
       <input id="regVol" type="range" min="0" max="100" step="5" oninput="regVolume(this.value)"/>
       <span class="reg-pc" id="regVolPc"></span>
-      <div id="regPorte" class="reg-porte" aria-hidden="true"></div>
     </div>
     <a class="reg-l reg-site" href="https://khalam.app">
       <span class="reg-n"><span class="reg-e">↩︎</span>Retour au site KHALAM</span><span class="reg-v">khalam.app</span></a>
   </div>
   <button class="btn" style="width:100%;margin-top:14px" onclick="fermerReglages()">Enregistrer et fermer</button>
+  <div id="regPorte" class="reg-porte" aria-hidden="true"></div>
 </div></div>
 <div id="miroir" class="overlay"><div class="card">
   <div class="ttlmini">Le reflet de ton jeu</div>
@@ -2289,35 +2296,6 @@ html[data-skin="coris"] #score .lbl{color:#7C5B36;}
   <div id="score"></div>
   <div id="bornes"><svg id="liens" xmlns="http://www.w3.org/2000/svg"></svg></div>
 
-<div id="tdbEcran" role="dialog" aria-modal="true">
-  <div class="tdb-carte">
-    <div class="tdb-h">&#9878; TABLEAU DE BORD</div>
-    <div id="tdbCorps">
-      <p class="ps-p">Entre le mot de passe du tableau de bord.</p>
-      <input id="tdbMdp" class="ps-i" type="password" autocomplete="off" placeholder="mot de passe"/>
-      <div class="ps-e" id="tdbErr"></div>
-      <button class="btn" style="width:100%" onclick="TDB.ouvrirBord()">VOIR</button>
-    </div>
-    <button class="btn" style="width:100%;margin-top:10px;opacity:.7" onclick="TDB.fermerBord()">Fermer</button>
-  </div>
-</div>
-
-<div id="psEcran" role="dialog" aria-modal="true" aria-labelledby="psT">
-  <div class="ps-carte">
-    <div class="splash-brand" style="pointer-events:none">&#10022; KHALAM &#10022;</div>
-    <h2 class="ps-t" id="psT">TON NOM DE JOUEUR</h2>
-    <p class="ps-p">Il te suivra dans le classement des Quatre Piliers.</p>
-    <input id="psInput" class="ps-i" type="text" maxlength="14" autocomplete="off"
-           autocapitalize="words" spellcheck="false" placeholder="Lion du Nord"/>
-    <div class="ps-e" id="psErr"></div>
-    <button class="btn" style="width:100%" onclick="TDB.valider()">ENTRER</button>
-    <p class="ps-note">Choisis un surnom, pas ton vrai nom : il peut appara&#238;tre dans le classement.
-      De 2 &#224; 14 caract&#232;res.</p>
-  </div>
-</div>
-  <div id="but">🎯 <b>But :</b> garde tes 4 piliers hauts — ton <b>plus faible décide</b></div>
-
-  <div id="etape"><div id="etapenum">1</div><div id="msg"></div><div id="think"></div></div>
 
   <div id="mainzone">
     <div class="titremain">Votre main</div>
@@ -3471,16 +3449,16 @@ chargerProfil(); chargerReponses();
 const SKINS = [
   {id:'defaut',    nom:'Classique',           emoji:'⚖️', prix:0,     desc:"Thème par défaut — l'or et la nuit."},
   {id:'bronze',    nom:'Bronze',              emoji:'🟤', prix:100,   desc:"Chaleur ancestrale — métal patiné, lumière orangée."},
-  {id:'plastique', nom:'Plastique',           emoji:'🔵', prix:0,     desc:"Ciel de laque — bleu éclatant, nuages clairs. Habillage de départ."},
+  {id:'plastique', nom:'Plastique',           emoji:'🔵', prix:0,     desc:"Ciel de laque — bleu éclatant, nuages clairs."},
   {id:'verre',     nom:'Verre',               emoji:'🔷', prix:500,   desc:"Élégance cristalline — translucide, reflets glacés."},
   {id:'argent',    nom:'Argent',              emoji:'🥈', prix:1000,  desc:"Raffinement métallique — argent poli, halo blanc."},
   {id:'or',        nom:'Or',                  emoji:'🥇', prix:2000,  desc:"Majesté royale — cadres dorés, lumière chaude."},
   {id:'diamant',   nom:'Diamant',             emoji:'💎', prix:5000,  desc:"Prestige absolu — cristal, reflets arc-en-ciel."},
   {id:'coris',     nom:'Coris Ancestraux',    emoji:'🐚', prix:8000,  desc:"Âme africaine — cauris sculptés, sable lumineux."},
-  {id:'phenix',    nom:'Phénix',              emoji:'🔥', prix:12000, desc:"Feu de renaissance — flammes vivantes, braises."},
+  {id:'phenix',    nom:'Phénix',              emoji:'🔥', prix:12000, desc:"Feu de renaissance — flammes vivantes, braises. Habillage de départ."},
   {id:'elements',  nom:'Les Quatre Éléments', emoji:'🌍', prix:18000, desc:"Les piliers prennent vie — chaque pilier s'anime."}
 ];
-const CADEAU_SKINS = ['bronze','verre','argent'];   // Plastique en est sorti : il est acquis dès le départ
+const CADEAU_SKINS = ['bronze','verre','argent'];   // le Phénix en est sorti : il est acquis dès le départ
 const PTS_VICTOIRE = 40, PTS_DEFAITE = 12, PTS_MANCHE = 10;
 /* ══════════ MODE TEST ══════════
    true  : les 10 habillages sont ouverts pour tout le monde, le temps de la phase de test.
@@ -3494,11 +3472,22 @@ const PTS_VICTOIRE = 40, PTS_DEFAITE = 12, PTS_MANCHE = 10;
    — un repère « MODE TEST » s'affiche dans la boutique tant que c'est actif. */
 const MODE_TEST = true;
 
+/* ══════════ REPÈRE DE LA PORTE ══════════
+   true  : la porte du tableau de bord est encadrée en pointillés et annoncée.
+   false : elle redevient totalement invisible — c'est l'état normal.
+   ⚠️ REPASSER À false UNE FOIS QUE TU SAIS OÙ ELLE EST. */
+const REPERE_PORTE = true;
+
 const CLE_BOUT = 'eq_boutique_v1';
-/* Plastique est l'habillage de DÉPART : c'est lui que voit un joueur qui ouvre le jeu pour
-   la première fois. Classique reste disponible gratuitement dans la boutique, pour qui
-   préfère l'or et la nuit. */
-const SKIN_DEPART = 'plastique';
+/* Le PHÉNIX est l'habillage de DÉPART : c'est lui que voit un joueur qui ouvre le jeu
+   pour la première fois. Classique reste disponible gratuitement dans la boutique, pour
+   qui préfère l'or et la nuit.
+   CONSÉQUENCE : phenix.webp (171 Ko) n'est plus une image d'exception, elle s'affiche
+   dès le premier écran. Le service worker la met donc en cache dès l'installation. */
+const SKIN_DEPART = 'phenix';
+/* Change cette étiquette pour imposer à nouveau l'habillage de départ à tout le monde,
+   une seule fois par appareil. Laisse-la telle quelle le reste du temps. */
+const SKIN_TAG = 'phenix-2026-08';
 let BOUT = {pts:0, owned:['defaut',SKIN_DEPART], equipe:SKIN_DEPART, cadeau:false, jouees:0};
 /* Déblocage d'ESSAI : ouvrir le jeu avec ?skins=plastique (ou ?skins=tous) débloque
    l'habillage le temps de l'essayer. Rien n'est enregistré : sauverBoutique() retire ces
@@ -3519,9 +3508,20 @@ function chargerBoutique(){
   try{ const s=JSON.parse(localStorage.getItem(CLE_BOUT)); if(s&&typeof s==='object') BOUT=Object.assign(BOUT,s); }catch(e){}
   if(!Array.isArray(BOUT.owned)) BOUT.owned=['defaut'];
   if(BOUT.owned.indexOf('defaut')<0) BOUT.owned.unshift('defaut');
-  /* Joueur déjà installé : il reçoit Plastique sans rien perdre, et SON habillage équipé
-     n'est pas touché — on ne lui impose pas le nouveau départ au milieu de sa partie. */
   if(BOUT.owned.indexOf(SKIN_DEPART)<0) BOUT.owned.push(SKIN_DEPART);
+  /* ── BASCULE UNIQUE VERS LE PHÉNIX ──
+     Le Phénix devient l'habillage de tout le monde, joueurs déjà installés compris.
+     La bascule ne se produit QU'UNE FOIS par appareil : le jour où quelqu'un rechoisit
+     Classique dans la boutique, son choix tient — on ne le lui reprend pas à chaque
+     ouverture. Pour la rejouer un jour, il suffit de changer SKIN_TAG. */
+  try{
+    if(localStorage.getItem('eq_skin_tag') !== SKIN_TAG){
+      if(BOUT.owned.indexOf('phenix')<0) BOUT.owned.push('phenix');
+      BOUT.equipe = 'phenix';
+      localStorage.setItem('eq_skin_tag', SKIN_TAG);
+      sauverBoutique();
+    }
+  }catch(e){}
   if(MODE_TEST){                                  // phase de test : tout est ouvert, rien n'est acquis
     SKINS.forEach(function(s){
       if(BOUT.owned.indexOf(s.id)<0){ BOUT.owned.push(s.id); SKINS_ESSAI.push(s.id); }
@@ -4660,7 +4660,7 @@ addEventListener("resize", ()=>{ try{ _kActuel=0; _ajRangs=-1; ajusteMain(true);
    Sans marqueur visible, ni le joueur ni le testeur ne savent ce qu'ils jouent, et le
    développeur ne peut pas le lire sur une capture. On a perdu une journée à s'en douter.
    À bumper AVEC le CACHE de sw.js — les deux doivent toujours dire la même chose. */
-const BUILD_TAG = "v242";
+const BUILD_TAG = "v247";
 
 const CLE_LITE = "eq_lite";
 let liteOn = false;
@@ -7064,16 +7064,22 @@ const TDB = (function(){
      personne ne tombe dessus en reglant le volume. */
   function porte(){
     const z = document.getElementById('regPorte'); if(!z) return;
+    if(REPERE_PORTE) z.classList.add('repere');
     let t = null, x0 = 0, y0 = 0;
-    const stop = () => { if(t){ clearTimeout(t); t = null; } };
-    z.addEventListener('pointerdown', e => {
-      x0 = e.clientX; y0 = e.clientY;
-      stop(); t = setTimeout(() => { t = null; try{ buzz(30); }catch(err){} bord(); }, 10000);
-    });
-    z.addEventListener('pointermove', e => {
-      if(t && (Math.abs(e.clientX-x0) > 12 || Math.abs(e.clientY-y0) > 12)) stop();
-    });
-    ['pointerup','pointerleave','pointercancel'].forEach(ev => z.addEventListener(ev, stop));
+    const stop = () => { if(t){ clearTimeout(t); t = null; } z.classList.remove('tient'); };
+    const debut = (x,y) => { x0=x; y0=y; stop(); if(REPERE_PORTE) z.classList.add('tient');
+      t = setTimeout(() => { t = null; z.classList.remove('tient');
+        try{ buzz(30); }catch(err){} bord(); }, 10000); };
+    const bouge = (x,y) => { if(t && (Math.abs(x-x0) > 45 || Math.abs(y-y0) > 45)) stop(); };
+    // Le doigt d'abord, la souris ensuite. On N'ECOUTE PAS pointercancel :
+    // c'est precisement lui que Safari envoie quand la loupe s'ouvre.
+    z.addEventListener('touchstart', e => { const p=e.touches[0]; debut(p.clientX,p.clientY); }, {passive:true});
+    z.addEventListener('touchmove',  e => { const p=e.touches[0]; bouge(p.clientX,p.clientY); }, {passive:true});
+    z.addEventListener('touchend', stop);
+    z.addEventListener('mousedown', e => debut(e.clientX, e.clientY));
+    z.addEventListener('mousemove', e => bouge(e.clientX, e.clientY));
+    ['mouseup','mouseleave'].forEach(ev => z.addEventListener(ev, stop));
+    z.addEventListener('contextmenu', e => e.preventDefault());
   }
   document.addEventListener('DOMContentLoaded', porte);
   if(document.readyState !== 'loading') porte();
@@ -7152,5 +7158,34 @@ if('serviceWorker' in navigator){
   <p style="color:var(--text);font-size:14px;line-height:1.5">Tu viens de débloquer la <b style="color:var(--goldL)">Boutique de l'Équilibre</b>.<br>Pour célébrer ton arrivée, choisis <b>gratuitement</b> ton premier habillage.</p>
   <div class="cad-choix" id="cadChoix"></div>
 </div></div>
+<div id="tdbEcran" role="dialog" aria-modal="true">
+  <div class="tdb-carte">
+    <div class="tdb-h">&#9878; TABLEAU DE BORD</div>
+    <div id="tdbCorps">
+      <p class="ps-p">Entre le mot de passe du tableau de bord.</p>
+      <input id="tdbMdp" class="ps-i" type="password" autocomplete="off" placeholder="mot de passe"/>
+      <div class="ps-e" id="tdbErr"></div>
+      <button class="btn" style="width:100%" onclick="TDB.ouvrirBord()">VOIR</button>
+    </div>
+    <button class="btn" style="width:100%;margin-top:10px;opacity:.7" onclick="TDB.fermerBord()">Fermer</button>
+  </div>
+</div>
+
+<div id="psEcran" role="dialog" aria-modal="true" aria-labelledby="psT">
+  <div class="ps-carte">
+    <div class="splash-brand" style="pointer-events:none">&#10022; KHALAM &#10022;</div>
+    <h2 class="ps-t" id="psT">TON NOM DE JOUEUR</h2>
+    <p class="ps-p">Il te suivra dans le classement des Quatre Piliers.</p>
+    <input id="psInput" class="ps-i" type="text" maxlength="14" autocomplete="off"
+           autocapitalize="words" spellcheck="false" placeholder="Lion du Nord"/>
+    <div class="ps-e" id="psErr"></div>
+    <button class="btn" style="width:100%" onclick="TDB.valider()">ENTRER</button>
+    <p class="ps-note">Choisis un surnom, pas ton vrai nom : il peut appara&#238;tre dans le classement.
+      De 2 &#224; 14 caract&#232;res.</p>
+  </div>
+</div>
+  <div id="but">🎯 <b>But :</b> garde tes 4 piliers hauts — ton <b>plus faible décide</b></div>
+
+  <div id="etape"><div id="etapenum">1</div><div id="msg"></div><div id="think"></div></div>
 </body>
 </html>
