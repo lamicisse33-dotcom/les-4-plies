@@ -120,6 +120,7 @@ a.reg-site .reg-v{opacity:.75;}
 .tdb-t td{padding:7px 5px;border-bottom:1px solid rgba(255,255,255,.06);color:#ded6f0;}
 .tdb-t td.n{color:var(--goldL);font-weight:700;}
 .tdb-vide{font-size:13px;color:#9a92b5;text-align:center;padding:18px 0;}
+.tdb-trace{font-size:11px;line-height:1.5;color:#9a92b5;margin-top:14px;word-break:break-word;}
 /* La porte. Aucune bordure, aucun fond, aucun curseur : rien ne la signale.
    touch-action:none empeche le glissement de la page d'annuler l'appui long. */
 .reg-porte{height:36px;width:100%;margin-top:2px;background:none;border:0;touch-action:none;
@@ -611,7 +612,9 @@ span.orb{width:24px;height:24px;border-radius:50%;border:1px solid var(--gold);b
   font-family:'Cinzel',serif;font-weight:900;}
 
 .overlay{position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;padding:20px;
-  background:rgba(6,3,14,.92);backdrop-filter:blur(3px);}
+  /* PAS de backdrop-filter ici : le fond est opaque à 92 %, le floutage ne se voyait
+     pas, mais il coûtait un refloutage plein écran à chaque ouverture. */
+  background:rgba(6,3,14,.955);}
 .overlay.on{display:flex;animation:ovin .3s ease;}
 @keyframes ovin{0%{opacity:0;}100%{opacity:1;}}
 .card{width:min(92vw,360px);text-align:center;padding:24px 20px;border-radius:18px;
@@ -1891,6 +1894,9 @@ html.lite[data-skin="verre"] .borne,
 html.lite[data-skin="verre"] #but,
 html.lite[data-skin="verre"] #etape,
 html.lite[data-skin="verre"] .overlay .card{-webkit-backdrop-filter:none;backdrop-filter:none;}
+/* Mobile lent : on coupe TOUS les floutages restants, d'où qu'ils viennent. C'est
+   l'effet le plus cher du CSS, et le seul dont l'absence ne se remarque pas. */
+html.lite *{-webkit-backdrop-filter:none !important;backdrop-filter:none !important;}
 html.lite[data-skin="verre"] .borne{box-shadow:inset 0 1px 0 rgba(255,255,255,.9),0 2px 8px rgba(0,0,0,.4);}
 html.lite[data-skin="elements"] .borne{box-shadow:none;}
 html.lite[data-skin="plastique"] .borne{box-shadow:inset 0 1px 0 rgba(255,255,255,.4);}
@@ -3450,16 +3456,16 @@ chargerProfil(); chargerReponses();
 const SKINS = [
   {id:'defaut',    nom:'Classique',           emoji:'⚖️', prix:0,     desc:"Thème par défaut — l'or et la nuit."},
   {id:'bronze',    nom:'Bronze',              emoji:'🟤', prix:100,   desc:"Chaleur ancestrale — métal patiné, lumière orangée."},
-  {id:'plastique', nom:'Plastique',           emoji:'🔵', prix:0,     desc:"Ciel de laque — bleu éclatant, nuages clairs."},
+  {id:'plastique', nom:'Plastique',           emoji:'🔵', prix:0,     desc:"Ciel de laque — bleu éclatant, nuages clairs. Habillage de départ."},
   {id:'verre',     nom:'Verre',               emoji:'🔷', prix:500,   desc:"Élégance cristalline — translucide, reflets glacés."},
   {id:'argent',    nom:'Argent',              emoji:'🥈', prix:1000,  desc:"Raffinement métallique — argent poli, halo blanc."},
   {id:'or',        nom:'Or',                  emoji:'🥇', prix:2000,  desc:"Majesté royale — cadres dorés, lumière chaude."},
   {id:'diamant',   nom:'Diamant',             emoji:'💎', prix:5000,  desc:"Prestige absolu — cristal, reflets arc-en-ciel."},
   {id:'coris',     nom:'Coris Ancestraux',    emoji:'🐚', prix:8000,  desc:"Âme africaine — cauris sculptés, sable lumineux."},
-  {id:'phenix',    nom:'Phénix',              emoji:'🔥', prix:12000, desc:"Feu de renaissance — flammes vivantes, braises. Habillage de départ."},
+  {id:'phenix',    nom:'Phénix',              emoji:'🔥', prix:12000, desc:"Feu de renaissance — flammes vivantes, braises."},
   {id:'elements',  nom:'Les Quatre Éléments', emoji:'🌍', prix:18000, desc:"Les piliers prennent vie — chaque pilier s'anime."}
 ];
-const CADEAU_SKINS = ['bronze','verre','argent'];   // le Phénix en est sorti : il est acquis dès le départ
+const CADEAU_SKINS = ['bronze','verre','argent'];   // Plastique en est sorti : il est acquis dès le départ
 const PTS_VICTOIRE = 40, PTS_DEFAITE = 12, PTS_MANCHE = 10;
 /* ══════════ MODE TEST ══════════
    true  : les 10 habillages sont ouverts pour tout le monde, le temps de la phase de test.
@@ -3481,15 +3487,14 @@ const MODE_TEST = true;
 const REPERE_PORTE = false;
 
 const CLE_BOUT = 'eq_boutique_v1';
-/* Le PHÉNIX est l'habillage de DÉPART : c'est lui que voit un joueur qui ouvre le jeu
-   pour la première fois. Classique reste disponible gratuitement dans la boutique, pour
-   qui préfère l'or et la nuit.
-   CONSÉQUENCE : phenix.webp (171 Ko) n'est plus une image d'exception, elle s'affiche
-   dès le premier écran. Le service worker la met donc en cache dès l'installation. */
-const SKIN_DEPART = 'phenix';
+/* PLASTIQUE est l'habillage de DÉPART : le plus léger, et c'est ce qui a décidé.
+   Le Phénix l'a été un temps, mais son image plein écran et son brasier animé faisaient
+   ramer les téléphones modestes. Il reste dans la boutique, pour qui a de quoi l'afficher.
+   Classique reste disponible gratuitement, pour qui préfère l'or et la nuit. */
+const SKIN_DEPART = 'plastique';
 /* Change cette étiquette pour imposer à nouveau l'habillage de départ à tout le monde,
    une seule fois par appareil. Laisse-la telle quelle le reste du temps. */
-const SKIN_TAG = 'phenix-2026-08';
+const SKIN_TAG = 'plastique-2026-08';
 let BOUT = {pts:0, owned:['defaut',SKIN_DEPART], equipe:SKIN_DEPART, cadeau:false, jouees:0};
 /* Déblocage d'ESSAI : ouvrir le jeu avec ?skins=plastique (ou ?skins=tous) débloque
    l'habillage le temps de l'essayer. Rien n'est enregistré : sauverBoutique() retire ces
@@ -3511,15 +3516,16 @@ function chargerBoutique(){
   if(!Array.isArray(BOUT.owned)) BOUT.owned=['defaut'];
   if(BOUT.owned.indexOf('defaut')<0) BOUT.owned.unshift('defaut');
   if(BOUT.owned.indexOf(SKIN_DEPART)<0) BOUT.owned.push(SKIN_DEPART);
-  /* ── BASCULE UNIQUE VERS LE PHÉNIX ──
-     Le Phénix devient l'habillage de tout le monde, joueurs déjà installés compris.
-     La bascule ne se produit QU'UNE FOIS par appareil : le jour où quelqu'un rechoisit
-     Classique dans la boutique, son choix tient — on ne le lui reprend pas à chaque
-     ouverture. Pour la rejouer un jour, il suffit de changer SKIN_TAG. */
+  /* ── BASCULE UNIQUE VERS PLASTIQUE ──
+     Le Phénix a été l'habillage de départ le temps d'une version : image plein écran,
+     brasier animé, lueurs. Sur les téléphones modestes, il coûtait trop cher. On revient
+     à Plastique, bien plus léger. Le Phénix reste disponible dans la boutique.
+     La bascule ne se produit QU'UNE FOIS par appareil : celui qui rechoisit le Phénix
+     le garde. Changer SKIN_TAG la rejoue. */
   try{
     if(localStorage.getItem('eq_skin_tag') !== SKIN_TAG){
-      if(BOUT.owned.indexOf('phenix')<0) BOUT.owned.push('phenix');
-      BOUT.equipe = 'phenix';
+      if(BOUT.owned.indexOf('plastique')<0) BOUT.owned.push('plastique');
+      BOUT.equipe = 'plastique';
       localStorage.setItem('eq_skin_tag', SKIN_TAG);
       sauverBoutique();
     }
@@ -4662,7 +4668,7 @@ addEventListener("resize", ()=>{ try{ _kActuel=0; _ajRangs=-1; ajusteMain(true);
    Sans marqueur visible, ni le joueur ni le testeur ne savent ce qu'ils jouent, et le
    développeur ne peut pas le lire sur une capture. On a perdu une journée à s'en douter.
    À bumper AVEC le CACHE de sw.js — les deux doivent toujours dire la même chose. */
-const BUILD_TAG = "v249";
+const BUILD_TAG = "v255";
 
 const CLE_LITE = "eq_lite";
 let liteOn = false;
@@ -4689,7 +4695,7 @@ function initLite(){
     const d=now-last; last=now; n++;
     if(d>28) lents++;
     if(now-t0 < 2200) requestAnimationFrame(mesure);
-    else if(n>20 && lents/n > 0.25){        // plus d'une image sur quatre en retard
+    else if(n>20 && lents/n > 0.18){        // près d'une image sur cinq en retard
       liteOn=true; appliqueLite();
       try{ localStorage.setItem(CLE_LITE,'1'); }catch(e){}
     }
@@ -6342,7 +6348,7 @@ function duelReconnecter(silencieux){
 
   if(!NET.peer || NET.peer.destroyed){        // notre pair est mort : on en refait un
     try{
-      const p = new Peer(); NET.peer=p;
+      const p = new Peer(cfgPeer()); NET.peer=p;
       p.on('open', relier);
       p.on('disconnected', ()=>{ if(!p.destroyed){ try{ p.reconnect(); }catch(e){} } });
       p.on("error", e=>vue("Reconnexion impossible : "+((e&&e.type)||e)));
@@ -6808,7 +6814,7 @@ function reprendreDuelSauve(){
     try{ document.getElementById('niveauBadge').textContent='⚔️ Duel'; }catch(e){}
     majMatch(); render();
     chargePeerJS(ok=>{ if(!ok) return; try{
-      const peer=new Peer('EQ4-'+NET.code); NET.peer=peer;
+      const peer=new Peer('EQ4-'+NET.code, cfgPeer()); NET.peer=peer;
       peer.on('error', ()=>{});
       peer.on('disconnected', ()=>{ if(!peer.destroyed){ try{ peer.reconnect(); }catch(e){} } });
       peer.on('connection', c=>{                       // l'invité revient : on lui renvoie l'état
@@ -6861,6 +6867,34 @@ function duelContexteOk(){
 function duelHorsLigneVue(){
   duelVue("Le duel a besoin du site en ligne — ouvre equilibre.khalam.app. Il ne peut pas fonctionner depuis un fichier ouvert sur l'appareil.");
 }
+/* ══════════ RÉSEAU DU DUEL ══════════
+   STUN suffit quand les deux joueurs sont sur le même réseau : chacun découvre son
+   adresse et se parle en direct. Dès qu'ils sont sur deux réseaux différents — Dakar
+   et Paris, ou simplement deux opérateurs mobiles — le NAT partagé des opérateurs
+   empêche toute liaison directe. Il faut alors un serveur TURN, qui RELAIE le flux.
+   Sans lui, la connexion échoue toujours, et seulement à distance.
+   Domaine et identifiants repris d'ÉQUILIBRE, où le duel à distance fonctionne déjà. */
+const TURN = {
+  urls: [
+    'turn:global.relay.metered.ca:80',
+    'turn:global.relay.metered.ca:80?transport=tcp',
+    'turn:global.relay.metered.ca:443',
+    'turns:global.relay.metered.ca:443?transport=tcp'   // TLS : passe presque partout
+  ],
+  user: '81a5d232de32f26a801feff7',
+  pass: 'xXRdexEMeC6x8/lX'
+};
+
+function cfgPeer(){
+  const ice = [{ urls:['stun:stun.l.google.com:19302','stun:stun1.l.google.com:19302'] }];
+  if(TURN.user && TURN.urls && TURN.urls.length){
+    /* Plusieurs ports et deux transports : le 443 en TLS franchit les pare-feu qui
+       bloquent tout le reste, le 80 en UDP donne la meilleure latence quand il passe. */
+    ice.push({ urls:TURN.urls, username:TURN.user, credential:TURN.pass });
+  }
+  return { config:{ iceServers:ice, iceCandidatePoolSize:4 } };
+}
+
 function chargePeerJS(cb){
   if(typeof Peer!=='undefined') return cb(true);
   if(_peerFile){ _peerFile.push(cb); return; }              // déjà en route : on fait la queue
@@ -6883,7 +6917,7 @@ function duelCreer(){
   }
   const code=genCode(); NET.role='host'; NET.code=code; NET.enPartie=false;
   duelVue("En attente d'un adversaire…", code);
-  const peer=new Peer('EQ4-'+code); NET.peer=peer;
+  const peer=new Peer('EQ4-'+code, cfgPeer()); NET.peer=peer;
   peer.on('error', e=>{ duelVue("Erreur : "+((e&&e.type)||e)); });
   peer.on('disconnected', ()=>{ if(!peer.destroyed){ try{ peer.reconnect(); }catch(e){} } });   // rester joignable sous EQ4-code même après une longue attente (l'annuaire déconnecte les pairs inactifs)
   peer.on('connection', c=>{
@@ -6916,7 +6950,7 @@ function duelRejoindre(){
   const code=(document.getElementById('duelCode').value||'').trim().toUpperCase();
   if(code.length<4){ document.getElementById('duelStatus').textContent="Entrez le code."; duelVue("Entrez le code de la partie."); return; }
   NET.role='guest'; NET.code=code; NET.enPartie=false; duelVue("Connexion à "+code+"…");
-  const peer=new Peer(); NET.peer=peer;
+  const peer=new Peer(cfgPeer()); NET.peer=peer;
   peer.on('error', e=>{ duelVue("Introuvable ou erreur : "+((e&&e.type)||e)); });
   peer.on('open', ()=>{
     const c=peer.connect('EQ4-'+code, {reliable:true}); NET.conn=c;
@@ -6932,7 +6966,8 @@ function initAmbiance(){
     if(document.documentElement.classList.contains('lite')) return;
     if(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     const host=document.querySelector('#ambiance .motes'); if(!host) return;
-    for(let i=0;i<16;i++){
+    /* 16 auparavant : autant d'éléments animés en continu derrière chaque écran. */
+    for(let i=0;i<10;i++){
       const m=document.createElement('span'); m.className='mote';
       const s=(2+Math.random()*2.6).toFixed(1)+'px';
       m.style.left=(Math.random()*100)+'vw'; m.style.width=s; m.style.height=s;
@@ -6998,12 +7033,19 @@ const TDB = (function(){
       score: o.score|0, total: o.total|0, gagne: !!o.gagne,
       duree: o.duree|0, jour: o.jour|0, version: BUILD_TAG
     };
+    /* On garde la trace du dernier envoi : sans elle, un refus de la base est
+       indiscernable d'une partie jamais jouee. Consultable dans le tableau de bord. */
+    const trace = (t) => { try{ localStorage.setItem('eq_tdb_envoi',
+      new Date().toISOString().slice(0,16).replace('T',' ') + ' — ' + t); }catch(e){} };
     try{
       fetch(URL, { method:'POST', keepalive:true,
         headers:{ 'apikey':KEY, 'Authorization':'Bearer '+KEY,
                   'Content-Type':'application/json', 'Prefer':'return=minimal' },
-        body: JSON.stringify(ligne) }).catch(()=>{});
-    }catch(e){}
+        body: JSON.stringify(ligne) })
+        .then(r => { if(r.ok){ trace('envoyé'); } else { r.text().then(t =>
+            trace('REFUS ' + r.status + ' : ' + String(t).slice(0,120))); } })
+        .catch(e => trace('RÉSEAU : ' + (e && e.message ? e.message : 'injoignable')));
+    }catch(e){ trace('ERREUR : ' + (e && e.message)); }
   }
 
   /* ── Tableau de bord, cote Lamine ──
@@ -7030,6 +7072,13 @@ const TDB = (function(){
       + '<input id="tdbMdp" class="ps-i" type="password" autocomplete="off" placeholder="mot de passe"/>'
       + '<div class="ps-e" id="tdbErr"></div>'
       + '<button class="btn" style="width:100%" onclick="TDB.ouvrirBord()">VOIR</button>';
+  }
+  function _trace(){ try{ return localStorage.getItem('eq_tdb_envoi') || 'aucun envoi enregistré'; }
+    catch(e){ return 'illisible'; } }
+  /* Envoie une ligne d'essai et rouvre le tableau : le resultat s'affiche en clair. */
+  function essai(){
+    envoyer({ mode:'essai', score:0, total:0, gagne:false, duree:0, jour:defiKey() });
+    setTimeout(ouvrirBord, 1400);
   }
   function _txt(v){ const d = document.createElement('div'); d.textContent = String(v==null?'':v); return d.innerHTML; }
   function _date(v){ try{ return new Date(v).toLocaleDateString('fr-FR',{day:'numeric',month:'short'}); }catch(e){ return ''; } }
@@ -7067,7 +7116,9 @@ const TDB = (function(){
       + '<div class="tdb-c"><b>'+Math.round((d.duree_moy|0)/60*10)/10+' min</b><span>duree moyenne</span></div>'
       + '</div>'
       + '<table class="tdb-t"><thead><tr><th></th><th>Joueur</th><th>Score</th><th>Parties</th><th>Vu le</th></tr></thead>'
-      + '<tbody>'+lignes+'</tbody></table>';
+      + '<tbody>'+lignes+'</tbody></table>'
+      + '<p class="tdb-trace">Dernier envoi depuis cet appareil :<br>' + _txt(_trace()) + '</p>'
+      + '<button class="btn" style="width:100%;margin-top:10px;font-size:12px" onclick="TDB.essai()">Tester un envoi</button>';
   }
 
   /* Dix secondes d'appui, sans le moindre signe. Un doigt qui glisse annule :
@@ -7095,7 +7146,7 @@ const TDB = (function(){
   if(document.readyState !== 'loading') porte();
 
   return { exiger:exiger, valider:valider, envoyer:envoyer, pseudo:pseudo,
-           ouvrirBord:ouvrirBord, fermerBord:fermerBord };
+           ouvrirBord:ouvrirBord, fermerBord:fermerBord, essai:essai };
 })();
 /* Depart de la partie : sert a mesurer la duree reelle, en secondes. */
 let _tDebut = Date.now();
