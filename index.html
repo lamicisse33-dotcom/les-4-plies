@@ -4643,6 +4643,12 @@ function ajusteMain(force){
   const app=document.getElementById("app"), main=document.getElementById("main");
   if(!app||!main||!main.children.length) return;
   const rangs=Math.ceil(main.children.length/PARRANG);
+  /* 22 nov. 2026 : sur écran large, tout le plateau est mis à l'échelle d'un bloc
+     (voir ajusterEcran) : les cartes gardent donc une taille fixe de dessin. */
+  if(document.body.classList.contains('ecran-large')){
+    if(_kActuel!==1.3){ _kActuel=1.3; document.documentElement.style.setProperty("--k","1.300"); }
+    _ajRangs=-1; return;
+  }
   const vw=document.documentElement.clientWidth, vh=window.innerHeight;
   if(!force && rangs===_ajRangs && vw===_ajW && vh===_ajH) return;   // rien n'a bougé : on ne lit rien
   _ajRangs=rangs; _ajW=vw; _ajH=vh;
@@ -4668,7 +4674,7 @@ addEventListener("resize", ()=>{ try{ _kActuel=0; _ajRangs=-1; ajusteMain(true);
    Sans marqueur visible, ni le joueur ni le testeur ne savent ce qu'ils jouent, et le
    développeur ne peut pas le lire sur une capture. On a perdu une journée à s'en douter.
    À bumper AVEC le CACHE de sw.js — les deux doivent toujours dire la même chose. */
-const BUILD_TAG = "v255";
+const BUILD_TAG = "v257";
 
 const CLE_LITE = "eq_lite";
 let liteOn = false;
@@ -7248,5 +7254,69 @@ if('serviceWorker' in navigator){
   <div id="but">🎯 <b>But :</b> garde tes 4 piliers hauts — ton <b>plus faible décide</b></div>
 
   <div id="etape"><div id="etapenum">1</div><div id="msg"></div><div id="think"></div></div>
+
+<style id="ecranAdapte">
+/* 22 nov. 2026 — un seul jeu pour le téléphone, l'ordinateur et la télévision.
+   Écran large (ordinateur, télé, téléphone couché) : piliers à gauche, main à droite,
+   et tout le plateau grandit (ou rapetisse) d'un bloc pour remplir l'écran. */
+body.ecran-large #app{max-width:none;width:1090px;display:grid;
+  grid-template-columns:540px 520px;column-gap:30px;align-content:start;align-items:start}
+body.ecran-large #app{grid-template-rows:auto 1fr repeat(5,auto) 1fr}
+body.ecran-large #app > *{grid-column:1}
+body.ecran-large #app > #topbar{grid-column:1 / -1;grid-row:1}
+body.ecran-large #app::before{content:"";grid-column:1;grid-row:2}
+body.ecran-large #app::after{content:"";grid-column:1;grid-row:8}
+body.ecran-large #app > #mainzone{grid-column:2;grid-row:2 / span 7;margin-top:0;align-self:center}
+body.ecran-echelle #app{position:absolute;left:50%;margin:0;transform-origin:50% 0}
+html:has(body.ecran-echelle),body.ecran-echelle{overflow:hidden}
+body.ecran-echelle .overlay > .card,body.ecran-echelle .overlay > .splashcard,body.ecran-echelle #fin .card{zoom:var(--zoomOv,1);max-height:calc(92dvh / var(--zoomOv,1))}
+body.ecran-echelle #etape{position:fixed;left:0;right:0;bottom:0;margin:0;z-index:5}
+</style>
+
+<script>
+/* 22 nov. 2026 — mise à l'échelle du plateau selon l'écran (téléphone, ordinateur, télévision). */
+(function(){
+  var app = null, etape = null, enCours = false;
+  function ajuster(){
+    if (enCours) return; enCours = true;
+    try {
+      app = app || document.getElementById('app');
+      etape = etape || document.getElementById('etape');
+      if (!app) return;
+      var W = window.innerWidth, H = window.innerHeight;
+      var large = W > H * 1.05 && W >= 560;
+      var b = document.body;
+      var avant = b.classList.contains('ecran-large');
+      b.classList.toggle('ecran-large', large);
+      b.classList.remove('ecran-echelle');
+      if (avant !== large || large){ try { _kActuel = 0; _ajRangs = -1; ajusteMain(true); } catch(e){} }
+      app.style.transform = ''; app.style.top = '';
+      var w = app.offsetWidth, h = app.offsetHeight;
+      var bas = (large && etape) ? etape.offsetHeight + 4 : 0;
+      var s = Math.min(W / w, (H - bas) / h);
+      if (!large && s <= 1.02) return;          // téléphone debout : la mise en page d'origine
+      s = Math.max(0.45, Math.min(3, s));
+      b.classList.add('ecran-echelle');
+      if (!large && etape) bas = etape.offsetHeight + 4;
+      s = Math.max(0.45, Math.min(3, Math.min(W / w, (H - bas) / h) * (large ? 0.96 : 1)));
+      app.style.top = Math.max(0, (H - bas - h * s) / 2) + 'px';
+      document.documentElement.style.setProperty('--zoomOv', Math.max(0.6, Math.min(2, H / 760)).toFixed(3));
+      app.style.transform = 'translateX(-50%) scale(' + s.toFixed(4) + ')';
+    } finally { enCours = false; }
+  }
+  window.ajusterEcran = ajuster;
+  window.addEventListener('resize', ajuster);
+  window.addEventListener('orientationchange', function(){ setTimeout(ajuster, 250); });
+  window.addEventListener('load', ajuster);
+  document.addEventListener('DOMContentLoaded', function(){
+    ajuster();
+    var a = document.getElementById('app');
+    if (a && window.ResizeObserver){
+      var t = 0;
+      new ResizeObserver(function(){ clearTimeout(t); t = setTimeout(ajuster, 60); }).observe(a);
+    }
+  });
+})();
+</script>
 </body>
 </html>
