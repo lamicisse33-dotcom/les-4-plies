@@ -2394,7 +2394,7 @@ html[data-skin="plastique"] #bornes .borne .mini{color:#c6d5eb}
     <div id="main"></div>
   </div>
 
-  <button id="phenixBtn" onclick="invoquerPhenix()" style="display:none"><b>🔥 Invoquer Le Phénix</b><span>relève ton pilier en feu · une fois par partie</span></button>
+  <button id="phenixBtn" onclick="invoquerPhenix()" style="display:block;visibility:hidden" disabled><b>🔥 Invoquer Le Phénix</b><span>relève ton pilier en feu · une fois par partie</span></button>
 
 
   <div class="aide">
@@ -4726,18 +4726,19 @@ let _kActuel=0;
 let _ajRangs=-1, _ajW=0, _ajH=0;
 function ajusteMain(force){
   const app=document.getElementById("app"), main=document.getElementById("main");
-  if(!app||!main||!main.children.length) return;
-  const rangs=Math.ceil(main.children.length/PARRANG);
+  if(!app||!main) return;
+  grilleMainStable();
+  const rangs=Math.ceil((NORM_PAR_MAIN+SPEC_PAR_MAIN)/PARRANG); // réserve la main complète jusqu’à la fin de la manche
   /* 22 nov. 2026 : sur écran large, tout le plateau est mis à l'échelle d'un bloc
      (voir ajusterEcran) : les cartes gardent donc une taille fixe de dessin. */
   if(document.body.classList.contains('ecran-large')){
     if(_kActuel!==1.3){ _kActuel=1.3; document.documentElement.style.setProperty("--k","1.300"); }
     _ajRangs=-1; return;
   }
-  const vw=document.documentElement.clientWidth, vh=window.innerHeight;
+  const vw=document.documentElement.clientWidth, vh=hauteurPlateauStable();
   if(!force && rangs===_ajRangs && vw===_ajW && vh===_ajH) return;   // rien n'a bougé : on ne lit rien
   _ajRangs=rangs; _ajW=vw; _ajH=vh;
-  const chrome=app.getBoundingClientRect().height - main.getBoundingClientRect().height;
+  const chrome=app.offsetHeight - main.offsetHeight + 58; // réserve le bandeau de tour
   const _cs=getComputedStyle(app);
   const _pad=(parseFloat(_cs.paddingLeft)||0)+(parseFloat(_cs.paddingRight)||0);
   const larg=Math.min(560, vw) - _pad;   // marge REELLE de #app (varie selon l'habillage)
@@ -4748,7 +4749,17 @@ function ajusteMain(force){
   _kActuel=k;
   document.documentElement.style.setProperty("--k", k.toFixed(3));
 }
-addEventListener("resize", ()=>{ try{ _kActuel=0; _ajRangs=-1; ajusteMain(true); }catch(e){} });
+function hauteurPlateauStable(){
+  const probe=document.getElementById('plateauViewport');
+  return (probe && probe.offsetHeight) || window.innerHeight;
+}
+function grilleMainStable(){
+  const m=document.getElementById('main');
+  if(!m) return;
+  m.style.gridTemplateColumns='repeat('+PARRANG+',calc(91px * var(--k)))';
+  m.style.gridTemplateRows='repeat('+Math.ceil((NORM_PAR_MAIN+SPEC_PAR_MAIN)/PARRANG)+',calc(132px * var(--k)))';
+}
+
 /* ══════════ LE MODE LÉGER ══════════
    Le CSS de ce mode existait depuis longtemps (html.lite coupe halos, flammes, lueurs
    flottantes...) mais RIEN ne posait jamais la classe : du code mort. Or il change tout —
@@ -4759,7 +4770,7 @@ addEventListener("resize", ()=>{ try{ _kActuel=0; _ajRangs=-1; ajusteMain(true);
    Sans marqueur visible, ni le joueur ni le testeur ne savent ce qu'ils jouent, et le
    développeur ne peut pas le lire sur une capture. On a perdu une journée à s'en douter.
    À bumper AVEC le CACHE de sw.js — les deux doivent toujours dire la même chose. */
-const BUILD_TAG = "v257";
+const BUILD_TAG = "v258";
 
 const CLE_LITE = "eq_lite";
 let liteOn = false;
@@ -4864,7 +4875,7 @@ function phenixDispo(){
 }
 function majPhenix(){
   const btn=document.getElementById("phenixBtn"); if(!btn) return;
-  btn.style.display = phenixDispo() ? "block" : "none";
+  const dispo=phenixDispo(); btn.style.display="block"; btn.style.visibility=dispo?"visible":"hidden"; btn.disabled=!dispo;
 }
 function braisesPhenix(p){
   if(document.documentElement.classList.contains('lite')) return;
@@ -7340,7 +7351,10 @@ if('serviceWorker' in navigator){
 
   <div id="etape"><div id="etapenum">1</div><div id="msg"></div><div id="think"></div></div>
 
+<div id="plateauViewport" aria-hidden="true" style="position:fixed;visibility:hidden;pointer-events:none;height:100vh;height:100svh;width:0;top:0"></div>
 <style id="ecranAdapte">
+#main{grid-template-columns:repeat(4,calc(91px * var(--k)));grid-template-rows:repeat(3,calc(132px * var(--k)))}
+#etape{min-height:48px}
 /* 22 nov. 2026 — un seul jeu pour le téléphone, l'ordinateur et la télévision.
    Écran large (ordinateur, télé, téléphone couché) : piliers à gauche, main à droite,
    et tout le plateau grandit (ou rapetisse) d'un bloc pour remplir l'écran. */
@@ -7361,28 +7375,30 @@ body.ecran-echelle #etape{position:fixed;left:0;right:0;bottom:0;margin:0;z-inde
 <script>
 /* 22 nov. 2026 — mise à l'échelle du plateau selon l'écran (téléphone, ordinateur, télévision). */
 (function(){
-  var app = null, etape = null, enCours = false;
-  function ajuster(){
+  var app = null, etape = null, enCours = false, dernierW=0, dernierH=0;
+  function ajuster(force){
     if (enCours) return; enCours = true;
     try {
       app = app || document.getElementById('app');
       etape = etape || document.getElementById('etape');
       if (!app) return;
-      var W = window.innerWidth, H = window.innerHeight;
+      var W = document.documentElement.clientWidth, H = hauteurPlateauStable();
+      if(force!==true && W===dernierW && H===dernierH) return;
+      dernierW=W; dernierH=H;
       var large = W > H * 1.05 && W >= 560;
       var b = document.body;
       var avant = b.classList.contains('ecran-large');
       b.classList.toggle('ecran-large', large);
       b.classList.remove('ecran-echelle');
-      if (avant !== large || large){ try { _kActuel = 0; _ajRangs = -1; ajusteMain(true); } catch(e){} }
+      try { _kActuel = 0; _ajRangs = -1; ajusteMain(true); } catch(e){}
       app.style.transform = ''; app.style.top = '';
       var w = app.offsetWidth, h = app.offsetHeight;
-      var bas = (large && etape) ? etape.offsetHeight + 4 : 0;
+      var bas = large ? 58 : 0;
       var s = Math.min(W / w, (H - bas) / h);
       if (!large && s <= 1.02) return;          // téléphone debout : la mise en page d'origine
       s = Math.max(0.45, Math.min(3, s));
       b.classList.add('ecran-echelle');
-      if (!large && etape) bas = etape.offsetHeight + 4;
+      if (!large && etape) bas = 58;
       s = Math.max(0.45, Math.min(3, Math.min(W / w, (H - bas) / h) * (large ? 0.96 : 1)));
       app.style.top = Math.max(0, (H - bas - h * s) / 2) + 'px';
       document.documentElement.style.setProperty('--zoomOv', Math.max(0.6, Math.min(2, H / 760)).toFixed(3));
@@ -7391,15 +7407,12 @@ body.ecran-echelle #etape{position:fixed;left:0;right:0;bottom:0;margin:0;z-inde
   }
   window.ajusterEcran = ajuster;
   window.addEventListener('resize', ajuster);
-  window.addEventListener('orientationchange', function(){ setTimeout(ajuster, 250); });
-  window.addEventListener('load', ajuster);
+  window.addEventListener('orientationchange', function(){ setTimeout(function(){ajuster(true)}, 250); });
+  window.addEventListener('load', function(){ajuster(true)});
   document.addEventListener('DOMContentLoaded', function(){
     ajuster();
-    var a = document.getElementById('app');
-    if (a && window.ResizeObserver){
-      var t = 0;
-      new ResizeObserver(function(){ clearTimeout(t); t = setTimeout(ajuster, 60); }).observe(a);
-    }
+    // Ne jamais recalculer l’échelle à cause d’un coup ou d’un changement de contenu.
+    if(document.fonts && document.fonts.ready) document.fonts.ready.then(function(){ajuster(true)});
   });
 })();
 </script>
